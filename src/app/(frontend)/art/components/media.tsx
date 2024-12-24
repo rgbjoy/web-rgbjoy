@@ -48,9 +48,7 @@ const Media = ({ media, thumbnail = false }: { media: MediaType; thumbnail?: boo
         <div className={style.image_wrapper}>
           <Image
             src={
-              thumbnail
-                ? media.sizes?.card?.url || ''
-                : media.url || media.sizes?.card?.url || ''
+              thumbnail ? media.sizes?.card?.url || '' : media.url || media.sizes?.card?.url || ''
             }
             width={thumbnail ? media.sizes?.card?.width || 300 : media.width || 300}
             height={thumbnail ? media.sizes?.card?.height || 300 : media.height || 300}

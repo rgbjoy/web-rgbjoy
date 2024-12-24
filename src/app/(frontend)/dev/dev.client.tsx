@@ -33,7 +33,10 @@ export default function DevClient(page: Dev) {
         <SplitText>{page.header}</SplitText>
       </h1>
 
-      <div className={style.content} dangerouslySetInnerHTML={{ __html: page.content_html || '' }} />
+      <div
+        className={style.content}
+        dangerouslySetInnerHTML={{ __html: page.content_html || '' }}
+      />
 
       <h2 className={style.sectionTitle}>Projects</h2>
       <GetProjects />

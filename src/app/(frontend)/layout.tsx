@@ -14,7 +14,6 @@ import configPromise from '@payload-config'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import { GoogleAnalytics } from '@next/third-parties/google'
 
-
 const montserrat = Montserrat({ subsets: ['latin'] })
 const myFont = localFont({
   src: '../../../public/fonts/Rhode-Regular.woff2',
