@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 export default async function Page() {
   const infoData = await getCachedGlobal('info', 1)()
 
-  return <InfoClient {...infoData as Info} />
+  return <InfoClient {...(infoData as Info)} />
 }
