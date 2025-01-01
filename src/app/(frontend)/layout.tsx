@@ -65,6 +65,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     const [posts, footer, home] = await Promise.all([
       payload.find({
         collection: 'posts',
+        depth: 1,
+        limit: 12,
+        where: {
+          _status: { equals: 'published' },
+        },
       }),
       getCachedGlobal('footer', 1)(),
       getCachedGlobal('home', 1)(),

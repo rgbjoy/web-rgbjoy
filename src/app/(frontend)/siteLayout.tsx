@@ -7,9 +7,11 @@ import dynamic from 'next/dynamic'
 import style from './siteLayout.module.scss'
 import NavLink from '@/components/navLink'
 import TerminalOverlay from '@/components/TerminalOverlay'
+import LoadingComponent from '@/components/loading'
+
 
 const DynamicBackground = dynamic(() => import('@/components/background/background'), {
-  loading: () => <div className="loading">...</div>,
+  loading: () => <LoadingComponent />,
   ssr: false,
 })
 
@@ -114,11 +116,7 @@ const SiteLayout = ({ children, homeData, footerData, postsData }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{
-              delay: 0.75,
-              duration: 0.75,
-              ease: 'easeOut',
-            }}
+            transition={{ delay: 0.25, duration: 0.75, ease: 'easeOut' }}
           >
             <Footer footerLinks={footerData.links} />
           </motion.div>
@@ -129,7 +127,7 @@ const SiteLayout = ({ children, homeData, footerData, postsData }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.75, ease: 'easeOut' }}
+          transition={{ duration: 0.75, ease: 'easeOut' }}
           className={'badge'}
         >
           2024 Portfolio
@@ -139,7 +137,7 @@ const SiteLayout = ({ children, homeData, footerData, postsData }) => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.75, ease: 'easeOut' }}
+        transition={{ delay: 0.5, duration: 0.75, ease: 'easeOut' }}
       >
         <TerminalOverlay postsData={postsData.docs} />
       </motion.div>

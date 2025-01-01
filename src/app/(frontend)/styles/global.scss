@@ -223,13 +223,17 @@ pre {
 }
 
 .loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
-  color: white;
-  top: $gutter;
+  top: 50%;
+  transform: translateY(-50%);
   left: $gutter;
 
   @include mobile-only {
-    top: $gutter-mobile;
+    top: 50%;
+    transform: translateY(-50%);
     left: $gutter-mobile;
   }
 }
