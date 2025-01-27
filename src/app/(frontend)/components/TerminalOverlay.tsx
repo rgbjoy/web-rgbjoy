@@ -22,6 +22,11 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
 
   const posts = postsData
 
+  const drawCard = (): number | string => {
+    const cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'] as const
+    return cards[Math.floor(Math.random() * cards.length)] as number | string
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value)
   }
@@ -40,12 +45,6 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
 
     // Blackjack game state
     const startBlackjack = () => {
-      const drawCard = () => {
-        const cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
-        const randomCard = cards[Math.floor(Math.random() * cards.length)]
-        return randomCard
-      }
-
       const initialPlayerHand = [drawCard(), drawCard()]
       const initialDealerHand = [drawCard(), drawCard()]
       setPlayerHand(initialPlayerHand)
@@ -80,12 +79,6 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
           `Your hand: ${initialPlayerHand.join(', ')}`,
         ])
       }
-    }
-
-    const drawCard = () => {
-      const cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
-      const randomCard = cards[Math.floor(Math.random() * cards.length)]
-      return randomCard
     }
 
     const calculateHandValue = (hand: (number | string)[]) => {
@@ -252,7 +245,7 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
 
       if (match) {
         const prefix = match[1] || ''
-        const dirInput = match[2]
+        const dirInput = match[2] || ''
         const matchingDirs = directories.filter((dir) => dir?.startsWith(dirInput))
 
         if (matchingDirs.length === 1) {

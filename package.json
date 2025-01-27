@@ -56,13 +56,12 @@
     "valtio": "^1.13.2"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^13.5.8",
-    "@payloadcms/eslint-config": "^1.1.1",
+    "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^20.17.16",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@types/three": "^0.160.0",
-    "eslint": "^8.57.1",
+    "eslint": "^9.19.0",
     "eslint-config-next": "^15.1.6",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3"

@@ -6,7 +6,6 @@ export default function LoadingComponent() {
   return (
     <motion.div className="loading">
       <div className="loading-text">
-        <h1>RGBJOY.com</h1>
         Loading
         <motion.span
           initial={{ opacity: 0 }}

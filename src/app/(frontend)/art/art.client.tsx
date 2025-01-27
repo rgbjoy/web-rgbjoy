@@ -60,7 +60,7 @@ export default function ArtClient(page: Art) {
       <div dangerouslySetInnerHTML={{ __html: page.content_html ?? '' }} />
       <Masonry
         breakpointCols={2}
-        className={style['my-masonry-grid']}
+        className={style['my-masonry-grid'] ?? ""}
         columnClassName={style['my-masonry-grid_column']}
       >
         {artwork?.map((item, i) => {

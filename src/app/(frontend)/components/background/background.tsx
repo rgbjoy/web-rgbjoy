@@ -24,7 +24,7 @@ import Stars from './stars'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Home } from '@payload-types'
 
-var FIRST_LOAD = true
+let FIRST_LOAD = true
 
 const GenerateShard = (points, thickness) => {
   const shape = new THREE.Shape()
@@ -47,7 +47,7 @@ const RandomShard = ({ position, color = '#FF0000' }) => {
   const thickness = 0.01
   const numPoints = 3
   const geometry = useMemo(() => {
-    let points: THREE.Vector2[] = []
+    const points: THREE.Vector2[] = []
     for (let i = 0; i < numPoints; i++) {
       const angle = 2 * Math.PI * (i / numPoints)
       const radius = 0.3 + Math.random() * 0.2
@@ -229,6 +229,8 @@ const ModelInfo = () => {
       }
     }
   })
+
+  if (!nodes?.Torus || !nodes?.Cube) return null
 
   return (
     <group ref={modelRef}>
