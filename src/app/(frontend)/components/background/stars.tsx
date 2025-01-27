@@ -83,34 +83,39 @@ function Stars({ count = 50, startRadius = 2, canReset = true }) {
   const material = useMemo(() => new StarfieldMaterial(), [])
 
   useFrame(() => {
-    if (!mesh.current) return
+    const geometry = mesh.current?.geometry
 
-    const positions = mesh.current.geometry.attributes.position.array
-    const opacity = mesh.current.geometry.attributes.opacity.array
+    if (!geometry?.attributes?.position || !geometry.attributes.opacity) return
+
+    const positions = geometry.attributes.position.array as Float32Array | undefined
+    const opacity = geometry.attributes.opacity.array as Float32Array | undefined
+
+    if (!positions || !opacity) return
 
     for (let i = 0; i < positions.length; i += 3) {
-      positions[i + 2] += particleSpeed
+      const z = positions[i + 2]
+      if (z === undefined) continue
 
+      positions[i + 2] = z + particleSpeed
       const opacityIndex = i / 3
-      let currentOpacity = opacity[opacityIndex]
+      let currentOpacity = opacity[opacityIndex] ?? 0
 
-      if (positions[i + 2] > -viewDistance && canReset && currentOpacity < maxOpacity) {
+      if (z > -viewDistance && canReset && currentOpacity < maxOpacity) {
         currentOpacity += fadeSpeed
       } else if (!canReset) {
         currentOpacity -= fadeSpeed
       }
 
-      currentOpacity = Math.max(minOpacity, Math.min(maxOpacity, currentOpacity))
-      opacity[opacityIndex] = currentOpacity
+      opacity[opacityIndex] = Math.max(minOpacity, Math.min(maxOpacity, currentOpacity))
 
-      if (positions[i + 2] >= 5) {
+      if (z >= 5) {
         positions[i + 2] = getRandomBetween(-distance * 2, 0)
-        opacity[i / 3] = minOpacity
+        opacity[opacityIndex] = minOpacity
       }
     }
 
-    mesh.current.geometry.attributes.position.needsUpdate = true
-    mesh.current.geometry.attributes.opacity.needsUpdate = true
+    geometry.attributes.position.needsUpdate = true
+    geometry.attributes.opacity.needsUpdate = true
   })
 
   return (
