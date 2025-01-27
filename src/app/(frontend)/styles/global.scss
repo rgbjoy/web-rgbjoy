@@ -227,9 +227,10 @@ pre {
   justify-content: center;
   align-items: center;
   position: absolute;
-  top: 50%;
+  top: $gutter;
   transform: translateY(-50%);
   left: $gutter;
+  z-index: 1000;
 
   @include mobile-only {
     top: 50%;

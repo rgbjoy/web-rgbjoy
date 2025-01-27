@@ -43,6 +43,9 @@ export default buildConfig({
       beforeNavLinks: ['./components/Admin#ViewSite'],
     },
   },
+  routes: {
+    admin: '/dashboard',
+  },
   collections: [Users, Media, Posts],
   globals: [Home, Info, Dev, Art, Footer],
   editor: lexicalEditor(),

@@ -18,7 +18,7 @@ interface PostPageProps {
 
 const replaceTags = (node) => {
   if (node.type === 'tag' && node.name === 'img') {
-    let { src, alt, width, height } = node.attribs
+    const { src, alt, width, height } = node.attribs
     return <Image src={src} alt={alt} width={width} height={height} />
   }
 
