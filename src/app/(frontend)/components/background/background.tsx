@@ -318,7 +318,7 @@ const ModelArt = () => {
       ref={artRef}
     >
       <sphereGeometry args={[1, 32, 16]} />
-      <meshBasicMaterial ref={artMatRef} transparent={true} color={'blue'} />
+      <meshBasicMaterial ref={artMatRef} depthTest={false} transparent={true} color={'blue'} />
       <Edges color={'blue'} threshold={1} />
     </mesh>
   )
