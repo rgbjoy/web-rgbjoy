@@ -72,6 +72,16 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
           updateWins(wins + 1)
         }
         setGameActive(false)
+      } else if (dealerValue === 21) {
+        setOutput([
+          ...newOutput,
+          `Starting Blackjack...`,
+          `Your hand: ${initialPlayerHand.join(', ')}`,
+          `Dealer's hand: ${initialDealerHand.join(', ')}. Dealer Blackjack! You lose!`,
+          `Type 'blackjack' to play again.`,
+        ])
+        updateLosses(losses + 1)
+        setGameActive(false)
       } else {
         setOutput([
           ...newOutput,
