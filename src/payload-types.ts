@@ -480,6 +480,7 @@ export interface Dev {
   pastProjects?:
     | {
         title: string;
+        image?: (number | null) | Media;
         link: {
           url: string;
         };
@@ -596,6 +597,7 @@ export interface DevSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
+        image?: T;
         link?:
           | T
           | {

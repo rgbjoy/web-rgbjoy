@@ -1,8 +1,8 @@
 'use client'
-import React, { useCallback, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { TextFieldClientProps } from 'payload'
 
-import { useField, TextInput, FieldLabel, useFormFields, useForm } from '@payloadcms/ui'
+import { useField, TextInput, FieldLabel, useFormFields } from '@payloadcms/ui'
 
 import { formatSlug } from './formatSlug'
 import './index.scss'
@@ -26,8 +26,6 @@ export const SlugComponent: React.FC<SlugComponentProps> = ({
     : checkboxFieldPathFromProps
 
   const { value, setValue } = useField<string>({ path: path || field.name })
-
-  const { dispatchFields } = useForm()
 
   // The value of the checkbox
   // We're using separate useFormFields to minimise re-renders

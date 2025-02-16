@@ -431,12 +431,16 @@ export const dev_past_projects = pgTable(
     _parentID: integer('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
     title: varchar('title').notNull(),
+    image: integer('image_id').references(() => media.id, {
+      onDelete: 'set null',
+    }),
     link_url: varchar('link_url').notNull(),
     description: varchar('description'),
   },
   (columns) => ({
     _orderIdx: index('dev_past_projects_order_idx').on(columns._order),
     _parentIDIdx: index('dev_past_projects_parent_id_idx').on(columns._parentID),
+    dev_past_projects_image_idx: index('dev_past_projects_image_idx').on(columns.image),
     _parentIDFk: foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [dev.id],
@@ -623,6 +627,11 @@ export const relations_dev_past_projects = relations(dev_past_projects, ({ one }
     fields: [dev_past_projects._parentID],
     references: [dev.id],
     relationName: 'pastProjects',
+  }),
+  image: one(media, {
+    fields: [dev_past_projects.image],
+    references: [media.id],
+    relationName: 'image',
   }),
 }))
 export const relations_dev = relations(dev, ({ many }) => ({

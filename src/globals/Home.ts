@@ -12,6 +12,9 @@ export const Home: GlobalConfig = {
   },
   admin: {
     group: 'Content',
+    preview: (doc, { req }) => {
+      return `${req.protocol}//${req.host}/`
+    }
   },
   access: {
     read: () => true,
