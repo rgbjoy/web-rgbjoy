@@ -52,7 +52,7 @@
     "sass-loader": "^16.0.5",
     "sharp": "^0.33.5",
     "three": "^0.160.1",
-    "three-stdlib": "^2.35.13",
+    "three-stdlib": "^2.35.14",
     "valtio": "^1.13.2"
   },
   "devDependencies": {

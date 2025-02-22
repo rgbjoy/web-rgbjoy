@@ -25,7 +25,10 @@ const LightBox = ({ children, media }) => {
         <div onClick={toggleIsOpen} className={style.lightbox}>
           <div className={style.lightbox__inner}>
             <Media media={media.image} />
-            <div className={style.lightbox__caption}>{media.title}</div>
+            <div className={style.lightbox__caption}>
+              {media.title}
+              <div>{media.description}</div>
+            </div>
           </div>
         </div>
       ) : null}
