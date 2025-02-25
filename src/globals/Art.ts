@@ -14,7 +14,7 @@ export const Art: GlobalConfig = {
   admin: {
     group: 'Content',
     preview: (doc, { req }) => {
-      return `${req.protocol}//${req.host}/${doc.globalType}`
+      return `${req.protocol}//${req.headers.get('host')}/${doc.globalType}`
     }
   },
   access: {
