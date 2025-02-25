@@ -9,6 +9,7 @@ import localFont from 'next/font/local'
 import SiteLayout from './siteLayout'
 import { use } from 'react'
 import { getPayload } from 'payload'
+import { headers as nextHeaders } from 'next/headers'
 import configPromise from '@payload-config'
 
 import { getCachedGlobal } from '@/utilities/getGlobals'
@@ -57,10 +58,13 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+
   const getData = async () => {
-    const payload = await getPayload({
-      config: configPromise,
-    })
+    const payload = await getPayload({ config: configPromise })
+
+    const headers = await nextHeaders()
+    const { user } = await payload.auth({ headers })
 
     const [posts, footer, home] = await Promise.all([
       payload.find({
@@ -75,15 +79,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       getCachedGlobal('home', 1)(),
     ])
 
-    return { posts, footer, home }
+    return { posts, footer, home, user }
   }
 
-  const { posts: postsData, footer: footerData, home: homeData } = use(getData())
+  const { posts: postsData, footer: footerData, home: homeData, user } = use(getData())
 
   return (
     <html lang="en">
       <body className={`${montserrat.className} ${myFont.variable}`}>
-        <SiteLayout homeData={homeData} footerData={footerData} postsData={postsData}>
+        <SiteLayout isAdmin={user} homeData={homeData} footerData={footerData} postsData={postsData}>
           {children}
         </SiteLayout>
         <GoogleAnalytics gaId="G-Y8MFXEHKYX" />

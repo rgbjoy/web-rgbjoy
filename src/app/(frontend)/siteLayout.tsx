@@ -8,7 +8,7 @@ import style from './siteLayout.module.scss'
 import NavLink from '@/components/navLink'
 import TerminalOverlay from '@/components/TerminalOverlay'
 import LoadingComponent from '@/components/loading'
-
+import Link from 'next/link'
 
 const DynamicBackground = dynamic(() => import('@/components/background/background'), {
   loading: () => <LoadingComponent />,
@@ -29,7 +29,7 @@ const Footer = ({ footerLinks }) => {
   )
 }
 
-const SiteLayout = ({ children, homeData, footerData, postsData }) => {
+const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
   const pathname = usePathname()
 
   // hamburger
@@ -62,14 +62,33 @@ const SiteLayout = ({ children, homeData, footerData, postsData }) => {
   }, [isMenuOpen])
 
   const links = [
-    { label: '/', path: '/', targetSegment: null, color: null },
-    { label: 'Info', path: '/info', targetSegment: 'info', color: 'red' },
-    { label: 'Dev', path: '/dev', targetSegment: 'dev', color: 'green' },
+    {
+      label: '/',
+      path: '/',
+      targetSegment: null,
+      color: null,
+      global: true,
+    },
+    {
+      label: 'Info',
+      path: '/info',
+      targetSegment: 'info',
+      color: 'red',
+      global: true,
+    },
+    {
+      label: 'Dev',
+      path: '/dev',
+      targetSegment: 'dev',
+      color: 'green',
+      global: true,
+    },
     {
       label: 'Art & Design',
       path: '/art',
       targetSegment: 'art',
       color: 'blue',
+      global: true,
     },
     {
       label: 'Posts',
@@ -78,6 +97,15 @@ const SiteLayout = ({ children, homeData, footerData, postsData }) => {
       color: 'yellow',
     },
   ]
+
+  // if isadmin and pathname is a global, then make a edit page button
+  const EditPageButton = () => {
+    if (isAdmin && links.some((link) => link.global && link.path === '/' + pathname.split('/')[1])) {
+      const slug = pathname.split('/')[1] || 'home'
+      return <Link href={`/dashboard/globals/${slug}`} className={style.editButton}>Edit Page</Link>
+    }
+    return null
+  }
 
   const isNotFound = !links.some((link) => link.path === '/' + pathname.split('/')[1])
   const router = useRouter()
@@ -89,6 +117,8 @@ const SiteLayout = ({ children, homeData, footerData, postsData }) => {
         pathname={isNotFound ? '404' : pathname}
         homeData={homeData}
       />
+
+      <EditPageButton />
 
       {children}
 
