@@ -1,4 +1,4 @@
-@import '../styles/variables.scss';
+@import "../styles/variables.scss";
 
 .dev {
   ::selection {
@@ -22,6 +22,27 @@
 
   .name {
     font-size: 120%;
+  }
+
+  .imageContainer {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    @include mobile-only {
+      display: none;
+    }
+    @media (hover: none) {
+      display: none;
+    }
+  }
+
+  .previewImage {
+    position: fixed;
+    display: none;
+    pointer-events: none;
+    object-fit: cover;
+    width: 300px;
+    height: 200px;
   }
 
   .date {
@@ -60,9 +81,9 @@
       }
 
       &:before {
-        content: '';
+        content: "";
         position: absolute;
-        background-image: url('../../../../public/svg/arrow.svg');
+        background-image: url("../../../../public/svg/arrow.svg");
         width: 24px;
         height: 24px;
         right: 30px;

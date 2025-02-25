@@ -1,4 +1,4 @@
-@import './styles/variables.scss';
+@import "./styles/variables.scss";
 
 .header {
   position: fixed;
@@ -22,7 +22,7 @@
     display: flex;
     justify-content: space-around;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     backdrop-filter: blur(8px);
 
@@ -70,33 +70,33 @@
 
     &.active {
       pointer-events: none;
-      &[data-color='red'] {
+      &[data-color="red"] {
         color: $red;
       }
-      &[data-color='green'] {
+      &[data-color="green"] {
         color: $green;
       }
-      &[data-color='blue'] {
+      &[data-color="blue"] {
         color: $blue;
       }
-      &[data-color='yellow'] {
+      &[data-color="yellow"] {
         color: $yellow;
       }
     }
 
-    &[data-color='red']::before {
+    &[data-color="red"]::before {
       background-color: $red;
     }
 
-    &[data-color='green']::before {
+    &[data-color="green"]::before {
       background-color: $green;
     }
 
-    &[data-color='blue']::before {
+    &[data-color="blue"]::before {
       background-color: $blue;
     }
 
-    &[data-color='yellow']::before {
+    &[data-color="yellow"]::before {
       background-color: $yellow;
     }
 
@@ -169,27 +169,19 @@
   }
 
   &:after {
-    content: '';
+    content: "";
     position: absolute;
     z-index: 1;
     bottom: 0;
     left: 0;
     pointer-events: none;
-    background-image: linear-gradient(
-      to bottom,
-      rgba($colorBackground, 0),
-      rgba($colorBackground, 0.9) 100%
-    );
+    background-image: linear-gradient(to bottom, rgba($colorBackground, 0), rgba($colorBackground, 0.9) 100%);
     width: 100%;
     height: 10em;
     z-index: -1;
 
     @include mobile-only {
-      background-image: linear-gradient(
-        to bottom,
-        rgba($colorBackground, 0),
-        rgba($colorBackground, 0.9) 100%
-      );
+      background-image: linear-gradient(to bottom, rgba($colorBackground, 0), rgba($colorBackground, 0.9) 100%);
       right: 0;
       height: 5em;
     }
@@ -204,7 +196,7 @@
     margin-bottom: $gutter;
 
     &:after {
-      content: '';
+      content: "";
       display: block;
       width: 90px;
       height: 1px;
@@ -237,5 +229,23 @@
     &:last-child {
       margin: 0;
     }
+  }
+}
+
+.editButton {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: inline-block;
+  padding: 5px 7px;
+  background-color: black;
+  color: white;
+  font-size: 14px;
+  text-decoration: none;
+
+  &:hover {
+    color: black;
+    background-color: white;
   }
 }

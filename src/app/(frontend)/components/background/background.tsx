@@ -21,9 +21,8 @@ import Rig404 from './rig404'
 import style from './background.module.scss'
 import gsap from 'gsap'
 import Stars from './stars'
-import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Home } from '@payload-types'
-
+import { NextRouter } from 'next/router'
 let FIRST_LOAD = true
 
 const GenerateShard = (points, thickness) => {
@@ -292,7 +291,6 @@ const ModelDev = () => {
 const ModelArt = () => {
   const artRef = useRef<THREE.Mesh>(null)
   const artMatRef = useRef<THREE.MeshBasicMaterial>(null)
-  const [hover, setHover] = useState(false)
 
   useFrame(() => {
     if (artRef.current) {
@@ -301,7 +299,6 @@ const ModelArt = () => {
   })
 
   const handleHover = (hover: boolean) => {
-    setHover(hover)
     if (hover && artMatRef.current) {
       gsap.to(artMatRef.current, { opacity: 0, duration: 0.5 })
     } else {
@@ -376,7 +373,7 @@ const RigPages = ({ page }) => {
     }, 100)
   }, [page])
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (anchorInfo.current && sectionInfo.current) {
       anchorInfo.current.position.y = sectionInfo.current.position.y + 1
     }
@@ -426,7 +423,7 @@ const RenderPageBackground = ({ page }) => {
   const [scrolledDown, setScrolledDown] = useState(false)
   const [reset, setReset] = useState(false)
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (scroll.offset > 0.02) {
       state.scale = state.maxScale
       setReset(false)
@@ -451,7 +448,7 @@ const RenderPageBackground = ({ page }) => {
   )
 }
 
-const HomeHTML = ({ homeData, router }: { homeData: Home; router: any }) => {
+const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) => {
   const [clientHeight, setClientHeight] = useState(window.innerHeight)
 
   useEffect(() => {
@@ -521,14 +518,6 @@ const Background = ({ pathname, router, homeData }) => {
   const page = pathname !== '/' ? pathname.split('/')[1] : 'home'
   const [dpr, setDpr] = useState(1)
 
-  const supportsMatchAll = () => {
-    try {
-      return 'test'.matchAll(/test/g) !== undefined
-    } catch (e) {
-      return false
-    }
-  }
-
   return (
     <Suspense fallback={null}>
       <Canvas
@@ -559,12 +548,6 @@ const Background = ({ pathname, router, homeData }) => {
             </div>
           </Scroll>
         </ScrollControls>
-
-        {/* {supportsMatchAll() && (
-          <EffectComposer>
-            <Bloom mipmapBlur intensity={2.5} luminanceThreshold={0} />
-          </EffectComposer>
-        )} */}
       </Canvas>
     </Suspense>
   )

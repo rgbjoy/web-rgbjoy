@@ -1,5 +1,4 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
   interactionGroups,
@@ -10,7 +9,6 @@ import {
   RigidBody,
 } from '@react-three/rapier'
 import { Attractor } from '@react-three/rapier-addons'
-import { OrbitControls } from '@react-three/drei'
 
 const Rig404 = () => {
   const COUNT = 50
@@ -43,7 +41,7 @@ const Rig404 = () => {
       const z = radius * Math.cos(phi)
       instances.push({
         key: `instance_${i}}`,
-        position: [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1],
+        position: [x, y, z],
         collisionGroups: interactionGroups(1),
       })
     }

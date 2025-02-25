@@ -13,6 +13,9 @@ export const Dev: GlobalConfig = {
   },
   admin: {
     group: 'Content',
+    preview: (doc, { req }) => {
+      return `${req.protocol}//${req.headers.get('host')}/${doc.globalType}`
+    }
   },
   access: {
     read: () => true,
@@ -53,6 +56,11 @@ export const Dev: GlobalConfig = {
           name: 'title',
           type: 'text',
           required: true,
+        },
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
         },
         {
           name: 'link',

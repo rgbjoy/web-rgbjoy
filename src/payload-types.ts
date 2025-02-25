@@ -64,6 +64,7 @@ export interface Config {
   auth: {
     users: UserAuthOperations;
   };
+  blocks: {};
   collections: {
     users: User;
     media: Media;
@@ -480,6 +481,7 @@ export interface Dev {
   pastProjects?:
     | {
         title: string;
+        image?: (number | null) | Media;
         link: {
           url: string;
         };
@@ -596,6 +598,7 @@ export interface DevSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
+        image?: T;
         link?:
           | T
           | {
