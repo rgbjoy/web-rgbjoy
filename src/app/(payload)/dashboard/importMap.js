@@ -27,6 +27,7 @@ import { default as default_f6fa31600589c439dc5bdb3e586c17dd } from 'src/compone
 import { default as default_32d15b2b13e1e9f604c74e03d9ff8022 } from 'src/components/Icon'
 import { default as default_2396ffa5fcb8566707b31b0d1917b213 } from 'src/components/Logo'
 import { ViewSite as ViewSite_a7f73283a2b8e8816e4ad6699db030e3 } from 'src/components/Admin'
+import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -57,5 +58,6 @@ export const importMap = {
   "../components/RowLabel#default": default_f6fa31600589c439dc5bdb3e586c17dd,
   "./components/Icon#default": default_32d15b2b13e1e9f604c74e03d9ff8022,
   "./components/Logo#default": default_2396ffa5fcb8566707b31b0d1917b213,
-  "./components/Admin#ViewSite": ViewSite_a7f73283a2b8e8816e4ad6699db030e3
+  "./components/Admin#ViewSite": ViewSite_a7f73283a2b8e8816e4ad6699db030e3,
+  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24
 }

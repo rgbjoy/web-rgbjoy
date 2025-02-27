@@ -160,7 +160,7 @@ const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
           transition={{ duration: 0.75, ease: 'easeOut' }}
           className={'badge'}
         >
-          2024 Portfolio
+          2025 Portfolio
         </motion.div>
       ) : null}
 
