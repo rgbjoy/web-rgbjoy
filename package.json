@@ -4,6 +4,9 @@
   "browserslist": [
     "defaults"
   ],
+  "engines": {
+    "node": "23"
+  },
   "scripts": {
     "=== Core commands ===": "",
     "dev": "next dev",
