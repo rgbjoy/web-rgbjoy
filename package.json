@@ -5,7 +5,7 @@
     "defaults"
   ],
   "engines": {
-    "node": "23"
+    "node": "20"
   },
   "scripts": {
     "=== Core commands ===": "",
