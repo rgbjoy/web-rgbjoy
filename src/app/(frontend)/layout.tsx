@@ -58,8 +58,6 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
-
   const getData = async () => {
     const payload = await getPayload({ config: configPromise })
 
@@ -87,7 +85,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${montserrat.className} ${myFont.variable}`}>
-        <SiteLayout isAdmin={user} homeData={homeData} footerData={footerData} postsData={postsData}>
+        <SiteLayout
+          isAdmin={user}
+          homeData={homeData}
+          footerData={footerData}
+          postsData={postsData}
+        >
           {children}
         </SiteLayout>
         <GoogleAnalytics gaId="G-Y8MFXEHKYX" />

@@ -15,7 +15,7 @@ export const Dev: GlobalConfig = {
     group: 'Content',
     preview: (doc, { req }) => {
       return `${req.protocol}//${req.headers.get('host')}/${doc.globalType}`
-    }
+    },
   },
   access: {
     read: () => true,

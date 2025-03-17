@@ -100,9 +100,16 @@ const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
 
   // if isadmin and pathname is a global, then make a edit page button
   const EditPageButton = () => {
-    if (isAdmin && links.some((link) => link.global && link.path === '/' + pathname.split('/')[1])) {
+    if (
+      isAdmin &&
+      links.some((link) => link.global && link.path === '/' + pathname.split('/')[1])
+    ) {
       const slug = pathname.split('/')[1] || 'home'
-      return <Link href={`/dashboard/globals/${slug}`} className={style.editButton}>Edit Page</Link>
+      return (
+        <Link href={`/dashboard/globals/${slug}`} className={style.editButton}>
+          Edit Page
+        </Link>
+      )
     }
     return null
   }
