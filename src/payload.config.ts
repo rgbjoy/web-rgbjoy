@@ -33,14 +33,14 @@ export default buildConfig({
     avatar: 'default',
     user: Users.slug,
     importMap: {
-      baseDir: path.resolve(dirname),
+      baseDir: path.resolve(dirname, 'src'),
     },
     components: {
       graphics: {
-        Icon: './components/Icon',
-        Logo: './components/Logo',
+        Icon: 'src/components/Icon',
+        Logo: 'src/components/Logo',
       },
-      beforeNavLinks: ['./components/Admin#ViewSite'],
+      beforeNavLinks: ['src/components/Admin#ViewSite'],
     },
   },
   routes: {
