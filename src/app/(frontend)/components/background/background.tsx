@@ -45,6 +45,7 @@ const GenerateShard = (points, thickness) => {
 const RandomShard = ({ position, color = '#FF0000' }) => {
   const thickness = 0.01
   const numPoints = 3
+
   const geometry = useMemo(() => {
     const points: THREE.Vector2[] = []
     for (let i = 0; i < numPoints; i++) {
@@ -58,7 +59,7 @@ const RandomShard = ({ position, color = '#FF0000' }) => {
     points.sort((a, b) => a.angle() - b.angle())
 
     return GenerateShard(points, thickness)
-  }, [numPoints, thickness])
+  }, [])
 
   const rotation = useMemo(
     () =>
@@ -206,10 +207,11 @@ const ModelInfo = () => {
   const scroll = useScroll()
 
   useEffect(() => {
-    if (actions.animation_0 && !actions.animation_0.paused) {
-      actions.animation_0.reset().play().paused = true
+    if (actions?.animation_0) {
+      actions.animation_0.reset().play()
+      actions.animation_0.paused = true
     }
-  }, [actions.animation_0])
+  }, [actions])
 
   useFrame(({ clock }) => {
     if (planet.current) {
@@ -433,7 +435,7 @@ const RenderPageBackground = ({ page }) => {
         state.scale = state.minScale
       }
     }
-    setScrolledDown(scroll.range(0, 1 / 8) >= 1 ? true : false)
+    setScrolledDown(scroll.range(0, 1 / 8) >= 1)
   })
 
   if (!page) {
@@ -454,6 +456,7 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
   useEffect(() => {
     const handleResize = () => setClientHeight(window.innerHeight)
     window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   const handleNavigation = (path) => {

@@ -15,7 +15,7 @@ export default function LoadingComponent() {
           transition={{
             duration: 1.5,
             repeat: Infinity,
-            repeatType: "loop",
+            repeatType: 'loop',
           }}
         >
           ...

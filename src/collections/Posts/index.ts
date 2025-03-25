@@ -46,7 +46,7 @@ export const Posts: CollectionConfig = {
     preview: () => null,
     components: {
       edit: {
-        PreviewButton: '/collections/Posts/components/PreviewButton',
+        PreviewButton: 'src/collections/Posts/components/PreviewButton',
       },
     },
   },
