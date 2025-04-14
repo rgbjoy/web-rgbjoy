@@ -713,7 +713,7 @@ type DatabaseSchema = {
   relations_footer: typeof relations_footer
 }
 
-declare module '@payloadcms/db-postgres/types' {
+declare module '@payloadcms/db-postgres' {
   export interface GeneratedDatabaseSchema {
     schema: DatabaseSchema
   }

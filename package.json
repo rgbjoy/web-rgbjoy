@@ -41,7 +41,7 @@
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/rapier": "^2.1.0",
     "@react-three/rapier-addons": "^5.0.0",
-    "framer-motion": "^12.7.1",
+    "framer-motion": "^12.7.2",
     "graphql": "^16.10.0",
     "gsap": "^3.12.7",
     "html-react-parser": "^5.2.3",
