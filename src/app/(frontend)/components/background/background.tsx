@@ -13,17 +13,16 @@ import {
   Edges,
   PerformanceMonitor,
   Html,
-  StatsGl,
 } from '@react-three/drei'
 import state from './state'
 import Rig404 from './rig404'
-
 import style from './background.module.scss'
 import gsap from 'gsap'
 import Stars from './stars'
 import { Home } from '@payload-types'
 import { NextRouter } from 'next/router'
 let FIRST_LOAD = true
+import Loading from '@/components/loading'
 
 const GenerateShard = (points, thickness) => {
   const shape = new THREE.Shape()
@@ -508,21 +507,12 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
   )
 }
 
-const useQueryParams = () => useMemo(() => new URLSearchParams(window.location.search), [])
-
 const Background = ({ pathname, router, homeData }) => {
-  const searchParams = useQueryParams()
-  const [showStats, setShowStats] = useState(false)
-
-  useEffect(() => {
-    setShowStats(searchParams.has('stats'))
-  }, [searchParams])
-
   const page = pathname !== '/' ? pathname.split('/')[1] : 'home'
   const [dpr, setDpr] = useState(1)
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<Loading />}>
       <Canvas
         className={`${style.background} ${page !== 'home' && style.disableScroll}`}
         camera={{ position: [0, 0, 5], fov: 50 }}
@@ -532,8 +522,6 @@ const Background = ({ pathname, router, homeData }) => {
           toneMapping: THREE.ACESFilmicToneMapping,
         }}
       >
-        {showStats && <StatsGl />}
-
         <PerformanceMonitor onDecline={() => setDpr(0.5)} onIncline={() => setDpr(1)} />
 
         <color attach="background" args={['#000000']} />
