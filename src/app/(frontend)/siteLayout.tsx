@@ -7,11 +7,9 @@ import dynamic from 'next/dynamic'
 import style from './siteLayout.module.scss'
 import NavLink from '@/components/navLink'
 import TerminalOverlay from '@/components/TerminalOverlay'
-import LoadingComponent from '@/components/loading'
 import Link from 'next/link'
 
 const DynamicBackground = dynamic(() => import('@/components/background/background'), {
-  loading: () => <LoadingComponent />,
   ssr: false,
 })
 

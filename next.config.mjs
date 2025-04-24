@@ -3,17 +3,15 @@ import { withPayload } from '@payloadcms/next/withPayload'
 
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    turbo: {
-      rules: {
-        '*.module.scss': {
-          loaders: ['sass-loader'],
-          as: '*.module.css',
-        },
-        '*.scss': {
-          loaders: ['sass-loader'],
-          as: '*.css',
-        },
+  turbopack: {
+    rules: {
+      '*.module.scss': {
+        loaders: ['sass-loader'],
+        as: '*.module.css',
+      },
+      '*.scss': {
+        loaders: ['sass-loader'],
+        as: '*.css',
       },
     },
   },

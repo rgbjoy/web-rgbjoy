@@ -21,8 +21,9 @@ import gsap from 'gsap'
 import Stars from './stars'
 import { Home } from '@payload-types'
 import { NextRouter } from 'next/router'
+import LoadingComponent from '@/components/loading'
+
 let FIRST_LOAD = true
-import Loading from '@/components/loading'
 
 const GenerateShard = (points, thickness) => {
   const shape = new THREE.Shape()
@@ -512,7 +513,7 @@ const Background = ({ pathname, router, homeData }) => {
   const [dpr, setDpr] = useState(1)
 
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<LoadingComponent />}>
       <Canvas
         className={`${style.background} ${page !== 'home' && style.disableScroll}`}
         camera={{ position: [0, 0, 5], fov: 50 }}

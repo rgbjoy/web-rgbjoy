@@ -233,6 +233,12 @@ pre {
   left: $gutter;
   z-index: 1000;
 
+  &.loading-canvas {
+    top: 50%;
+    transform: translateY(-50%);
+    left: $gutter;
+  }
+
   @include mobile-only {
     top: 50%;
     transform: translateY(-50%);
