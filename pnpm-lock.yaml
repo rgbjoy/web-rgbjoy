@@ -65,6 +65,9 @@ importers:
       payload:
         specifier: ^3.35.1
         version: 3.35.1(graphql@16.10.0)(typescript@5.8.3)
+      pg-cloudflare:
+        specifier: 1.1.1
+        version: 1.1.1
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -3457,8 +3460,8 @@ packages:
     resolution: {integrity: sha512-peBp3qZyuS6cNIJ2akRNG1uo1WJ1d0wTxg/fxMdZ0BqCVhx242bSFHM9eNqflfJVS9SsgkzgT/1UgnsurBOTMg==}
     engines: {node: '>=14.16'}
 
-  pg-cloudflare@1.2.5:
-    resolution: {integrity: sha512-OOX22Vt0vOSRrdoUPKJ8Wi2OpE/o/h9T8X1s4qSkCedbNah9ei2W2765be8iMVxQUsvgT7zIAT2eIa9fs5+vtg==}
+  pg-cloudflare@1.1.1:
+    resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
 
   pg-connection-string@2.8.5:
     resolution: {integrity: sha512-Ni8FuZ8yAF+sWZzojvtLE2b03cqjO5jNULcHFfM9ZZ0/JXrgom5pBREbtnAw7oxsxJqHw9Nz/XWORUEL3/IFow==}
@@ -8426,8 +8429,7 @@ snapshots:
 
   peek-readable@5.4.2: {}
 
-  pg-cloudflare@1.2.5:
-    optional: true
+  pg-cloudflare@1.1.1: {}
 
   pg-connection-string@2.8.5: {}
 
@@ -8469,7 +8471,7 @@ snapshots:
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
-      pg-cloudflare: 1.2.5
+      pg-cloudflare: 1.1.1
 
   pgpass@1.0.5:
     dependencies:
