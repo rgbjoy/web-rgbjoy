@@ -8,8 +8,10 @@ import style from './siteLayout.module.scss'
 import NavLink from '@/components/navLink'
 import TerminalOverlay from '@/components/TerminalOverlay'
 import Link from 'next/link'
+import LoadingComponent from '@/components/loading'
 
 const DynamicBackground = dynamic(() => import('@/components/background/background'), {
+  loading: () => <LoadingComponent />,
   ssr: false,
 })
 
