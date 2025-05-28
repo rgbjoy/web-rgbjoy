@@ -15,10 +15,7 @@ $desktop: 1920px;
 
 $colorBackground: #000;
 
-$cursorPointer:
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Ccircle cx='11' cy='11' r='11' fill='%23fff'/%3E%3Ccircle cx='11' cy='11' r='9.43' fill='%23010101'/%3E%3C/svg%3E")
-    11 11,
-  auto;
+$cursorPointer: pointer;
 
 @mixin mobile-only {
   @media screen and (max-width: ($mobile - 1px)) {

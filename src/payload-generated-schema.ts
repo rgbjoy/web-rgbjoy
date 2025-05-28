@@ -415,6 +415,9 @@ export const info = pgTable(
     profileImage: integer('profile_image_id').references(() => media.id, {
       onDelete: 'set null',
     }),
+    resume: integer('resume_id').references(() => media.id, {
+      onDelete: 'set null',
+    }),
     content: jsonb('content'),
     content_html: varchar('content_html'),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 }),
@@ -422,6 +425,7 @@ export const info = pgTable(
   },
   (columns) => ({
     info_profile_image_idx: index('info_profile_image_idx').on(columns.profileImage),
+    info_resume_idx: index('info_resume_idx').on(columns.resume),
   }),
 )
 
@@ -615,6 +619,11 @@ export const relations_info = relations(info, ({ one, many }) => ({
     fields: [info.profileImage],
     references: [media.id],
     relationName: 'profileImage',
+  }),
+  resume: one(media, {
+    fields: [info.resume],
+    references: [media.id],
+    relationName: 'resume',
   }),
   links: many(info_links, {
     relationName: 'links',

@@ -36,6 +36,24 @@ export const Info: GlobalConfig = {
       label: 'Profile Image',
     },
     {
+      name: 'resume',
+      type: 'upload',
+      relationTo: 'media',
+      label: 'Resume File',
+      admin: {
+        description: 'Upload your resume (PDF, DOC, DOCX)',
+      },
+      filterOptions: {
+        mimeType: {
+          in: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          ],
+        },
+      },
+    },
+    {
       name: 'links',
       type: 'array',
       label: 'Links',

@@ -37,7 +37,16 @@
   }
 
   .links {
+    display: flex;
+    gap: 1em;
     margin: 1em 0;
+
+    span {
+      &:not(:last-child):after {
+        content: ' ';
+        margin-left: 0.5em;
+      }
+    }
   }
 
   .strengths {

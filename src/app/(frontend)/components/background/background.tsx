@@ -192,6 +192,7 @@ const ScrollDots = () => {
 
   return (
     <div className={style.dots} ref={ref}>
+      <div className={style.scrollDown}>Scroll down</div>
       <div className={style.dot}></div>
       <div className={style.dot}></div>
       <div className={style.dot}></div>
@@ -302,9 +303,9 @@ const ModelArt = () => {
 
   const handleHover = (hover: boolean) => {
     if (hover && artMatRef.current) {
-      gsap.to(artMatRef.current, { opacity: 0, duration: 0.5 })
-    } else {
       gsap.to(artMatRef.current, { opacity: 1, duration: 0.5 })
+    } else {
+      gsap.to(artMatRef.current, { opacity: 0, duration: 0.5 })
     }
   }
 
@@ -317,7 +318,13 @@ const ModelArt = () => {
       ref={artRef}
     >
       <sphereGeometry args={[1, 32, 16]} />
-      <meshBasicMaterial ref={artMatRef} depthTest={false} transparent={true} color={'blue'} />
+      <meshBasicMaterial
+        ref={artMatRef}
+        opacity={0}
+        depthTest={false}
+        transparent={true}
+        color={'blue'}
+      />
       <Edges color={'blue'} threshold={1} />
     </mesh>
   )

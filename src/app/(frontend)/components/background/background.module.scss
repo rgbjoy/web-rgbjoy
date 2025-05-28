@@ -48,13 +48,15 @@
 
     span {
       color: black;
-      background-color: #ffffffde;
+      background-color: #ffffff;
+      padding: 4px 0;
       box-shadow:
-        0.5rem 0px 0px #ffffffde,
-        -0.5rem 0px 0px #ffffffde;
+        0.5rem 0px 0px #ffffff,
+        -0.5rem 0px 0px #ffffff;
       -webkit-box-decoration-break: clone;
       -moz-box-decoration-break: clone;
       box-decoration-break: clone;
+      line-height: 1.6;
     }
 
     @include mobile-only {
@@ -76,6 +78,12 @@
     bottom: 100px;
   }
 
+  .scrollDown {
+    font-size: 0.8rem;
+    color: white;
+    margin-bottom: 1em;
+  }
+
   .dot {
     width: 6px;
     height: 6px;
@@ -83,13 +91,13 @@
     margin: 6px;
     animation: fadeInOut 2s infinite;
 
-    &:nth-child(1) {
+    &:nth-child(2) {
       animation-delay: 0s;
     }
-    &:nth-child(2) {
+    &:nth-child(3) {
       animation-delay: 0.2s;
     }
-    &:nth-child(3) {
+    &:nth-child(4) {
       animation-delay: 0.4s;
     }
   }

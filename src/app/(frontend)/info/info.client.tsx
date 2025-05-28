@@ -13,6 +13,13 @@ export default function InfoClient(page: Info) {
   const GetLinks = () => {
     return (
       <div className={style.links}>
+        {page.resume && typeof page.resume === 'object' && page.resume.url && (
+          <span>
+            <a className="underline" href={page.resume.url} target="_blank" rel="noreferrer">
+              Resume
+            </a>
+          </span>
+        )}
         {page.links?.map((value, i) => {
           const title = value.link?.title || ''
           const url = value.link?.url || ''
@@ -22,7 +29,6 @@ export default function InfoClient(page: Info) {
               <a className="underline" href={url} target="_blank" rel="noreferrer">
                 {title}
               </a>
-              <span>{i < (page.links?.length || 0) - 1 ? ' • ' : ''}</span>
             </span>
           )
         })}

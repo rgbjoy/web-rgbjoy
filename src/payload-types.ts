@@ -421,6 +421,10 @@ export interface Info {
   id: number;
   header?: string | null;
   profileImage?: (number | null) | Media;
+  /**
+   * Upload your resume (PDF, DOC, DOCX)
+   */
+  resume?: (number | null) | Media;
   links?:
     | {
         link: {
@@ -563,6 +567,7 @@ export interface HomeSelect<T extends boolean = true> {
 export interface InfoSelect<T extends boolean = true> {
   header?: T;
   profileImage?: T;
+  resume?: T;
   links?:
     | T
     | {
