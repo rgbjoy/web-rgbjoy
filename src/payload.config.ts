@@ -43,6 +43,7 @@ export default buildConfig({
       beforeNavLinks: ['src/components/Admin#ViewSite'],
     },
   },
+  serverURL: process.env.PAYLOAD_SERVER_URL || getServerSideURL(),
   routes: {
     admin: '/dashboard',
   },
