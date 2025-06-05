@@ -27,6 +27,12 @@ export const Media: CollectionConfig = {
         position: 'centre',
       },
     ],
+    formatOptions: {
+      format: 'webp',
+      options: {
+        quality: 80,
+      },
+    },
   },
   fields: [
     {
