@@ -1,3 +1,5 @@
+import { RegenerateAllMediaButton as RegenerateAllMediaButton_9df4db7fdd08a56c80ab8c638d0f2d07 } from 'src/components/RegenerateMediaButton'
+import { RegenerateMediaButton as RegenerateMediaButton_9df4db7fdd08a56c80ab8c638d0f2d07 } from 'src/components/RegenerateMediaButton'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -31,6 +33,8 @@ import { ViewSite as ViewSite_095e704cebc2747089ae13285c38fcc4 } from 'src/compo
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 
 export const importMap = {
+  "src/components/RegenerateMediaButton#RegenerateAllMediaButton": RegenerateAllMediaButton_9df4db7fdd08a56c80ab8c638d0f2d07,
+  "src/components/RegenerateMediaButton#RegenerateMediaButton": RegenerateMediaButton_9df4db7fdd08a56c80ab8c638d0f2d07,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

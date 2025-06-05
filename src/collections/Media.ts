@@ -35,4 +35,12 @@ export const Media: CollectionConfig = {
       required: true,
     },
   ],
+  admin: {
+    components: {
+      beforeListTable: ['src/components/RegenerateMediaButton#RegenerateAllMediaButton'],
+      edit: {
+        beforeDocumentControls: ['src/components/RegenerateMediaButton#RegenerateMediaButton'],
+      },
+    },
+  },
 }

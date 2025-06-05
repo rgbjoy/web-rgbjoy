@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-const main = async () => {
+export const regenerateMedia = async () => {
   const payload = await getPayload({ config })
 
   const media = await payload.find({
@@ -42,7 +42,36 @@ const main = async () => {
   }
 
   payload.logger.info('Done!')
-  process.exit(0)
+  return 'Done!'
 }
 
-main()
+export const regenerateSingleMedia = async (id: string) => {
+  const payload = await getPayload({ config })
+
+  // Fetch the media document by ID
+  const mediaDoc = await payload.findByID({
+    collection: 'media',
+    id,
+    depth: 0,
+  })
+
+  if (!mediaDoc) {
+    payload.logger.info(`Media with ID ${id} not found.`)
+    return `Media with ID ${id} not found.`
+  }
+
+  try {
+    await payload.update({
+      collection: 'media',
+      id,
+      data: mediaDoc,
+      overwriteExistingFiles: true,
+    })
+    payload.logger.info(`Media ${id} (${mediaDoc.filename}) regenerated.`)
+    return `Media ${id} regenerated.`
+  } catch (err) {
+    payload.logger.error(`Failed to regenerate ${id} (${mediaDoc.filename})`)
+    console.error(err)
+    return `Failed to regenerate ${id}.`
+  }
+}

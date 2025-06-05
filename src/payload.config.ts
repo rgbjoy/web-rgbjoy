@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 import { resendAdapter } from '@payloadcms/email-resend'
 import sharp from 'sharp'
 import { getServerSideURL } from './utilities/getURL'
+import { regenerateMedia, regenerateSingleMedia } from './scripts/regenerate-media'
 
 // Collections
 import { Users } from './collections/Users'
@@ -60,6 +61,25 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
+  endpoints: [
+    {
+      path: '/regenerate-media',
+      method: 'post',
+      handler: async () => {
+        const message = await regenerateMedia()
+        return Response.json({ success: true, message })
+      },
+    },
+    {
+      path: '/regenerate-media/:id',
+      method: 'post',
+      handler: async (req) => {
+        const { id } = req.routeParams as { id: string }
+        const message = await regenerateSingleMedia(id)
+        return Response.json({ success: true, message })
+      },
+    },
+  ],
   sharp,
   plugins: [
     s3Storage({
