@@ -58,6 +58,11 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy script and required config for post-deploy tasks
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/src/payload.config.ts ./src/payload.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+
 RUN apk add --no-cache curl
 
 USER nextjs
