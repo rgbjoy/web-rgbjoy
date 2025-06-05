@@ -83,7 +83,7 @@ export default function InfoClient(page: Info) {
           transition={{ ease: 'easeOut', duration: 1, delay: 1 }}
         >
           <Image
-            src={image.url ?? ''}
+            src={image.sizes?.card?.url ?? ''}
             alt={image.alt ?? ''}
             width={image.width ?? 0}
             height={image.height ?? 0}
