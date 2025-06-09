@@ -45,7 +45,7 @@ export const Art: GlobalConfig = {
       },
       admin: {
         components: {
-          RowLabel: '../components/RowLabel',
+          RowLabel: '../components/RowLabel#MediaLabel',
         },
       },
       fields: [

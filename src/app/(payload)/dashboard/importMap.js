@@ -27,6 +27,7 @@ import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93
 import { SlugComponent as SlugComponent_92cc057d0a2abb4f6cf0307edf59f986 } from '@/fields/slug/SlugComponent'
 import { default as default_935144eaa686c50486233e3bebb61469 } from 'src/collections/Posts/components/PreviewButton'
 import { default as default_f6fa31600589c439dc5bdb3e586c17dd } from '../../../components/RowLabel'
+import { MediaLabel as MediaLabel_f6fa31600589c439dc5bdb3e586c17dd } from '../../../components/RowLabel'
 import { default as default_4400d51e7a2660b65c4eaf67863f2820 } from 'src/components/Icon'
 import { default as default_2d5f9b7497b6eba504e72a63092c1c30 } from 'src/components/Logo'
 import { ViewSite as ViewSite_095e704cebc2747089ae13285c38fcc4 } from 'src/components/Admin'
@@ -62,6 +63,7 @@ export const importMap = {
   "@/fields/slug/SlugComponent#SlugComponent": SlugComponent_92cc057d0a2abb4f6cf0307edf59f986,
   "src/collections/Posts/components/PreviewButton#default": default_935144eaa686c50486233e3bebb61469,
   "../components/RowLabel#default": default_f6fa31600589c439dc5bdb3e586c17dd,
+  "../components/RowLabel#MediaLabel": MediaLabel_f6fa31600589c439dc5bdb3e586c17dd,
   "src/components/Icon#default": default_4400d51e7a2660b65c4eaf67863f2820,
   "src/components/Logo#default": default_2d5f9b7497b6eba504e72a63092c1c30,
   "src/components/Admin#ViewSite": ViewSite_095e704cebc2747089ae13285c38fcc4,
