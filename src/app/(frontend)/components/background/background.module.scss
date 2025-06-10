@@ -37,6 +37,7 @@
     max-width: 600px;
 
     @include mobile-only {
+      margin-top: 10px;
       margin-bottom: 20px;
       max-width: 95%;
       font-size: 0.8rem;
@@ -75,13 +76,17 @@
   align-items: center;
 
   @include mobile-only {
-    bottom: 100px;
+    bottom: $gutter-mobile;
   }
 
   .scrollDown {
     font-size: 0.8rem;
     color: white;
     margin-bottom: 1em;
+
+    @include mobile-only {
+      display: none;
+    }
   }
 
   .dot {

@@ -100,8 +100,9 @@ a {
   cursor: $cursorPointer;
 
   @include mobile-only {
-    font-size: 80%;
-    padding: 8px;
+    font-size: 0.8em;
+    line-height: 10px;
+    padding: 10px;
   }
 
   &:hover {
@@ -126,6 +127,7 @@ h3 {
   }
   h2 {
     font-size: 1.1em;
+    line-height: 1.8;
   }
 }
 
