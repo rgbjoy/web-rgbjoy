@@ -109,16 +109,34 @@ const Shards = () => {
   const groupRef = useRef<THREE.Group>(null)
   const [targetScale, setTargetScale] = useState(0.1)
 
+  const uniqueVertices = useMemo(() => {
+    const geometry = new THREE.IcosahedronGeometry(1, 0)
+    return getUniqueVertices(geometry)
+  }, [])
+
   useFrame(() => {
-    setTargetScale(
-      THREE.MathUtils.lerp(targetScale, state.scale, targetScale <= state.scale ? 0.02 : 0.01),
+    const newScale = THREE.MathUtils.lerp(
+      targetScale,
+      state.scale,
+      targetScale <= state.scale ? 0.02 : 0.01,
     )
+    setTargetScale(newScale)
+
+    if (groupRef.current) {
+      groupRef.current.children.forEach((shard, i) => {
+        if (uniqueVertices[i]) {
+          shard.position.copy(uniqueVertices[i]).multiplyScalar(newScale)
+        }
+      })
+    }
   })
 
-  const geometry = new THREE.IcosahedronGeometry(targetScale, 0)
-  const uniqueVertices = getUniqueVertices(geometry)
   const shards = uniqueVertices.map((vertex, i) => (
-    <RandomShard key={i} position={vertex} color={shardColors[i % shardColors.length]} />
+    <RandomShard
+      key={i}
+      position={vertex.clone().multiplyScalar(targetScale)}
+      color={shardColors[i % shardColors.length]}
+    />
   ))
 
   return <group ref={groupRef}>{shards}</group>
