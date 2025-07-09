@@ -10,7 +10,7 @@
   "scripts": {
     "=== Core commands ===": "",
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "=== Payload commands ===": "",
     "payload": "PAYLOAD_CONFIG_PATH=src/payload.config.ts payload",
