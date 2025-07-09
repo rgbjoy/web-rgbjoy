@@ -12,11 +12,11 @@ import {
   index,
   uniqueIndex,
   foreignKey,
-  serial,
-  timestamp,
-  varchar,
-  numeric,
   integer,
+  varchar,
+  timestamp,
+  serial,
+  numeric,
   jsonb,
   boolean,
   pgEnum,
@@ -28,6 +28,30 @@ export const enum__posts_v_version_status = pgEnum('enum__posts_v_version_status
   'draft',
   'published',
 ])
+
+export const users_sessions = pgTable(
+  'users_sessions',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
+    expiresAt: timestamp('expires_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    }).notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('users_sessions_order_idx').on(columns._order),
+    _parentIDIdx: index('users_sessions_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [users.id],
+      name: 'users_sessions_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
 
 export const users = pgTable(
   'users',
@@ -524,7 +548,18 @@ export const footer = pgTable('footer', {
   createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
 })
 
-export const relations_users = relations(users, () => ({}))
+export const relations_users_sessions = relations(users_sessions, ({ one }) => ({
+  _parentID: one(users, {
+    fields: [users_sessions._parentID],
+    references: [users.id],
+    relationName: 'sessions',
+  }),
+}))
+export const relations_users = relations(users, ({ many }) => ({
+  sessions: many(users_sessions, {
+    relationName: 'sessions',
+  }),
+}))
 export const relations_media = relations(media, () => ({}))
 export const relations_posts = relations(posts, ({ one }) => ({
   featuredImage: one(media, {
@@ -683,6 +718,7 @@ type DatabaseSchema = {
   enum_users_role: typeof enum_users_role
   enum_posts_status: typeof enum_posts_status
   enum__posts_v_version_status: typeof enum__posts_v_version_status
+  users_sessions: typeof users_sessions
   users: typeof users
   media: typeof media
   posts: typeof posts
@@ -702,6 +738,7 @@ type DatabaseSchema = {
   art: typeof art
   footer_links: typeof footer_links
   footer: typeof footer
+  relations_users_sessions: typeof relations_users_sessions
   relations_users: typeof relations_users
   relations_media: typeof relations_media
   relations_posts: typeof relations_posts

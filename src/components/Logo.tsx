@@ -1,6 +1,45 @@
-import React from 'react'
-import Image from 'next/image'
+'use client'
 
-export const Logo = () => <Image src="/logo.svg" width={120} height={120} alt="RGBJOY" />
+import { gsap } from 'gsap'
+import { useEffect, useRef } from 'react'
+
+export const Logo = () => {
+  const logo = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    if (logo.current) {
+      gsap.to(logo.current, {
+        rotation: 360,
+        duration: 8,
+        repeat: -1,
+        ease: 'none',
+        transformOrigin: 'center center',
+      })
+    }
+  }, [])
+
+  return (
+    <div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 860.5 860.5"
+        ref={logo}
+        fill="#FFFFFF"
+        style={{
+          width: '100px',
+          height: '100px',
+          shapeRendering: 'geometricPrecision',
+          imageRendering: 'crisp-edges',
+          willChange: 'transform',
+          WebkitFontSmoothing: 'antialiased',
+          MozOsxFontSmoothing: 'grayscale',
+          vectorEffect: 'non-scaling-stroke',
+        }}
+      >
+        <path d="M734.5 126C566.5-42 294-42 126 126s-168 440.5 0 608.5 440.5 168 608.5 0 168-440.4 0-608.5ZM582.1 255.6c34.2 0 61.9 27.7 61.9 61.9s-27.7 61.9-61.9 61.9-61.9-27.7-61.9-61.9 27.7-61.9 61.9-61.9Zm-303.8-3.9c34.2 0 61.9 27.7 61.9 61.9s-27.7 61.9-61.9 61.9-61.9-27.7-61.9-61.9c-.1-34.2 27.7-61.9 61.9-61.9Zm370.9 294.6c-19.9 38.1-50.2 70.5-86.2 93.8-55.3 35.7-124.5 46.6-188.5 32.3-69.3-15.6-130.5-63.2-163.3-126.1-7.8-14.9-3.4-31.9 10.8-41.1 13.2-8.5 33.8-3.2 41.1 10.8 3.2 6.2 6.7 12.2 10.4 18 1.9 3 3.9 5.8 5.9 8.7.9 1.3 2.2 2.6 3 4 8.1 10 17 19.2 26.7 27.6 2.2 1.9 4.4 3.7 6.6 5.5-.5-.3-1-.7-1.4-1.1-.3-.2-.4-.3-.5-.3.2.2 3.2 2.5 3.5 2.7-.1-.1-.5-.5-1.5-1.2.6.5 1.3 1 2 1.4 4.4 3.2 9 6.3 13.6 9.2 8.3 5.1 16.9 9.6 25.8 13.6 15.5 6.2 31.5 10.6 48 13.1 16.7 1.9 33.5 1.9 50.2 0 16.4-2.6 32.5-6.9 48-13.1 8.9-3.9 17.5-8.5 25.8-13.6 4.9-3 9.6-6.2 14.2-9.6l.9-.6c-.4.3-.8.6-1.2 1 .6-.4 1.1-.9 1.7-1.3-.1.1-.3.2-.4.3.3-.3.7-.6 1-.8 2.1-1.7 4.1-3.4 6.1-5.1 9.8-8.5 18.8-17.8 26.9-27.9.5-.6 1-1.3 1.5-1.9.2-.3.5-.6.7-.9-.2.3-.4.5-.6.8.4-.6.8-1.3 1.2-1.8 2-2.8 4-5.7 5.9-8.7 3.8-5.8 7.2-11.8 10.4-18 7.8-14.9 27.3-18.1 41.1-10.8 14.6 7.9 17.8 27.2 10.6 41.1Z" />
+      </svg>
+    </div>
+  )
+}
 
 export default Logo

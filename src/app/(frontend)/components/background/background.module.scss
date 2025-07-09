@@ -57,12 +57,12 @@
       -webkit-box-decoration-break: clone;
       -moz-box-decoration-break: clone;
       box-decoration-break: clone;
-      line-height: 1.6;
+      line-height: 180%;
     }
 
     @include mobile-only {
       max-width: 95%;
-      line-height: 1.9;
+      line-height: 195%;
     }
   }
 }

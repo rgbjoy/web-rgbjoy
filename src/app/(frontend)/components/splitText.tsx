@@ -13,7 +13,7 @@ export function SplitText({ children }) {
               opacity: 1,
               y: 0,
               transition: {
-                type: 'sineInOut',
+                ease: 'easeInOut',
                 duration: 0.25,
                 delay: i * 0.03,
               },
