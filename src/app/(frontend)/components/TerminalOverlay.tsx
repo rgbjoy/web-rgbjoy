@@ -18,6 +18,8 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  const PLAY_AGAIN_MESSAGE = `Type 'blackjack' to play again.`
+
   const router = useRouter()
 
   const posts = postsData
@@ -60,14 +62,14 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
             ...newOutput,
             `Starting Blackjack...`,
             `Your hand: ${initialPlayerHand.join(', ')}`,
-            `Dealer's hand: ${initialDealerHand.join(', ')}. It's a tie!`,
+            `Dealer's hand: ${initialDealerHand.join(', ')}. It's a push!`,
           ])
         } else {
           setOutput([
             ...newOutput,
             `Starting Blackjack...`,
             `Your hand: ${initialPlayerHand.join(', ')}. Blackjack! You win!`,
-            `Well done! Type 'blackjack' to play again.`,
+            `Well done! ${PLAY_AGAIN_MESSAGE}`,
           ])
           updateWins(wins + 1)
         }
@@ -78,7 +80,7 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
           `Starting Blackjack...`,
           `Your hand: ${initialPlayerHand.join(', ')}`,
           `Dealer's hand: ${initialDealerHand.join(', ')}. Dealer Blackjack! You lose!`,
-          `Type 'blackjack' to play again.`,
+          PLAY_AGAIN_MESSAGE,
         ])
         updateLosses(losses + 1)
         setGameActive(false)
@@ -147,7 +149,7 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
         setOutput([
           ...newOutput,
           `You drew a ${newCard}. Your hand: ${newPlayerHand.join(', ')}. Bust!`,
-          `Type 'blackjack' to play again.`,
+          PLAY_AGAIN_MESSAGE,
         ])
         setGameActive(false)
       } else {
@@ -169,21 +171,21 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
         setOutput([
           ...newOutput,
           `Dealer's hand: ${dealerHand.join(', ')}. You win!`,
-          `Type 'blackjack' to play again.`,
+          PLAY_AGAIN_MESSAGE,
         ])
         updateWins(wins + 1)
       } else if (playerValue < dealerValue) {
         setOutput([
           ...newOutput,
           `Dealer's hand: ${dealerHand.join(', ')}. You lose!`,
-          `Type 'blackjack' to play again.`,
+          PLAY_AGAIN_MESSAGE,
         ])
         updateLosses(losses + 1)
       } else {
         setOutput([
           ...newOutput,
-          `Dealer's hand: ${dealerHand.join(', ')}. It's a tie!`,
-          `Type 'blackjack' to play again.`,
+          `Dealer's hand: ${dealerHand.join(', ')}. It's a push!`,
+          PLAY_AGAIN_MESSAGE,
         ])
       }
       setGameActive(false)
