@@ -2,18 +2,11 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { usePathname, useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import { usePathname } from 'next/navigation'
 import style from './siteLayout.module.scss'
 import NavLink from '@/components/navLink'
 import TerminalOverlay from '@/components/TerminalOverlay'
 import Link from 'next/link'
-import LoadingComponent from '@/components/loading'
-
-const DynamicBackground = dynamic(() => import('@/components/background/background'), {
-  loading: () => <LoadingComponent />,
-  ssr: false,
-})
 
 const Footer = ({ footerLinks }) => {
   return (
@@ -29,7 +22,7 @@ const Footer = ({ footerLinks }) => {
   )
 }
 
-const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
+const SiteLayout = ({ children, footerData, postsData, isAdmin }) => {
   const pathname = usePathname()
 
   // hamburger
@@ -114,20 +107,11 @@ const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
     return null
   }
 
-  const isNotFound = !links.some((link) => link.path === '/' + pathname.split('/')[1])
-  const router = useRouter()
-
   return (
     <>
-      <DynamicBackground
-        router={router}
-        pathname={isNotFound ? '404' : pathname}
-        homeData={homeData}
-      />
-
       <EditPageButton />
 
-      {children}
+      <div className={style.children}>{children}</div>
 
       <div
         ref={menuRef}

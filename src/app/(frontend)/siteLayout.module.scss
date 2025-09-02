@@ -6,6 +6,7 @@
   left: 0;
   right: 0;
   height: calc($gutter * 2);
+  z-index: 100;
 
   @include mobile-only {
     height: $gutter;
@@ -25,7 +26,6 @@
     background: rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     backdrop-filter: blur(8px);
-
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -164,6 +164,7 @@
   left: 0;
   bottom: 0;
   right: 30px;
+  z-index: 100;
 
   @include mobile-only {
     right: 0;
@@ -257,4 +258,48 @@
     color: black;
     background-color: white;
   }
+}
+
+.backgroundGrid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+
+  // Allow pointer events on the grid itself for interaction
+  > div {
+    pointer-events: auto;
+  }
+}
+
+// Ensure the badge is visible above the grid
+.badge {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: monospace;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+// Ensure main content is above the grid
+.mainContent {
+  position: relative;
+  z-index: 1;
+}
+
+// Ensure children content is above the grid
+.children {
+  position: relative;
+  z-index: 1;
 }
