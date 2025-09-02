@@ -1,7 +1,7 @@
 import 'normalize.css/normalize.css'
 import './styles/global.scss'
 
-import { Viewport } from 'next'
+import { Viewport, Metadata } from 'next'
 
 import { Montserrat } from 'next/font/google'
 import localFont from 'next/font/local'
@@ -21,7 +21,7 @@ const myFont = localFont({
   variable: '--rhode-font',
 })
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL('https://rgbjoy.com'),
   icons: {
     icon: '/social/icon.png',
@@ -85,12 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${montserrat.className} ${myFont.variable}`}>
-        <SiteLayout
-          isAdmin={user}
-          homeData={homeData}
-          footerData={footerData}
-          postsData={postsData}
-        >
+        <SiteLayout isAdmin={user} footerData={footerData} postsData={postsData}>
           {children}
         </SiteLayout>
         <GoogleAnalytics gaId="G-Y8MFXEHKYX" />
