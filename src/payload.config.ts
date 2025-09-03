@@ -83,10 +83,14 @@ export default buildConfig({
   sharp,
   plugins: [
     s3Storage({
+      acl: 'public-read',
       collections: {
         media: true,
         [Media.slug]: {
           prefix: process.env.NODE_ENV || '',
+          signedDownloads: {
+            shouldUseSignedURL: () => true, // all files use signed URL
+          },
         },
       },
       bucket: process.env.S3_BUCKET || '',

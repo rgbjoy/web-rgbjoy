@@ -7,12 +7,13 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.vercel.app',
-        pathname: '/api/media/file/**',
+        hostname: `${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com`,
+        pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: 'rgbjoy.com',
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
         pathname: '/api/media/file/**',
       },
     ],
