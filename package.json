@@ -30,6 +30,7 @@
   "dependencies": {
     "@next/third-parties": "^15.5.1",
     "@payloadcms/db-postgres": "^3.53.0",
+    "@payloadcms/db-vercel-postgres": "^3.54.0",
     "@payloadcms/email-resend": "^3.53.0",
     "@payloadcms/next": "^3.53.0",
     "@payloadcms/richtext-lexical": "^3.53.0",
@@ -68,5 +69,5 @@
     "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   },
-  "packageManager": "pnpm@10.11.1"
+  "packageManager": "pnpm@10.15.1"
 }
