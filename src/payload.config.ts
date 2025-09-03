@@ -83,7 +83,6 @@ export default buildConfig({
   sharp,
   plugins: [
     s3Storage({
-      acl: 'public-read',
       collections: {
         media: true,
         [Media.slug]: {
