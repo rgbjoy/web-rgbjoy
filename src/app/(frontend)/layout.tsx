@@ -80,7 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return { posts, footer, home, user }
   }
 
-  const { posts: postsData, footer: footerData, home: homeData, user } = use(getData())
+  const { posts: postsData, footer: footerData, user } = use(getData())
 
   return (
     <html lang="en">
