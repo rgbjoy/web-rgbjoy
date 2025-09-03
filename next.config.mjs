@@ -1,23 +1,20 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 /** @type {import('next').NextConfig} */
 
-const NEXT_PUBLIC_SERVER_URL = process.env.SERVER_URL
-  ? `${process.env.SERVER_URL}`
-  : undefined || process.env.__NEXT_PRIVATE_ORIGIN || 'http://localhost:3000'
-
 const nextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      ...[NEXT_PUBLIC_SERVER_URL].map((item) => {
-        const url = new URL(item)
-
-        return {
-          hostname: url.hostname,
-          protocol: url.protocol.replace(':', ''),
-          pathname: '/api/media/file/**',
-        }
-      }),
+      {
+        protocol: 'https',
+        hostname: '**.vercel.app',
+        pathname: '/api/media/file/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'rgbjoy.com',
+        pathname: '/api/media/file/**',
+      },
     ],
   },
   turbopack: {
