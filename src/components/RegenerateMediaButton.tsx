@@ -55,7 +55,7 @@ const RegenerateButton: React.FC<RegenerateButtonProps> = ({ label, endpoint, di
 }
 
 // Per-document button
-export const RegenerateMediaButton: React.FC = (data) => {
+export const RegenerateMediaButton: React.FC = () => {
   const { id } = useDocumentInfo()
   if (!id) return null
   return <RegenerateButton label="Regenerate Media" endpoint={`/api/regenerate-media/${id}`} />
