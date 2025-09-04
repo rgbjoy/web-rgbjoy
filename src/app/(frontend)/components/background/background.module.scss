@@ -1,0 +1,176 @@
+@use '../../styles/variables.scss' as *;
+
+.background {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  animation: fadeInAnimation forwards cubic-bezier(0.25, 0.46, 0.45, 0.94) 3s 1;
+
+  div {
+    @include mobile-only {
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  }
+}
+
+.sections {
+  position: relative;
+  width: 100vw;
+
+  > div {
+    position: absolute;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    @include mobile-only {
+      font-size: 1.7rem;
+    }
+  }
+
+  h2 {
+    margin-top: 20px;
+    margin-bottom: 40px;
+    max-width: 600px;
+
+    @include mobile-only {
+      margin-top: 10px;
+      margin-bottom: 20px;
+      max-width: 95%;
+      font-size: 0.8rem;
+    }
+  }
+
+  p {
+    max-width: 600px;
+
+    span {
+      color: black;
+      background-color: #ffffff;
+      padding: 4px 0;
+      box-shadow:
+        0.5rem 0px 0px #ffffff,
+        -0.5rem 0px 0px #ffffff;
+      -webkit-box-decoration-break: clone;
+      -moz-box-decoration-break: clone;
+      box-decoration-break: clone;
+      line-height: 180%;
+    }
+
+    @include mobile-only {
+      max-width: 95%;
+      line-height: 195%;
+    }
+  }
+}
+
+.dots {
+  position: fixed;
+  bottom: $gutter;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  @include mobile-only {
+    bottom: $gutter-mobile;
+  }
+
+  .scrollDown {
+    font-size: 0.8rem;
+    color: white;
+    margin-bottom: 1em;
+
+    @include mobile-only {
+      display: none;
+    }
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    background-color: white;
+    margin: 6px;
+    animation: fadeInOut 2s infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(4) {
+      animation-delay: 0.4s;
+    }
+  }
+
+  @keyframes fadeInOut {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    25% {
+      opacity: 1;
+    }
+  }
+}
+
+.intro {
+  top: 25vh;
+  left: 15vw;
+
+  @include mobile-only {
+    top: 15vh;
+    left: 5%;
+  }
+}
+
+.info {
+  top: 50vh;
+  left: 15vw;
+
+  @include mobile-only {
+    top: 30vh;
+  }
+}
+
+.dev {
+  text-align: right;
+  top: 50vh;
+  left: 30vw;
+
+  @include mobile-only {
+    max-width: 50%;
+    left: 30vw;
+    top: 40vh;
+  }
+}
+
+.art {
+  width: auto;
+  top: 40vh;
+  left: 30vw;
+
+  @include mobile-only {
+    top: 30vh;
+  }
+}
+
+.disableScroll {
+  canvas + div {
+    overflow: hidden !important;
+  }
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

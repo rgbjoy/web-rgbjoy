@@ -1,7 +1,7 @@
 import 'normalize.css/normalize.css'
 import './styles/global.scss'
 
-import { Viewport, Metadata } from 'next'
+import { Metadata, Viewport } from 'next'
 
 import { Montserrat } from 'next/font/google'
 import localFont from 'next/font/local'
@@ -80,12 +80,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return { posts, footer, home, user }
   }
 
-  const { posts: postsData, footer: footerData, user } = use(getData())
+  const { posts: postsData, footer: footerData, home: homeData, user } = use(getData())
 
   return (
     <html lang="en">
       <body className={`${montserrat.className} ${myFont.variable}`}>
-        <SiteLayout isAdmin={user} footerData={footerData} postsData={postsData}>
+        <SiteLayout
+          isAdmin={user}
+          homeData={homeData}
+          footerData={footerData}
+          postsData={postsData}
+        >
           {children}
         </SiteLayout>
         <GoogleAnalytics gaId="G-Y8MFXEHKYX" />

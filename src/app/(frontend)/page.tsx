@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import HomeClient from './home/home.client'
 
 export const metadata: Metadata = {
   title: 'Tom Fletcher',
@@ -7,5 +6,5 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  return <HomeClient />
+  return null
 }
