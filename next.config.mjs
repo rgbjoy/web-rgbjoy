@@ -1,17 +1,26 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 /** @type {import('next').NextConfig} */
 
+// Prefer explicit SERVER_URL, otherwise pick from Vercel vars and ensure protocol
+const pickVercelHost = () =>
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  process.env.VERCEL_URL ||
+  process.env.VERCEL_BRANCH_URL
+
+const ensureProtocol = (url) => (url?.startsWith('http') ? url : url ? `https://${url}` : undefined)
+
+const NEXT_PUBLIC_SERVER_URL = ensureProtocol(pickVercelHost()) || 'http://localhost:3000'
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      ...[process.env.SERVER_URL].map((item) => {
+      ...[NEXT_PUBLIC_SERVER_URL].map((item) => {
         const url = new URL(item)
 
         return {
           hostname: url.hostname,
           protocol: url.protocol.replace(':', ''),
-          pathname: '/api/media/file/**',
         }
       }),
     ],

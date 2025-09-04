@@ -1,10 +1,11 @@
 import React from 'react'
+import { getServerSideURL } from '@/utilities/getURL'
 
 export const ViewSite = () => {
   return (
     <div className="view-site-wrapper">
       <a
-        href={`${process.env.SERVER_URL}`}
+        href={`${getServerSideURL()}`}
         target="_blank"
         rel="noopener noreferrer"
         style={{
