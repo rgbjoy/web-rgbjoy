@@ -11,15 +11,10 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: '**.vercel.app',
-        pathname: '/api/media/file/**',
-      },
-      {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
-        pathname: '/api/media/file/**',
+        pathname: '/api/media/file/**', // keep this only for local dev
       },
     ],
   },
