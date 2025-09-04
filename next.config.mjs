@@ -5,22 +5,15 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: `${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com`,
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.vercel.app',
-        pathname: '/api/media/file/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/api/media/file/**',
-      },
+      ...[process.env.SERVER_URL].map((item) => {
+        const url = new URL(item)
+
+        return {
+          hostname: url.hostname,
+          protocol: url.protocol.replace(':', ''),
+          pathname: '/api/media/file/**',
+        }
+      }),
     ],
   },
   turbopack: {
