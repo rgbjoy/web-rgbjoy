@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import NextImage from 'next/image'
 import PageWrapper from '@/components/pageWrapper'
 import { SplitText } from '@/components/splitText'
 import style from './info.module.scss'
@@ -82,7 +82,7 @@ export default function InfoClient(page: Info) {
           variants={animationVariants}
           transition={{ ease: 'easeOut', duration: 1, delay: 1 }}
         >
-          <Image
+          <NextImage
             src={image.sizes?.card?.url ?? ''}
             alt={image.alt ?? ''}
             width={image.width ?? 0}

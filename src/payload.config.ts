@@ -88,7 +88,9 @@ export default buildConfig({
         [Media.slug]: {
           prefix: process.env.NODE_ENV || '',
           signedDownloads: {
-            shouldUseSignedURL: () => true, // all files use signed URL
+            generateURL: (args) => {
+              return `https://s3.${process.env.S3_REGION}.amazonaws.com/${process.env.S3_BUCKET}/${args.prefix ? `${args.prefix}/` : ''}${args.filename}`
+            },
           },
         },
       },
