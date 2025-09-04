@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import style from '@/components/imageShimmer.module.scss'
 
 function ImageWithShimmer({ imageUrl, post, imageWidth, imageHeight }) {
@@ -10,7 +10,7 @@ function ImageWithShimmer({ imageUrl, post, imageWidth, imageHeight }) {
   return (
     <Suspense fallback={<div style={{ background: 'grey' }}></div>}>
       <div className={style.featuredImageContainer}>
-        <Image
+        <NextImage
           itemProp="image"
           className={isLoading ? style.imageLoading : style.featuredImage}
           src={imageUrl}
@@ -20,6 +20,7 @@ function ImageWithShimmer({ imageUrl, post, imageWidth, imageHeight }) {
           priority
           onLoad={() => setIsLoading(false)}
           quality={80}
+          unoptimized
         />
       </div>
     </Suspense>
