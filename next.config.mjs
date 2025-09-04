@@ -4,9 +4,7 @@ import { withPayload } from '@payloadcms/next/withPayload'
 // Prefer explicit SERVER_URL, otherwise pick from Vercel vars and ensure protocol
 // For PR deployments, prioritize branch URL over production URL
 const pickVercelHost = () =>
-  process.env.VERCEL_BRANCH_URL ||
-  process.env.VERCEL_URL ||
-  process.env.VERCEL_PROJECT_PRODUCTION_URL
+  process.env.VERCEL_BRANCH_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 const ensureProtocol = (url) => (url?.startsWith('http') ? url : url ? `https://${url}` : undefined)
 

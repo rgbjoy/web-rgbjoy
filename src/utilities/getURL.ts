@@ -2,16 +2,12 @@ import canUseDOM from './canUseDOM'
 
 export const getServerSideURL = () => {
   const pickVercelHost = () =>
-    process.env.VERCEL_BRANCH_URL ||
-    process.env.VERCEL_URL ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
+    process.env.VERCEL_BRANCH_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL
 
-  const ensureProtocol = (url?: string) => (url?.startsWith('http') ? url : url ? `https://${url}` : undefined)
+  const ensureProtocol = (url?: string) =>
+    url?.startsWith('http') ? url : url ? `https://${url}` : undefined
 
-  return (
-    ensureProtocol(pickVercelHost()) ||
-    'http://localhost:3000'
-  )
+  return ensureProtocol(pickVercelHost()) || 'http://localhost:3000'
 }
 
 export const getClientSideURL = () => {
