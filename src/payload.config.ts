@@ -84,13 +84,11 @@ export default buildConfig({
   plugins: [
     s3Storage({
       collections: {
-        media: true,
         [Media.slug]: {
           prefix: process.env.NODE_ENV || '',
-          signedDownloads: {
-            generateURL: (args) => {
-              return `https://s3.${process.env.S3_REGION}.amazonaws.com/${process.env.S3_BUCKET}/${args.prefix ? `${args.prefix}/` : ''}${args.filename}`
-            },
+          signedURL: {
+            expiration: 900, // Link is valid for 15 minutes
+            shouldSign: true, // Always generate a signed URL
           },
         },
       },
