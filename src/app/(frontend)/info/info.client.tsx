@@ -89,6 +89,7 @@ export default function InfoClient(page: Info) {
             height={image.height ?? 0}
             onLoad={() => setLoaded(true)}
             priority
+            unoptimized
           />
         </motion.div>
       </div>
