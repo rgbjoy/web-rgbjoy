@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import NextImage from 'next/image'
 import { useState, useEffect } from 'react'
 import { RowLabelProps, useRowLabel } from '@payloadcms/ui'
 import { Media } from '@/payload-types'
@@ -55,7 +55,7 @@ export const MediaLabel: React.FC<RowLabelProps> = () => {
       ) : media?.url ? (
         <>
           {isImage ? (
-            <Image src={media.url} alt={''} width={64} height={64} />
+            <NextImage src={media.url} alt={''} width={64} height={64} unoptimized />
           ) : isVideo ? (
             <video
               src={media.url}

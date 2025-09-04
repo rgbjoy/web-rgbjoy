@@ -1,7 +1,7 @@
 import 'normalize.css/normalize.css'
 import './styles/global.scss'
 
-import { Viewport } from 'next'
+import { Metadata, Viewport } from 'next'
 
 import { Montserrat } from 'next/font/google'
 import localFont from 'next/font/local'
@@ -21,7 +21,7 @@ const myFont = localFont({
   variable: '--rhode-font',
 })
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL('https://rgbjoy.com'),
   icons: {
     icon: '/social/icon.png',

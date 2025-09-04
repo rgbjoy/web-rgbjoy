@@ -1,5 +1,5 @@
 // storage-adapter-import-placeholder
-import { postgresAdapter } from '@payloadcms/db-postgres'
+import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
@@ -44,7 +44,7 @@ export default buildConfig({
       beforeNavLinks: ['src/components/Admin#ViewSite'],
     },
   },
-  serverURL: process.env.PAYLOAD_SERVER_URL || getServerSideURL(),
+  serverURL: getServerSideURL(),
   routes: {
     admin: '/dashboard',
   },
@@ -56,7 +56,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  db: postgresAdapter({
+  db: vercelPostgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
@@ -84,9 +84,11 @@ export default buildConfig({
   plugins: [
     s3Storage({
       collections: {
-        media: true,
         [Media.slug]: {
           prefix: process.env.NODE_ENV || '',
+          signedDownloads: {
+            shouldUseSignedURL: () => true,
+          },
         },
       },
       bucket: process.env.S3_BUCKET || '',

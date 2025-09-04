@@ -55,6 +55,7 @@ const Media = ({ media, thumbnail = false }: { media: MediaType; thumbnail?: boo
             alt={media.alt}
             quality={thumbnail ? 75 : 100}
             onLoad={() => setLoaded(true)}
+            unoptimized
           />
         </div>
       </motion.div>

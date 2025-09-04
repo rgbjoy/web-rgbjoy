@@ -4,7 +4,7 @@ import PageWrapper from '@/components/pageWrapper'
 import style from './dev.module.scss'
 import { SplitText } from '@/components/splitText'
 import { Dev, Media } from '@payload-types'
-import Image from 'next/image'
+import NextImage from 'next/image'
 
 export default function DevClient(page: Dev) {
   const GetProjects = () => {
@@ -15,7 +15,7 @@ export default function DevClient(page: Dev) {
             const image = project.image as Media
             if (image?.url) {
               return (
-                <Image
+                <NextImage
                   key={`preview-${i}`}
                   src={image.url}
                   alt={project.title || ''}
@@ -24,6 +24,7 @@ export default function DevClient(page: Dev) {
                   quality={75}
                   priority={true}
                   className={`${style.previewImage} preview-${i}`}
+                  unoptimized
                 />
               )
             }

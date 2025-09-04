@@ -6,7 +6,7 @@ import configPromise from '@payload-config'
 import style from './post.module.scss'
 import formatDate from '@/components/formatDate'
 import parse from 'html-react-parser'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import Link from 'next/link'
 import ImageWithShimmer from '@/components/imageWithShimmer'
 
@@ -19,7 +19,7 @@ interface PostPageProps {
 const replaceTags = (node) => {
   if (node.type === 'tag' && node.name === 'img') {
     const { src, alt, width, height } = node.attribs
-    return <Image src={src} alt={alt} width={width} height={height} />
+    return <NextImage src={src} alt={alt} width={width} height={height} unoptimized />
   }
 
   if (node.type === 'tag' && node.name === 'iframe') {
