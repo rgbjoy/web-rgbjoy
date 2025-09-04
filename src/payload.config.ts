@@ -86,9 +86,8 @@ export default buildConfig({
       collections: {
         [Media.slug]: {
           prefix: process.env.NODE_ENV || '',
-          signedURL: {
-            expiration: 900, // Link is valid for 15 minutes
-            shouldSign: true, // Always generate a signed URL
+          signedDownloads: {
+            shouldUseSignedURL: () => true,
           },
         },
       },
