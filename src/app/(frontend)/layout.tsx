@@ -2,6 +2,7 @@ import 'normalize.css/normalize.css'
 import './styles/global.scss'
 
 import { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 
 import { Montserrat } from 'next/font/google'
 import localFont from 'next/font/local'
@@ -13,7 +14,6 @@ import { headers as nextHeaders } from 'next/headers'
 import configPromise from '@payload-config'
 
 import { getCachedGlobal } from '@/utilities/getGlobals'
-import { GoogleAnalytics } from '@next/third-parties/google'
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 const myFont = localFont({
@@ -93,7 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           {children}
         </SiteLayout>
-        <GoogleAnalytics gaId="G-Y8MFXEHKYX" />
+        <Analytics />
       </body>
     </html>
   )
