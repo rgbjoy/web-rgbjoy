@@ -1,4 +1,4 @@
-import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
+import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/@payloadcms/db-vercel-postgres'
 
 export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   await payload.db.drizzle.execute(sql`
@@ -12,7 +12,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   	"updated_at" timestamp(3) with time zone,
   	"created_at" timestamp(3) with time zone
   );
-  
+
   CREATE TABLE IF NOT EXISTS "art_artworks" (
   	"_order" integer NOT NULL,
   	"_parent_id" integer NOT NULL,
@@ -21,7 +21,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   	"image_id" integer NOT NULL,
   	"description" varchar
   );
-  
+
   CREATE TABLE IF NOT EXISTS "art" (
   	"id" serial PRIMARY KEY NOT NULL,
   	"header" varchar,
@@ -30,7 +30,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   	"updated_at" timestamp(3) with time zone,
   	"created_at" timestamp(3) with time zone
   );
-  
+
   ALTER TABLE "media" ALTER COLUMN "prefix" SET DEFAULT 'development';
   ALTER TABLE "media" ADD COLUMN "sizes_thumbnail_url" varchar;
   ALTER TABLE "media" ADD COLUMN "sizes_thumbnail_width" numeric;
@@ -60,13 +60,13 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   EXCEPTION
    WHEN duplicate_object THEN null;
   END $$;
-  
+
   DO $$ BEGIN
    ALTER TABLE "art_artworks" ADD CONSTRAINT "art_artworks_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."art"("id") ON DELETE cascade ON UPDATE no action;
   EXCEPTION
    WHEN duplicate_object THEN null;
   END $$;
-  
+
   CREATE INDEX IF NOT EXISTS "art_artworks_order_idx" ON "art_artworks" USING btree ("_order");
   CREATE INDEX IF NOT EXISTS "art_artworks_parent_id_idx" ON "art_artworks" USING btree ("_parent_id");
   CREATE INDEX IF NOT EXISTS "art_artworks_image_idx" ON "art_artworks" USING btree ("image_id");
@@ -75,13 +75,13 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   EXCEPTION
    WHEN duplicate_object THEN null;
   END $$;
-  
+
   DO $$ BEGIN
    ALTER TABLE "_posts_v" ADD CONSTRAINT "_posts_v_version_featured_image_id_media_id_fk" FOREIGN KEY ("version_featured_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   EXCEPTION
    WHEN duplicate_object THEN null;
   END $$;
-  
+
   CREATE INDEX IF NOT EXISTS "media_sizes_thumbnail_sizes_thumbnail_filename_idx" ON "media" USING btree ("sizes_thumbnail_filename");
   CREATE INDEX IF NOT EXISTS "media_sizes_card_sizes_card_filename_idx" ON "media" USING btree ("sizes_card_filename");
   CREATE INDEX IF NOT EXISTS "media_sizes_tablet_sizes_tablet_filename_idx" ON "media" USING btree ("sizes_tablet_filename");
@@ -98,9 +98,9 @@ export async function down({ payload, req }: MigrateDownArgs): Promise<void> {
   DROP TABLE "art_artworks" CASCADE;
   DROP TABLE "art" CASCADE;
   ALTER TABLE "posts" DROP CONSTRAINT "posts_featured_image_id_media_id_fk";
-  
+
   ALTER TABLE "_posts_v" DROP CONSTRAINT "_posts_v_version_featured_image_id_media_id_fk";
-  
+
   DROP INDEX IF EXISTS "media_sizes_thumbnail_sizes_thumbnail_filename_idx";
   DROP INDEX IF EXISTS "media_sizes_card_sizes_card_filename_idx";
   DROP INDEX IF EXISTS "media_sizes_tablet_sizes_tablet_filename_idx";

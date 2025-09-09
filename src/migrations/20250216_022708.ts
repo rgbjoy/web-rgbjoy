@@ -1,4 +1,4 @@
-import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
+import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/@payloadcms/db-vercel-postgres'
 
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
@@ -8,14 +8,14 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   EXCEPTION
    WHEN duplicate_object THEN null;
   END $$;
-  
+
   CREATE INDEX IF NOT EXISTS "dev_past_projects_image_idx" ON "dev_past_projects" USING btree ("image_id");`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "dev_past_projects" DROP CONSTRAINT "dev_past_projects_image_id_media_id_fk";
-  
+
   DROP INDEX IF EXISTS "dev_past_projects_image_idx";
   ALTER TABLE "dev_past_projects" DROP COLUMN IF EXISTS "image_id";`)
 }

@@ -6,7 +6,7 @@
  * and re-run `payload generate:db-schema` to regenerate this file.
  */
 
-import type {} from '@payloadcms/db-postgres'
+import type {} from '@payloadcms/db-vercel-postgres'
 import {
   pgTable,
   index,
@@ -20,8 +20,8 @@ import {
   jsonb,
   boolean,
   pgEnum,
-} from '@payloadcms/db-postgres/drizzle/pg-core'
-import { sql, relations } from '@payloadcms/db-postgres/drizzle'
+} from '@payloadcms/db-vercel-postgres/drizzle/pg-core'
+import { sql, relations } from '@payloadcms/db-vercel-postgres/drizzle'
 export const enum_users_role = pgEnum('enum_users_role', ['admin', 'editor'])
 export const enum_posts_status = pgEnum('enum_posts_status', ['draft', 'published'])
 export const enum__posts_v_version_status = pgEnum('enum__posts_v_version_status', [
@@ -760,7 +760,7 @@ type DatabaseSchema = {
   relations_footer: typeof relations_footer
 }
 
-declare module '@payloadcms/db-postgres' {
+declare module '@payloadcms/db-vercel-postgres' {
   export interface GeneratedDatabaseSchema {
     schema: DatabaseSchema
   }
