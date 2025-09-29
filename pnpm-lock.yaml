@@ -19,31 +19,31 @@ importers:
         version: 3.57.0(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))
       '@payloadcms/next':
         specifier: ^3.57.0
-        version: 3.57.0(@types/react@19.1.13)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+        version: 3.57.0(@types/react@19.1.15)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@payloadcms/richtext-lexical':
         specifier: ^3.57.0
-        version: 3.57.0(@faceless-ui/modal@3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@faceless-ui/scroll-info@2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@payloadcms/next@3.57.0(@types/react@19.1.13)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2))(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)(yjs@13.6.23)
+        version: 3.57.0(@faceless-ui/modal@3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@faceless-ui/scroll-info@2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@payloadcms/next@3.57.0(@types/react@19.1.15)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2))(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)(yjs@13.6.23)
       '@payloadcms/storage-s3':
         specifier: ^3.57.0
-        version: 3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+        version: 3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@payloadcms/ui':
         specifier: ^3.57.0
-        version: 3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+        version: 3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@react-three/drei':
         specifier: ^10.7.6
-        version: 10.7.6(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/react@19.1.13)(@types/three@0.180.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
+        version: 10.7.6(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/react@19.1.15)(@types/three@0.180.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
       '@react-three/fiber':
         specifier: ^9.3.0
-        version: 9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
+        version: 9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
       '@react-three/postprocessing':
         specifier: ^3.0.4
-        version: 3.0.4(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/three@0.180.0)(react@19.1.1)(three@0.180.0)
+        version: 3.0.4(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/three@0.180.0)(react@19.1.1)(three@0.180.0)
       '@react-three/rapier':
         specifier: ^2.1.0
-        version: 2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)
+        version: 2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)
       '@react-three/rapier-addons':
         specifier: ^5.0.0
-        version: 5.0.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@react-three/rapier@2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)
+        version: 5.0.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@react-three/rapier@2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(react@19.1.1)
@@ -58,7 +58,7 @@ importers:
         version: 3.13.0
       html-react-parser:
         specifier: ^5.2.6
-        version: 5.2.6(@types/react@19.1.13)(react@19.1.1)
+        version: 5.2.6(@types/react@19.1.15)(react@19.1.1)
       next:
         specifier: ^15.5.4
         version: 15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2)
@@ -94,7 +94,7 @@ importers:
         version: 2.36.0(three@0.180.0)
       valtio:
         specifier: ^2.1.8
-        version: 2.1.8(@types/react@19.1.13)(react@19.1.1)
+        version: 2.1.8(@types/react@19.1.15)(react@19.1.1)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -103,11 +103,11 @@ importers:
         specifier: ^24.5.2
         version: 24.5.2
       '@types/react':
-        specifier: ^19.1.13
-        version: 19.1.13
+        specifier: ^19.1.15
+        version: 19.1.15
       '@types/react-dom':
         specifier: ^19.1.9
-        version: 19.1.9(@types/react@19.1.13)
+        version: 19.1.9(@types/react@19.1.15)
       '@types/three':
         specifier: ^0.180.0
         version: 0.180.0
@@ -1509,8 +1509,8 @@ packages:
     resolution: {integrity: sha512-IT6MatgBWagLybZl1xQcURXRICvqz1z3APSCAI9IqdvfCkrA7RaQIEfgC6G/KvfxnDfQUDqFV+ZlixcuFznGBQ==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/core@3.12.0':
-    resolution: {integrity: sha512-zJeAgogZfbwlPGL93y4Z/XNeIN37YCreRUd6YMIRvaq+6RnBK8PPYYIQ85Is/GglPh3kNImD5riDCXbVSDpCiQ==}
+  '@smithy/core@3.13.0':
+    resolution: {integrity: sha512-BI6ALLPOKnPOU1Cjkc+1TPhOlP3JXSR/UH14JmnaLq41t3ma+IjuXrKfhycVjr5IQ0XxRh2NnQo3olp+eCVrGg==}
     engines: {node: '>=18.0.0'}
 
   '@smithy/credential-provider-imds@4.1.2':
@@ -1573,12 +1573,12 @@ packages:
     resolution: {integrity: sha512-9wlfBBgTsRvC2JxLJxv4xDGNBrZuio3AgSl0lSFX7fneW2cGskXTYpFxCdRYD2+5yzmsiTuaAJD1Wp7gWt9y9w==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/middleware-endpoint@4.2.4':
-    resolution: {integrity: sha512-FZ4hzupOmthm8Q8ujYrd0I+/MHwVMuSTdkDtIQE0xVuvJt9pLT6Q+b0p4/t+slDyrpcf+Wj7SN+ZqT5OryaaZg==}
+  '@smithy/middleware-endpoint@4.2.5':
+    resolution: {integrity: sha512-DdOIpssQ5LFev7hV6GX9TMBW5ChTsQBxqgNW1ZGtJNSAi5ksd5klwPwwMY0ejejfEzwXXGqxgVO3cpaod4veiA==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/middleware-retry@4.3.0':
-    resolution: {integrity: sha512-qhEX9745fAxZvtLM4bQJAVC98elWjiMO2OiHl1s6p7hUzS4QfZO1gXUYNwEK8m0J6NoCD5W52ggWxbIDHI0XSg==}
+  '@smithy/middleware-retry@4.3.1':
+    resolution: {integrity: sha512-aH2bD1bzb6FB04XBhXA5mgedEZPKx3tD/qBuYCAKt5iieWvWO1Y2j++J9uLqOndXb9Pf/83Xka/YjSnMbcPchA==}
     engines: {node: '>=18.0.0'}
 
   '@smithy/middleware-serde@4.1.1':
@@ -1625,8 +1625,8 @@ packages:
     resolution: {integrity: sha512-M9rZhWQLjlQVCCR37cSjHfhriGRN+FQ8UfgrYNufv66TJgk+acaggShl3KS5U/ssxivvZLlnj7QH2CUOKlxPyA==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/smithy-client@4.6.4':
-    resolution: {integrity: sha512-qL7O3VDyfzCSN9r+sdbQXGhaHtrfSJL30En6Jboj0I3bobf2g1/T0eP2L4qxqrEW26gWhJ4THI4ElVVLjYyBHg==}
+  '@smithy/smithy-client@4.6.5':
+    resolution: {integrity: sha512-6J2hhuWu7EjnvLBIGltPCqzNswL1cW/AkaZx6i56qLsQ0ix17IAhmDD9aMmL+6CN9nCJODOXpBTCQS6iKAA7/g==}
     engines: {node: '>=18.0.0'}
 
   '@smithy/types@4.5.0':
@@ -1661,12 +1661,12 @@ packages:
     resolution: {integrity: sha512-swXz2vMjrP1ZusZWVTB/ai5gK+J8U0BWvP10v9fpcFvg+Xi/87LHvHfst2IgCs1i0v4qFZfGwCmeD/KNCdJZbQ==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/util-defaults-mode-browser@4.1.4':
-    resolution: {integrity: sha512-mLDJ1s4eA3vwOGaQOEPlg5LB4LdZUUMpB5UMOMofeGhWqiS7WR7dTpLiNi9zVn+YziKUd3Af5NLfxDs7NJqmIw==}
+  '@smithy/util-defaults-mode-browser@4.1.5':
+    resolution: {integrity: sha512-FGBhlmFZVSRto816l6IwrmDcQ9pUYX6ikdR1mmAhdtSS1m77FgADukbQg7F7gurXfAvloxE/pgsrb7SGja6FQA==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/util-defaults-mode-node@4.1.4':
-    resolution: {integrity: sha512-pjX2iMTcOASaSanAd7bu6i3fcMMezr3NTr8Rh64etB0uHRZi+Aw86DoCxPESjY4UTIuA06hhqtTtw95o//imYA==}
+  '@smithy/util-defaults-mode-node@4.1.5':
+    resolution: {integrity: sha512-Gwj8KLgJ/+MHYjVubJF0EELEh9/Ir7z7DFqyYlwgmp4J37KE+5vz6b3pWUnSt53tIe5FjDfVjDmHGYKjwIvW0Q==}
     engines: {node: '>=18.0.0'}
 
   '@smithy/util-endpoints@3.1.2':
@@ -1789,8 +1789,8 @@ packages:
     peerDependencies:
       '@types/react': '*'
 
-  '@types/react@19.1.13':
-    resolution: {integrity: sha512-hHkbU/eoO3EG5/MZkuFSKmYqPbSVk5byPFa3e7y/8TybHiLMACgI8seVYlicwk7H5K/rI2px9xrQp/C+AUDTiQ==}
+  '@types/react@19.1.15':
+    resolution: {integrity: sha512-+kLxJpaJzXybyDyFXYADyP1cznTO8HSuBpenGlnKOAkH4hyNINiywvXS/tGJhsrGGP/gM185RA3xpjY0Yg4erA==}
 
   '@types/stats.js@0.17.4':
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
@@ -4489,7 +4489,7 @@ snapshots:
       '@aws-sdk/util-user-agent-node': 3.896.0
       '@aws-sdk/xml-builder': 3.894.0
       '@smithy/config-resolver': 4.2.2
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/eventstream-serde-browser': 4.1.1
       '@smithy/eventstream-serde-config-resolver': 4.2.1
       '@smithy/eventstream-serde-node': 4.1.1
@@ -4500,21 +4500,21 @@ snapshots:
       '@smithy/invalid-dependency': 4.1.1
       '@smithy/md5-js': 4.1.1
       '@smithy/middleware-content-length': 4.1.1
-      '@smithy/middleware-endpoint': 4.2.4
-      '@smithy/middleware-retry': 4.3.0
+      '@smithy/middleware-endpoint': 4.2.5
+      '@smithy/middleware-retry': 4.3.1
       '@smithy/middleware-serde': 4.1.1
       '@smithy/middleware-stack': 4.1.1
       '@smithy/node-config-provider': 4.2.2
       '@smithy/node-http-handler': 4.2.1
       '@smithy/protocol-http': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/url-parser': 4.1.1
       '@smithy/util-base64': 4.1.0
       '@smithy/util-body-length-browser': 4.1.0
       '@smithy/util-body-length-node': 4.1.0
-      '@smithy/util-defaults-mode-browser': 4.1.4
-      '@smithy/util-defaults-mode-node': 4.1.4
+      '@smithy/util-defaults-mode-browser': 4.1.5
+      '@smithy/util-defaults-mode-node': 4.1.5
       '@smithy/util-endpoints': 3.1.2
       '@smithy/util-middleware': 4.1.1
       '@smithy/util-retry': 4.1.2
@@ -4541,26 +4541,26 @@ snapshots:
       '@aws-sdk/util-user-agent-browser': 3.893.0
       '@aws-sdk/util-user-agent-node': 3.896.0
       '@smithy/config-resolver': 4.2.2
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/fetch-http-handler': 5.2.1
       '@smithy/hash-node': 4.1.1
       '@smithy/invalid-dependency': 4.1.1
       '@smithy/middleware-content-length': 4.1.1
-      '@smithy/middleware-endpoint': 4.2.4
-      '@smithy/middleware-retry': 4.3.0
+      '@smithy/middleware-endpoint': 4.2.5
+      '@smithy/middleware-retry': 4.3.1
       '@smithy/middleware-serde': 4.1.1
       '@smithy/middleware-stack': 4.1.1
       '@smithy/node-config-provider': 4.2.2
       '@smithy/node-http-handler': 4.2.1
       '@smithy/protocol-http': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/url-parser': 4.1.1
       '@smithy/util-base64': 4.1.0
       '@smithy/util-body-length-browser': 4.1.0
       '@smithy/util-body-length-node': 4.1.0
-      '@smithy/util-defaults-mode-browser': 4.1.4
-      '@smithy/util-defaults-mode-node': 4.1.4
+      '@smithy/util-defaults-mode-browser': 4.1.5
+      '@smithy/util-defaults-mode-node': 4.1.5
       '@smithy/util-endpoints': 3.1.2
       '@smithy/util-middleware': 4.1.1
       '@smithy/util-retry': 4.1.2
@@ -4573,12 +4573,12 @@ snapshots:
     dependencies:
       '@aws-sdk/types': 3.893.0
       '@aws-sdk/xml-builder': 3.894.0
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/node-config-provider': 4.2.2
       '@smithy/property-provider': 4.1.1
       '@smithy/protocol-http': 5.2.1
       '@smithy/signature-v4': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/util-base64': 4.1.0
       '@smithy/util-middleware': 4.1.1
@@ -4601,7 +4601,7 @@ snapshots:
       '@smithy/node-http-handler': 4.2.1
       '@smithy/property-provider': 4.1.1
       '@smithy/protocol-http': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/util-stream': 4.3.2
       tslib: 2.8.1
@@ -4679,8 +4679,8 @@ snapshots:
     dependencies:
       '@aws-sdk/client-s3': 3.896.0
       '@smithy/abort-controller': 4.1.1
-      '@smithy/middleware-endpoint': 4.2.4
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/middleware-endpoint': 4.2.5
+      '@smithy/smithy-client': 4.6.5
       buffer: 5.6.0
       events: 3.3.0
       stream-browserify: 3.0.0
@@ -4751,11 +4751,11 @@ snapshots:
       '@aws-sdk/core': 3.896.0
       '@aws-sdk/types': 3.893.0
       '@aws-sdk/util-arn-parser': 3.893.0
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/node-config-provider': 4.2.2
       '@smithy/protocol-http': 5.2.1
       '@smithy/signature-v4': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/util-config-provider': 4.1.0
       '@smithy/util-middleware': 4.1.1
@@ -4774,7 +4774,7 @@ snapshots:
       '@aws-sdk/core': 3.896.0
       '@aws-sdk/types': 3.893.0
       '@aws-sdk/util-endpoints': 3.895.0
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/protocol-http': 5.2.1
       '@smithy/types': 4.5.0
       tslib: 2.8.1
@@ -4794,26 +4794,26 @@ snapshots:
       '@aws-sdk/util-user-agent-browser': 3.893.0
       '@aws-sdk/util-user-agent-node': 3.896.0
       '@smithy/config-resolver': 4.2.2
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/fetch-http-handler': 5.2.1
       '@smithy/hash-node': 4.1.1
       '@smithy/invalid-dependency': 4.1.1
       '@smithy/middleware-content-length': 4.1.1
-      '@smithy/middleware-endpoint': 4.2.4
-      '@smithy/middleware-retry': 4.3.0
+      '@smithy/middleware-endpoint': 4.2.5
+      '@smithy/middleware-retry': 4.3.1
       '@smithy/middleware-serde': 4.1.1
       '@smithy/middleware-stack': 4.1.1
       '@smithy/node-config-provider': 4.2.2
       '@smithy/node-http-handler': 4.2.1
       '@smithy/protocol-http': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/url-parser': 4.1.1
       '@smithy/util-base64': 4.1.0
       '@smithy/util-body-length-browser': 4.1.0
       '@smithy/util-body-length-node': 4.1.0
-      '@smithy/util-defaults-mode-browser': 4.1.4
-      '@smithy/util-defaults-mode-node': 4.1.4
+      '@smithy/util-defaults-mode-browser': 4.1.5
+      '@smithy/util-defaults-mode-node': 4.1.5
       '@smithy/util-endpoints': 3.1.2
       '@smithy/util-middleware': 4.1.1
       '@smithy/util-retry': 4.1.2
@@ -4836,9 +4836,9 @@ snapshots:
       '@aws-sdk/signature-v4-multi-region': 3.896.0
       '@aws-sdk/types': 3.893.0
       '@aws-sdk/util-format-url': 3.893.0
-      '@smithy/middleware-endpoint': 4.2.4
+      '@smithy/middleware-endpoint': 4.2.5
       '@smithy/protocol-http': 5.2.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       tslib: 2.8.1
 
@@ -5049,7 +5049,7 @@ snapshots:
 
   '@emotion/memoize@0.9.0': {}
 
-  '@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1)':
+  '@emotion/react@11.14.0(@types/react@19.1.15)(react@19.1.1)':
     dependencies:
       '@babel/runtime': 7.28.4
       '@emotion/babel-plugin': 11.13.5
@@ -5061,7 +5061,7 @@ snapshots:
       hoist-non-react-statics: 3.3.2
       react: 19.1.1
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
     transitivePeerDependencies:
       - supports-color
 
@@ -5901,12 +5901,12 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@payloadcms/next@3.57.0(@types/react@19.1.13)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
+  '@payloadcms/next@3.57.0(@types/react@19.1.15)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
     dependencies:
       '@dnd-kit/core': 6.0.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@payloadcms/graphql': 3.57.0(graphql@16.11.0)(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(typescript@5.9.2)
       '@payloadcms/translations': 3.57.0
-      '@payloadcms/ui': 3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+      '@payloadcms/ui': 3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       busboy: 1.6.0
       dequal: 2.0.3
       file-type: 19.3.0
@@ -5928,9 +5928,9 @@ snapshots:
       - supports-color
       - typescript
 
-  '@payloadcms/plugin-cloud-storage@3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
+  '@payloadcms/plugin-cloud-storage@3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
     dependencies:
-      '@payloadcms/ui': 3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+      '@payloadcms/ui': 3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       find-node-modules: 2.1.3
       payload: 3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5)
       range-parser: 1.2.1
@@ -5943,7 +5943,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@payloadcms/richtext-lexical@3.57.0(@faceless-ui/modal@3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@faceless-ui/scroll-info@2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@payloadcms/next@3.57.0(@types/react@19.1.13)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2))(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)(yjs@13.6.23)':
+  '@payloadcms/richtext-lexical@3.57.0(@faceless-ui/modal@3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@faceless-ui/scroll-info@2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@payloadcms/next@3.57.0(@types/react@19.1.15)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2))(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)(yjs@13.6.23)':
     dependencies:
       '@faceless-ui/modal': 3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@faceless-ui/scroll-info': 2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -5957,9 +5957,9 @@ snapshots:
       '@lexical/selection': 0.35.0
       '@lexical/table': 0.35.0
       '@lexical/utils': 0.35.0
-      '@payloadcms/next': 3.57.0(@types/react@19.1.13)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+      '@payloadcms/next': 3.57.0(@types/react@19.1.15)(graphql@16.11.0)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@payloadcms/translations': 3.57.0
-      '@payloadcms/ui': 3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+      '@payloadcms/ui': 3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@types/uuid': 10.0.0
       acorn: 8.12.1
       bson-objectid: 2.0.4
@@ -5986,12 +5986,12 @@ snapshots:
       - typescript
       - yjs
 
-  '@payloadcms/storage-s3@3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
+  '@payloadcms/storage-s3@3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
     dependencies:
       '@aws-sdk/client-s3': 3.896.0
       '@aws-sdk/lib-storage': 3.896.0(@aws-sdk/client-s3@3.896.0)
       '@aws-sdk/s3-request-presigner': 3.896.0
-      '@payloadcms/plugin-cloud-storage': 3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+      '@payloadcms/plugin-cloud-storage': 3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       payload: 3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5)
     transitivePeerDependencies:
       - '@types/react'
@@ -6007,7 +6007,7 @@ snapshots:
     dependencies:
       date-fns: 4.1.0
 
-  '@payloadcms/ui@3.57.0(@types/react@19.1.13)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
+  '@payloadcms/ui@3.57.0(@types/react@19.1.15)(monaco-editor@0.52.2)(next@15.5.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.93.2))(payload@3.57.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.9.2)(utf-8-validate@6.0.5))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
     dependencies:
       '@date-fns/tz': 1.2.0
       '@dnd-kit/core': 6.0.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -6030,7 +6030,7 @@ snapshots:
       react-datepicker: 7.6.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-dom: 19.1.1(react@19.1.1)
       react-image-crop: 10.1.8(react@19.1.1)
-      react-select: 5.9.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react-select: 5.9.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       scheduler: 0.25.0
       sonner: 1.7.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       ts-essentials: 10.0.3(typescript@5.9.2)
@@ -6042,12 +6042,12 @@ snapshots:
       - supports-color
       - typescript
 
-  '@react-three/drei@10.7.6(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/react@19.1.13)(@types/three@0.180.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)':
+  '@react-three/drei@10.7.6(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/react@19.1.15)(@types/three@0.180.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)':
     dependencies:
       '@babel/runtime': 7.28.4
       '@mediapipe/tasks-vision': 0.10.17
       '@monogrid/gainmap-js': 3.1.0(three@0.180.0)
-      '@react-three/fiber': 9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
+      '@react-three/fiber': 9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
       '@use-gesture/react': 10.3.1(react@19.1.1)
       camera-controls: 3.1.0(three@0.180.0)
       cross-env: 7.0.3
@@ -6064,10 +6064,10 @@ snapshots:
       three-mesh-bvh: 0.8.3(three@0.180.0)
       three-stdlib: 2.36.0(three@0.180.0)
       troika-three-text: 0.52.4(three@0.180.0)
-      tunnel-rat: 0.1.2(@types/react@19.1.13)(react@19.1.1)
+      tunnel-rat: 0.1.2(@types/react@19.1.15)(react@19.1.1)
       use-sync-external-store: 1.5.0(react@19.1.1)
       utility-types: 3.11.0
-      zustand: 5.0.8(@types/react@19.1.13)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1))
+      zustand: 5.0.8(@types/react@19.1.15)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1))
     optionalDependencies:
       react-dom: 19.1.1(react@19.1.1)
     transitivePeerDependencies:
@@ -6075,14 +6075,14 @@ snapshots:
       - '@types/three'
       - immer
 
-  '@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)':
+  '@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)':
     dependencies:
       '@babel/runtime': 7.28.4
-      '@types/react-reconciler': 0.32.1(@types/react@19.1.13)
+      '@types/react-reconciler': 0.32.1(@types/react@19.1.15)
       '@types/webxr': 0.5.23
       base64-js: 1.5.1
       buffer: 6.0.3
-      its-fine: 2.0.0(@types/react@19.1.13)(react@19.1.1)
+      its-fine: 2.0.0(@types/react@19.1.15)(react@19.1.1)
       react: 19.1.1
       react-reconciler: 0.31.0(react@19.1.1)
       react-use-measure: 2.1.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -6090,16 +6090,16 @@ snapshots:
       suspend-react: 0.1.3(react@19.1.1)
       three: 0.180.0
       use-sync-external-store: 1.5.0(react@19.1.1)
-      zustand: 5.0.8(@types/react@19.1.13)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1))
+      zustand: 5.0.8(@types/react@19.1.15)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1))
     optionalDependencies:
       react-dom: 19.1.1(react@19.1.1)
     transitivePeerDependencies:
       - '@types/react'
       - immer
 
-  '@react-three/postprocessing@3.0.4(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/three@0.180.0)(react@19.1.1)(three@0.180.0)':
+  '@react-three/postprocessing@3.0.4(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/three@0.180.0)(react@19.1.1)(three@0.180.0)':
     dependencies:
-      '@react-three/fiber': 9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
+      '@react-three/fiber': 9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
       maath: 0.6.0(@types/three@0.180.0)(three@0.180.0)
       n8ao: 1.10.1(postprocessing@6.37.8(three@0.180.0))(three@0.180.0)
       postprocessing: 6.37.8(three@0.180.0)
@@ -6108,18 +6108,18 @@ snapshots:
     transitivePeerDependencies:
       - '@types/three'
 
-  '@react-three/rapier-addons@5.0.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@react-three/rapier@2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)':
+  '@react-three/rapier-addons@5.0.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@react-three/rapier@2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)':
     dependencies:
-      '@react-three/fiber': 9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
-      '@react-three/rapier': 2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)
+      '@react-three/fiber': 9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
+      '@react-three/rapier': 2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)
       react: 19.1.1
       three: 0.180.0
       three-stdlib: 2.36.0(three@0.180.0)
 
-  '@react-three/rapier@2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)':
+  '@react-three/rapier@2.1.0(@react-three/fiber@9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(react@19.1.1)(three@0.180.0)':
     dependencies:
       '@dimforge/rapier3d-compat': 0.15.0
-      '@react-three/fiber': 9.3.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
+      '@react-three/fiber': 9.3.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
       react: 19.1.1
       suspend-react: 0.1.3(react@19.1.1)
       three: 0.180.0
@@ -6151,7 +6151,7 @@ snapshots:
       '@smithy/util-middleware': 4.1.1
       tslib: 2.8.1
 
-  '@smithy/core@3.12.0':
+  '@smithy/core@3.13.0':
     dependencies:
       '@smithy/middleware-serde': 4.1.1
       '@smithy/protocol-http': 5.2.1
@@ -6255,9 +6255,9 @@ snapshots:
       '@smithy/types': 4.5.0
       tslib: 2.8.1
 
-  '@smithy/middleware-endpoint@4.2.4':
+  '@smithy/middleware-endpoint@4.2.5':
     dependencies:
-      '@smithy/core': 3.12.0
+      '@smithy/core': 3.13.0
       '@smithy/middleware-serde': 4.1.1
       '@smithy/node-config-provider': 4.2.2
       '@smithy/shared-ini-file-loader': 4.2.0
@@ -6266,12 +6266,12 @@ snapshots:
       '@smithy/util-middleware': 4.1.1
       tslib: 2.8.1
 
-  '@smithy/middleware-retry@4.3.0':
+  '@smithy/middleware-retry@4.3.1':
     dependencies:
       '@smithy/node-config-provider': 4.2.2
       '@smithy/protocol-http': 5.2.1
       '@smithy/service-error-classification': 4.1.2
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       '@smithy/util-middleware': 4.1.1
       '@smithy/util-retry': 4.1.2
@@ -6345,10 +6345,10 @@ snapshots:
       '@smithy/util-utf8': 4.1.0
       tslib: 2.8.1
 
-  '@smithy/smithy-client@4.6.4':
+  '@smithy/smithy-client@4.6.5':
     dependencies:
-      '@smithy/core': 3.12.0
-      '@smithy/middleware-endpoint': 4.2.4
+      '@smithy/core': 3.13.0
+      '@smithy/middleware-endpoint': 4.2.5
       '@smithy/middleware-stack': 4.1.1
       '@smithy/protocol-http': 5.2.1
       '@smithy/types': 4.5.0
@@ -6393,21 +6393,21 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@smithy/util-defaults-mode-browser@4.1.4':
+  '@smithy/util-defaults-mode-browser@4.1.5':
     dependencies:
       '@smithy/property-provider': 4.1.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       bowser: 2.12.1
       tslib: 2.8.1
 
-  '@smithy/util-defaults-mode-node@4.1.4':
+  '@smithy/util-defaults-mode-node@4.1.5':
     dependencies:
       '@smithy/config-resolver': 4.2.2
       '@smithy/credential-provider-imds': 4.1.2
       '@smithy/node-config-provider': 4.2.2
       '@smithy/property-provider': 4.1.1
-      '@smithy/smithy-client': 4.6.4
+      '@smithy/smithy-client': 4.6.5
       '@smithy/types': 4.5.0
       tslib: 2.8.1
 
@@ -6530,23 +6530,23 @@ snapshots:
       pg-protocol: 1.10.3
       pg-types: 4.1.0
 
-  '@types/react-dom@19.1.9(@types/react@19.1.13)':
+  '@types/react-dom@19.1.9(@types/react@19.1.15)':
     dependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
 
-  '@types/react-reconciler@0.28.9(@types/react@19.1.13)':
+  '@types/react-reconciler@0.28.9(@types/react@19.1.15)':
     dependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
 
-  '@types/react-reconciler@0.32.1(@types/react@19.1.13)':
+  '@types/react-reconciler@0.32.1(@types/react@19.1.15)':
     dependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
 
-  '@types/react-transition-group@4.4.12(@types/react@19.1.13)':
+  '@types/react-transition-group@4.4.12(@types/react@19.1.15)':
     dependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
 
-  '@types/react@19.1.13':
+  '@types/react@19.1.15':
     dependencies:
       csstype: 3.1.3
 
@@ -7802,7 +7802,7 @@ snapshots:
       domhandler: 5.0.3
       htmlparser2: 10.0.0
 
-  html-react-parser@5.2.6(@types/react@19.1.13)(react@19.1.1):
+  html-react-parser@5.2.6(@types/react@19.1.15)(react@19.1.1):
     dependencies:
       domhandler: 5.0.3
       html-dom-parser: 5.1.1
@@ -7810,7 +7810,7 @@ snapshots:
       react-property: 2.0.2
       style-to-js: 1.1.17
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
 
   htmlparser2@10.0.0:
     dependencies:
@@ -8005,9 +8005,9 @@ snapshots:
       has-symbols: 1.1.0
       set-function-name: 2.0.2
 
-  its-fine@2.0.0(@types/react@19.1.13)(react@19.1.1):
+  its-fine@2.0.0(@types/react@19.1.15)(react@19.1.1):
     dependencies:
-      '@types/react-reconciler': 0.28.9(@types/react@19.1.13)
+      '@types/react-reconciler': 0.28.9(@types/react@19.1.15)
       react: 19.1.1
     transitivePeerDependencies:
       - '@types/react'
@@ -8784,19 +8784,19 @@ snapshots:
       react: 19.1.1
       scheduler: 0.25.0
 
-  react-select@5.9.0(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+  react-select@5.9.0(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
       '@babel/runtime': 7.28.4
       '@emotion/cache': 11.14.0
-      '@emotion/react': 11.14.0(@types/react@19.1.13)(react@19.1.1)
+      '@emotion/react': 11.14.0(@types/react@19.1.15)(react@19.1.1)
       '@floating-ui/dom': 1.7.4
-      '@types/react-transition-group': 4.4.12(@types/react@19.1.13)
+      '@types/react-transition-group': 4.4.12(@types/react@19.1.15)
       memoize-one: 6.0.0
       prop-types: 15.8.1
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
       react-transition-group: 4.4.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      use-isomorphic-layout-effect: 1.2.1(@types/react@19.1.13)(react@19.1.1)
+      use-isomorphic-layout-effect: 1.2.1(@types/react@19.1.15)(react@19.1.1)
     transitivePeerDependencies:
       - '@types/react'
       - supports-color
@@ -9267,9 +9267,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  tunnel-rat@0.1.2(@types/react@19.1.13)(react@19.1.1):
+  tunnel-rat@0.1.2(@types/react@19.1.15)(react@19.1.1):
     dependencies:
-      zustand: 4.5.7(@types/react@19.1.13)(react@19.1.1)
+      zustand: 4.5.7(@types/react@19.1.15)(react@19.1.1)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -9383,11 +9383,11 @@ snapshots:
       react: 19.1.1
       scheduler: 0.25.0
 
-  use-isomorphic-layout-effect@1.2.1(@types/react@19.1.13)(react@19.1.1):
+  use-isomorphic-layout-effect@1.2.1(@types/react@19.1.15)(react@19.1.1):
     dependencies:
       react: 19.1.1
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
 
   use-sync-external-store@1.5.0(react@19.1.1):
     dependencies:
@@ -9407,11 +9407,11 @@ snapshots:
 
   uuid@9.0.0: {}
 
-  valtio@2.1.8(@types/react@19.1.13)(react@19.1.1):
+  valtio@2.1.8(@types/react@19.1.15)(react@19.1.1):
     dependencies:
       proxy-compare: 3.0.1
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
       react: 19.1.1
 
   vfile-message@4.0.3:
@@ -9496,16 +9496,16 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zustand@4.5.7(@types/react@19.1.13)(react@19.1.1):
+  zustand@4.5.7(@types/react@19.1.15)(react@19.1.1):
     dependencies:
       use-sync-external-store: 1.5.0(react@19.1.1)
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
       react: 19.1.1
 
-  zustand@5.0.8(@types/react@19.1.13)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1)):
+  zustand@5.0.8(@types/react@19.1.15)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1)):
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.15
       react: 19.1.1
       use-sync-external-store: 1.5.0(react@19.1.1)
 

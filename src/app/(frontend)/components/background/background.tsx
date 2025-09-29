@@ -9,7 +9,6 @@ import {
   Scroll,
   useScroll,
   useGLTF,
-  useAnimations,
   Edges,
   PerformanceMonitor,
   Html,
@@ -189,6 +188,7 @@ const Hero = () => {
     >
       <icosahedronGeometry args={[0.25, 0]} />
       <meshBasicMaterial {...materialArgs} />
+      <pointLight color={'white'} intensity={2} />
       <Edges color={'white'} />
     </mesh>
   )
@@ -202,9 +202,9 @@ const ScrollDots = () => {
     if (!ref.current) return
 
     if (scroll.offset > 0.01) {
-      ref.current.style.opacity = '0'
+      ref.current.classList.add(style.fadeOut || 'fadeOut')
     } else {
-      ref.current.style.opacity = '1'
+      ref.current.classList.remove(style.fadeOut || 'fadeOut')
     }
   })
 
@@ -219,66 +219,69 @@ const ScrollDots = () => {
 }
 
 const ModelInfo = () => {
-  const modelRef = useRef<THREE.Group>(null)
-  const { nodes, animations } = useGLTF('/glb/Info.glb')
-  const { actions } = useAnimations(animations, modelRef)
-  const planet = useRef<THREE.Mesh>(null)
-  const scroll = useScroll()
+  const groupRef = useRef<THREE.Group>(null)
+  const { nodes, materials } = useGLTF('/glb/stylized_rock/scene.gltf')
 
-  useEffect(() => {
-    if (actions?.animation_0) {
-      actions.animation_0.reset().play()
-      actions.animation_0.paused = true
+  // Generate random positions on a sphere
+  const rockPositions = useMemo(() => {
+    const positions: THREE.Vector3[] = []
+    const numRocks = 5
+    const radius = 1.5
+
+    for (let i = 0; i < numRocks; i++) {
+      // Generate random points on sphere surface
+      const u = Math.random()
+      const v = Math.random()
+      const theta = 2 * Math.PI * u
+      const phi = Math.acos(2 * v - 1)
+
+      const x = radius * Math.sin(phi) * Math.cos(theta)
+      const y = radius * Math.sin(phi) * Math.sin(theta)
+      const z = radius * Math.cos(phi)
+
+      positions.push(new THREE.Vector3(x, y, z))
     }
-  }, [actions])
+    return positions
+  }, [])
 
-  useFrame(({ clock }) => {
-    if (planet.current) {
-      const radius = 1.5 // Radius of the circle
-      const elapsedTime = clock.getElapsedTime()
-      planet.current.position.x = Math.sin(elapsedTime) * radius
-      planet.current.position.z = Math.cos(elapsedTime) * radius
-    }
+  // Generate random rotations
+  const rockRotations = useMemo(() => {
+    return rockPositions.map(
+      () =>
+        new THREE.Euler(
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2,
+        ),
+    )
+  }, [rockPositions])
 
-    if (actions.animation_0) {
-      const scrollThreshold = 0.1
-
-      if (scroll.offset > scrollThreshold) {
-        const adjustedScrollOffset = (scroll.offset * 1 - scrollThreshold) / (1 - scrollThreshold)
-        actions.animation_0.time = actions.animation_0.getClip().duration * adjustedScrollOffset
-      }
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.children.forEach((rock, i) => {
+        if (rockRotations[i]) {
+          rock.rotation.x += 0.001
+          rock.rotation.y += 0.002
+          rock.rotation.z += 0.0005
+        }
+      })
     }
   })
 
-  if (!nodes?.Torus || !nodes?.Cube) return null
+  if (!nodes?.Object_2 || !materials?.defaultMat) return null
 
   return (
-    <group ref={modelRef}>
-      <mesh name="Cube" geometry={(nodes.Cube as THREE.Mesh).geometry}>
-        <meshPhysicalMaterial
-          emissive={'red'}
-          emissiveIntensity={0.2}
-          ior={0}
-          roughness={0.2}
-          color={'red'}
+    <group ref={groupRef}>
+      {rockPositions.map((position, i) => (
+        <mesh
+          key={i}
+          geometry={(nodes.Object_2 as THREE.Mesh)?.geometry}
+          material={materials.defaultMat}
+          position={position}
+          rotation={[rockRotations[i]?.x || 0, rockRotations[i]?.y || 0, rockRotations[i]?.z || 0]}
+          scale={[3, 3, 3]}
         />
-      </mesh>
-      <mesh
-        name="Torus"
-        geometry={(nodes.Torus as THREE.Mesh).geometry}
-        position={[nodes.Torus.position.x, nodes.Torus.position.y, nodes.Torus.position.z]}
-      >
-        <meshPhysicalMaterial
-          emissive={'red'}
-          emissiveIntensity={0.2}
-          roughness={0.2}
-          color={'red'}
-        />
-        <mesh ref={planet}>
-          <pointLight name="PointLight" color={'white'} intensity={0.1} />
-          <sphereGeometry args={[0.1, 32, 32]} />
-        </mesh>
-      </mesh>
+      ))}
     </group>
   )
 }
@@ -295,13 +298,11 @@ const ModelDev = () => {
 
   return (
     <group ref={helixRef}>
-      <ambientLight color={'white'} intensity={1} />
       <mesh geometry={(nodes.Helix as THREE.Mesh).geometry} scale={8.355}>
-        <pointLight name="PointLight" color={'white'} intensity={0.4} />
         <meshPhysicalMaterial
           emissive={'green'}
           emissiveIntensity={0.2}
-          roughness={0.5}
+          roughness={0.4}
           color={'green'}
         />
       </mesh>

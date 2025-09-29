@@ -1,0 +1,11 @@
+Model Information:
+* title:	Stylized Rock
+* source:	https://sketchfab.com/3d-models/stylized-rock-0dde25b1b7024a68aa4c6c68261e991b
+* author:	dagos32 (https://sketchfab.com/dagos32)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Stylized Rock" (https://sketchfab.com/3d-models/stylized-rock-0dde25b1b7024a68aa4c6c68261e991b) by dagos32 (https://sketchfab.com/dagos32) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

@@ -121,11 +121,12 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
         ...newOutput,
         `Welcome to the terminal.
 ------------------------------
-?\t\t\tfor help.
+?\t\t\tterminal commands for help.
 ls\t\t\tlist directories.
-cd <directory>\tchange directory.
+cd <directory>\t\tchange directory.
 clear\t\t\tclear the terminal.
 exit\t\t\tclose the terminal.
+doom\t\t\tplay doom's gate.
 blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to clear stats.
 ------------------------------
 `,
