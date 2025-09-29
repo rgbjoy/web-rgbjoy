@@ -9,8 +9,8 @@
   },
   "scripts": {
     "=== Core commands ===": "",
-    "dev": "next dev --turbo",
-    "build": "next build --turbo",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "=== Payload commands ===": "",
     "payload": "payload",
