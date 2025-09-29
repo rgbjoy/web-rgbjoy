@@ -98,16 +98,32 @@ a {
   line-height: 33px;
   transition: all 0.15s cubic-bezier(0.455, 0.03, 0.515, 0.955);
   cursor: $cursorPointer;
+  &.btn-red {
+    border-color: $red;
+    &:hover {
+      background: $red;
+      color: black;
+    }
+  }
+  &.btn-green {
+    border-color: $green;
+    &:hover {
+      background: $green;
+      color: black;
+    }
+  }
+  &.btn-blue {
+    border-color: $blue;
+    &:hover {
+      background: $blue;
+      color: black;
+    }
+  }
 
   @include mobile-only {
     font-size: 0.8em;
     line-height: 10px;
     padding: 10px;
-  }
-
-  &:hover {
-    color: black;
-    background: white;
   }
 }
 

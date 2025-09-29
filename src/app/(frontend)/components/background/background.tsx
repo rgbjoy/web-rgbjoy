@@ -42,7 +42,7 @@ const GenerateShard = (points, thickness) => {
 }
 
 const RandomShard = ({ position, color = '#FF0000' }) => {
-  const thickness = 0.01
+  const thickness = 0.02
   const numPoints = 3
 
   const geometry = useMemo(() => {
@@ -117,11 +117,15 @@ const Shards = () => {
     const newScale = THREE.MathUtils.lerp(
       targetScale,
       state.scale,
-      targetScale <= state.scale ? 0.02 : 0.01,
+      targetScale <= state.scale ? 0.05 : 0.03,
     )
     setTargetScale(newScale)
 
     if (groupRef.current) {
+      // Slowly rotate the entire shard group
+      groupRef.current.rotation.y += 0.001
+      groupRef.current.rotation.x += 0.0003
+
       groupRef.current.children.forEach((shard, i) => {
         if (uniqueVertices[i]) {
           shard.position.copy(uniqueVertices[i]).multiplyScalar(newScale)
@@ -144,6 +148,8 @@ const Shards = () => {
 const Hero = () => {
   const [isPointerOver, setIsPointerOver] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
+  const pointRef = useRef<THREE.PointLight>(null)
+  const scroll = useScroll()
 
   useFrame(() => {
     if (!meshRef.current) return
@@ -151,6 +157,24 @@ const Hero = () => {
     const speed = 0.003
     meshRef.current.rotation.y += speed
     meshRef.current.rotation.z += speed
+  })
+
+  useFrame(() => {
+    if (!pointRef.current) return
+    const t = scroll.offset // 0 → 1
+
+    // Map to Info section progress
+    let progress = 0
+    const start = 0.25
+    const end = 0.5
+    const clamped = Math.min(Math.max((t - start) / (end - start), 0), 1)
+    progress = clamped
+
+    const eased = Math.sin(progress * Math.PI) // 0→1→0
+    const color = new THREE.Color()
+    color.setHSL(0, 1, 1 - 0.5 * eased) // red with white blending
+    pointRef.current.color.copy(color)
+    pointRef.current.intensity = 2 + eased * 1 // 2→3→2
   })
 
   const handlePointerOver = () => {
@@ -188,7 +212,7 @@ const Hero = () => {
     >
       <icosahedronGeometry args={[0.25, 0]} />
       <meshBasicMaterial {...materialArgs} />
-      <pointLight color={'white'} intensity={2} />
+      <pointLight ref={pointRef} color={'white'} intensity={2} />
       <Edges color={'white'} />
     </mesh>
   )
@@ -222,26 +246,28 @@ const ModelInfo = () => {
   const groupRef = useRef<THREE.Group>(null)
   const { nodes, materials } = useGLTF('/glb/stylized_rock/scene.gltf')
 
-  // Generate random positions on a sphere
+  // Pick unique vertices from an icosahedron (no duplicates)
   const rockPositions = useMemo(() => {
-    const positions: THREE.Vector3[] = []
     const numRocks = 5
     const radius = 1.5
 
-    for (let i = 0; i < numRocks; i++) {
-      // Generate random points on sphere surface
-      const u = Math.random()
-      const v = Math.random()
-      const theta = 2 * Math.PI * u
-      const phi = Math.acos(2 * v - 1)
+    const baseVertices = getUniqueVertices(new THREE.IcosahedronGeometry(1, 0))
+    const candidates = baseVertices.map((v) => v.clone().normalize().multiplyScalar(radius))
 
-      const x = radius * Math.sin(phi) * Math.cos(theta)
-      const y = radius * Math.sin(phi) * Math.sin(theta)
-      const z = radius * Math.cos(phi)
+    const selected: THREE.Vector3[] = []
+    const used = new Set<number>()
+    const max = Math.min(numRocks, candidates.length)
 
-      positions.push(new THREE.Vector3(x, y, z))
+    while (selected.length < max) {
+      const idx = Math.floor(Math.random() * candidates.length)
+      if (idx < 0 || idx >= candidates.length || used.has(idx)) continue
+      const candidate = candidates[idx]
+      if (!candidate) continue
+      used.add(idx)
+      selected.push(candidate.clone())
     }
-    return positions
+
+    return selected
   }, [])
 
   // Generate random rotations
@@ -279,7 +305,7 @@ const ModelInfo = () => {
           material={materials.defaultMat}
           position={position}
           rotation={[rockRotations[i]?.x || 0, rockRotations[i]?.y || 0, rockRotations[i]?.z || 0]}
-          scale={[3, 3, 3]}
+          scale={[4, 4, 4]}
         />
       ))}
     </group>
@@ -322,9 +348,9 @@ const ModelArt = () => {
 
   const handleHover = (hover: boolean) => {
     if (hover && artMatRef.current) {
-      gsap.to(artMatRef.current, { opacity: 1, duration: 0.5 })
+      gsap.to(artMatRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' })
     } else {
-      gsap.to(artMatRef.current, { opacity: 0, duration: 0.5 })
+      gsap.to(artMatRef.current, { opacity: 0, duration: 1, ease: 'power2.inOut' })
     }
   }
 
@@ -507,7 +533,7 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
             &ldquo;The only Zen you can find on the tops of mountains is the Zen you bring up
             there.&rdquo;
           </h2>
-          <a className="btn" onClick={() => handleNavigation('/info')}>
+          <a className="btn btn-red" onClick={() => handleNavigation('/info')}>
             About me
           </a>
         </div>
@@ -516,7 +542,7 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
       <div className={style.sections} style={{ height: clientHeight }}>
         <div className={style.dev}>
           <h2>Joy seeing code come to life</h2>
-          <a className="btn" onClick={() => handleNavigation('/dev')}>
+          <a className="btn btn-green" onClick={() => handleNavigation('/dev')}>
             See some work
           </a>
         </div>
@@ -525,7 +551,7 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
       <div className={style.sections} style={{ height: clientHeight }}>
         <div className={style.art}>
           <h2>Simplicty is everything.</h2>
-          <a className="btn" onClick={() => handleNavigation('/art')}>
+          <a className="btn btn-blue" onClick={() => handleNavigation('/art')}>
             View my art
           </a>
         </div>
