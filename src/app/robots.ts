@@ -9,9 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: 'GoogleBot',
       allow: '/',
       disallow: '/dashboard',
-    }, {
-      userAgent: ['AhrefsBot', 'BingBot'],
-      disallow: ['/'],
     }],
     sitemap: `${url}/sitemap.xml`,
   }
