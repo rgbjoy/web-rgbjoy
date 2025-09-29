@@ -58,11 +58,16 @@
       -moz-box-decoration-break: clone;
       box-decoration-break: clone;
       line-height: 180%;
+
+      @include mobile-only {
+        max-width: 95%;
+        line-height: 220%;
+      }
     }
 
     @include mobile-only {
       max-width: 95%;
-      line-height: 195%;
+      line-height: 180%;
     }
   }
 }
@@ -71,7 +76,7 @@
   position: fixed;
   bottom: $gutter;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) rotate(90deg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,7 +93,8 @@
   .scrollDown {
     font-size: 0.8rem;
     color: white;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
+    transform: rotate(-90deg);
 
     @include mobile-only {
       display: none;

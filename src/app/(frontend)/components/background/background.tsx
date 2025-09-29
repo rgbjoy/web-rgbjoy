@@ -117,7 +117,7 @@ const Shards = () => {
     const newScale = THREE.MathUtils.lerp(
       targetScale,
       state.scale,
-      targetScale <= state.scale ? 0.05 : 0.03,
+      targetScale <= state.scale ? 0.01 : 0.03,
     )
     setTargetScale(newScale)
 
@@ -348,9 +348,9 @@ const ModelArt = () => {
 
   const handleHover = (hover: boolean) => {
     if (hover && artMatRef.current) {
-      gsap.to(artMatRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' })
+      gsap.to(artMatRef.current, { opacity: 1, duration: 0.5, ease: 'power2.inOut' })
     } else {
-      gsap.to(artMatRef.current, { opacity: 0, duration: 1, ease: 'power2.inOut' })
+      gsap.to(artMatRef.current, { opacity: 0, duration: 0.5, ease: 'power2.inOut' })
     }
   }
 
@@ -574,14 +574,15 @@ const Background = ({ pathname, router, homeData }) => {
           antialias: false,
           toneMapping: THREE.ACESFilmicToneMapping,
         }}
+        key={'canvas' + page}
       >
         <PerformanceMonitor onDecline={() => setDpr(0.5)} onIncline={() => setDpr(1)} />
 
         <color attach="background" args={['#000000']} />
 
-        <ScrollControls pages={4}>
+        <ScrollControls pages={4} key={'scrollControls' + page}>
           <RenderPageBackground page={page} />
-          <Scroll html style={{ width: '100vw', height: '100vh' }}>
+          <Scroll html style={{ width: '100vw', height: '100vh' }} key={'scroll' + page}>
             <div
               style={{
                 display: page !== 'home' ? 'none' : 'block',

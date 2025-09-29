@@ -41,6 +41,10 @@
     gap: 1em;
     margin: 1em 0;
 
+    @include mobile-only {
+      font-size: 80%;
+    }
+
     span {
       &:not(:last-child):after {
         content: ' ';
