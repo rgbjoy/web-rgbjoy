@@ -103,7 +103,7 @@ export default buildConfig({
   ],
   email: resendAdapter({
     defaultFromAddress: 'admin@rgbjoy.com',
-    defaultFromName: 'Payload CMS',
+    defaultFromName: 'RGBJOY.com',
     apiKey: process.env.RESEND_API_KEY || '',
   }),
 })

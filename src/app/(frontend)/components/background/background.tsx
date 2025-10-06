@@ -16,7 +16,6 @@ import {
 import state from './state'
 import Rig404 from './rig404'
 import style from './background.module.scss'
-import gsap from 'gsap'
 import Stars from './stars'
 import { Home } from '@payload-types'
 import { NextRouter } from 'next/router'
@@ -205,6 +204,7 @@ const Hero = () => {
   return (
     <mesh
       ref={meshRef}
+      renderOrder={-10}
       onPointerOver={handlePointerOver}
       onPointerDown={handlePointerDown}
       onPointerOut={handlePointerOut}
@@ -213,7 +213,7 @@ const Hero = () => {
       <icosahedronGeometry args={[0.25, 0]} />
       <meshBasicMaterial {...materialArgs} />
       <pointLight ref={pointRef} color={'white'} intensity={2} />
-      <Edges color={'white'} />
+      <Edges color={'white'} renderOrder={-10} />
     </mesh>
   )
 }
@@ -337,42 +337,117 @@ const ModelDev = () => {
 }
 
 const ModelArt = () => {
-  const artRef = useRef<THREE.Mesh>(null)
-  const artMatRef = useRef<THREE.MeshBasicMaterial>(null)
+  // Performant dot sphere using a single InstancedMesh and procedural shader
+  const groupRef = useRef<THREE.Group>(null)
 
-  useFrame(() => {
-    if (artRef.current) {
-      artRef.current.rotation.y += 0.001
+  const { mesh, material } = useMemo(() => {
+    const count = 1000
+    const radius = 1.4
+    const geometry = new THREE.PlaneGeometry(0.04, 0.04)
+
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthTest: true,
+      uniforms: {
+        time: { value: 0 },
+        noiseScale: { value: 1.0 },
+        speed: { value: 0.1 },
+        minSize: { value: 0.1 },
+        maxSize: { value: 0.6 },
+        dotColor: { value: new THREE.Color('#1ea7ff') },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vWorldPos;
+        uniform float time;
+        uniform float noiseScale;
+        uniform float speed;
+        uniform float minSize;
+        uniform float maxSize;
+
+        float triNoise(vec3 p) {
+          float f1 = sin(p.x * 6.3 + p.y * 5.7 + p.z * 4.9);
+          float f2 = cos(p.x * 3.7 - p.y * 6.1 + p.z * 5.3);
+          float f3 = sin(p.x * 9.1 + p.y * 2.9 - p.z * 7.7);
+          return (f1 * 0.5 + f2 * 0.3 + f3 * 0.2) * 0.5 + 0.5;
+        }
+
+        void main() {
+          vUv = uv;
+          vec4 worldInstance = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+          vWorldPos = worldInstance.xyz;
+
+          // Animated noise decides size: darker (low n) => larger dots
+          float n = triNoise(vWorldPos * noiseScale + vec3(time * speed));
+          float size = mix(maxSize, minSize, n); // n=0 -> maxSize (black), n=1 -> minSize (white)
+
+          vec3 pos = position;
+          pos.xy *= size;
+
+          vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(pos, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        precision mediump float;
+        varying vec2 vUv;
+        uniform vec3 dotColor;
+        void main() {
+          // Make a circular dot with smooth edge
+          vec2 p = vUv * 2.0 - 1.0; // -1..1
+          float r = length(p);
+          float alpha = smoothstep(1.0, 0.85, r); // soft edge
+          if (alpha <= 0.0) discard;
+          gl_FragColor = vec4(dotColor, alpha);
+        }
+      `,
+    })
+
+    const instanced = new THREE.InstancedMesh(geometry, material, count)
+
+    const dummy = new THREE.Object3D()
+
+    // Fibonacci sphere distribution
+    const phi = Math.PI * (3 - Math.sqrt(5))
+    for (let i = 0; i < count; i++) {
+      const y = 1 - (i / (count - 1)) * 2
+      const r = Math.sqrt(1 - y * y)
+      const theta = phi * i
+      const x = Math.cos(theta) * r
+      const z = Math.sin(theta) * r
+      const pos = new THREE.Vector3(x, y, z).multiplyScalar(radius)
+
+      dummy.position.copy(pos)
+      // face outward: orient plane so its normal points from center to pos
+      dummy.lookAt(pos.clone().multiplyScalar(2))
+      dummy.updateMatrix()
+      instanced.setMatrixAt(i, dummy.matrix)
+
+      // (no per-instance attributes needed for dots)
+    }
+
+    instanced.instanceMatrix.needsUpdate = true
+
+    return { mesh: instanced, material }
+  }, [])
+
+  useEffect(() => {
+    const group = groupRef.current
+    if (!group || !mesh) return
+    group.add(mesh)
+    return () => {
+      if (group && mesh) group.remove(mesh)
+    }
+  }, [mesh])
+
+  useFrame((_, delta) => {
+    if (groupRef.current) groupRef.current.rotation.y += 0.003
+    if (material && (material as any).uniforms) {
+      ;(material as any).uniforms.time.value += delta
     }
   })
 
-  const handleHover = (hover: boolean) => {
-    if (hover && artMatRef.current) {
-      gsap.to(artMatRef.current, { opacity: 1, duration: 0.5, ease: 'power2.inOut' })
-    } else {
-      gsap.to(artMatRef.current, { opacity: 0, duration: 0.5, ease: 'power2.inOut' })
-    }
-  }
-
-  return (
-    <mesh
-      onPointerOver={() => handleHover(true)}
-      onPointerDown={() => handleHover(true)}
-      onPointerOut={() => handleHover(false)}
-      onPointerUp={() => handleHover(false)}
-      ref={artRef}
-    >
-      <sphereGeometry args={[1, 32, 16]} />
-      <meshBasicMaterial
-        ref={artMatRef}
-        opacity={0}
-        depthTest={false}
-        transparent={true}
-        color={'blue'}
-      />
-      <Edges color={'blue'} threshold={1} />
-    </mesh>
-  )
+  return <group ref={groupRef} renderOrder={10} />
 }
 
 const RigPages = ({ page }) => {
@@ -552,7 +627,7 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
         <div className={style.art}>
           <h2>Simplicty is everything.</h2>
           <a className="btn btn-blue" onClick={() => handleNavigation('/art')}>
-            View my art
+            View art
           </a>
         </div>
       </div>
@@ -579,6 +654,11 @@ const Background = ({ pathname, router, homeData }) => {
         <PerformanceMonitor onDecline={() => setDpr(0.5)} onIncline={() => setDpr(1)} />
 
         <color attach="background" args={['#000000']} />
+
+        {/* Scene lighting */}
+        <ambientLight intensity={0.2} />
+        <directionalLight position={[5, 5, 5]} intensity={0.8} />
+        <pointLight position={[-5, -5, -5]} intensity={0.5} color="#1ea7ff" />
 
         <ScrollControls pages={4} key={'scrollControls' + page}>
           <RenderPageBackground page={page} />
