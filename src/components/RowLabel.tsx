@@ -1,7 +1,7 @@
 'use client'
 
 import NextImage from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { RowLabelProps, useRowLabel } from '@payloadcms/ui'
 import { Media } from '@/payload-types'
 
@@ -21,28 +21,52 @@ export default function RowLabel() {
   return <div>{title || rowNumber}</div>
 }
 
-export const MediaLabel: React.FC<RowLabelProps> = () => {
+const mediaCache = new Map<number, Media>()
+
+const MediaLabelImpl: React.FC<RowLabelProps> = () => {
   const data = useRowLabel<{ image?: Media; title?: string }>()
   const [media, setMedia] = useState<Media | null>(null)
   const [title, setTitle] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setIsLoading(true)
-
-    const fetchMedia = async () => {
-      if (typeof data?.data?.image === 'number') {
-        const res = await fetch(`/api/media/${data.data.image}`)
-        if (res.ok) {
-          const mediaObj = await res.json()
-          setMedia(mediaObj)
-        }
-      }
+    const id = typeof data?.data?.image === 'number' ? data.data.image : undefined
+    if (!id) {
+      setMedia(null)
       setTitle(data?.data?.title || '')
       setIsLoading(false)
+      return
     }
-    fetchMedia()
-  }, [data])
+
+    setIsLoading(true)
+    const cached = mediaCache.get(id)
+    if (cached) {
+      setMedia(cached)
+      setTitle(data?.data?.title || '')
+      setIsLoading(false)
+      return
+    }
+
+    let aborted = false
+    ;(async () => {
+      const res = await fetch(`/api/media/${id}`)
+      if (!aborted && res.ok) {
+        const mediaObj = await res.json()
+        mediaCache.set(id, mediaObj)
+        setMedia(mediaObj)
+        setTitle(data?.data?.title || '')
+        setIsLoading(false)
+      } else if (!aborted) {
+        setMedia(null)
+        setTitle(data?.data?.title || '')
+        setIsLoading(false)
+      }
+    })()
+
+    return () => {
+      aborted = true
+    }
+  }, [data?.data?.image, data?.data?.title])
 
   // Check media type
   const isImage = media?.mimeType?.startsWith('image/') || false
@@ -75,3 +99,5 @@ export const MediaLabel: React.FC<RowLabelProps> = () => {
     </div>
   )
 }
+
+export const MediaLabel = memo(MediaLabelImpl)

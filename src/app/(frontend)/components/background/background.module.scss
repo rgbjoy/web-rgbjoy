@@ -142,6 +142,7 @@
 .info {
   top: 45vh;
   left: 15vw;
+  right: 15vw;
 
   @include mobile-only {
     top: 30vh;
@@ -161,11 +162,12 @@
 }
 
 .art {
-  width: auto;
   top: 40vh;
   left: 30vw;
+  right: 15vw;
 
   @include mobile-only {
+    left: 15vw;
     top: 30vh;
   }
 }

@@ -153,7 +153,7 @@ const Hero = () => {
   useFrame(() => {
     if (!meshRef.current) return
 
-    const speed = 0.003
+    const speed = 0.001
     meshRef.current.rotation.y += speed
     meshRef.current.rotation.z += speed
   })
@@ -339,6 +339,7 @@ const ModelDev = () => {
 const ModelArt = () => {
   // Performant dot sphere using a single InstancedMesh and procedural shader
   const groupRef = useRef<THREE.Group>(null)
+  const { viewport } = useThree()
 
   const { mesh, material } = useMemo(() => {
     const count = 1000
@@ -440,8 +441,18 @@ const ModelArt = () => {
     }
   }, [mesh])
 
+  // Responsively scale the sphere with viewport
+  useEffect(() => {
+    if (!groupRef.current) return
+    const baseScale = Math.min(viewport.width, viewport.height) * 0.28
+    const radius = 1.4 // must match radius used to build positions
+    const maxScaleByWidth = viewport.width / (4 * radius) // ensures diameter <= 0.5 * viewport.width
+    const scale = Math.min(baseScale, maxScaleByWidth)
+    groupRef.current.scale.setScalar(scale)
+  }, [viewport.width, viewport.height])
+
   useFrame((_, delta) => {
-    if (groupRef.current) groupRef.current.rotation.y += 0.003
+    if (groupRef.current) groupRef.current.rotation.y += 0.0001
     if (material && (material as any).uniforms) {
       ;(material as any).uniforms.time.value += delta
     }
