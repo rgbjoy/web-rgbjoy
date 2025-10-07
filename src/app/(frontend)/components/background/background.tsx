@@ -147,6 +147,7 @@ const Shards = () => {
 const Hero = () => {
   const [isPointerOver, setIsPointerOver] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
+  const edgesRef = useRef<THREE.LineSegments>(null)
   const pointRef = useRef<THREE.PointLight>(null)
   const scroll = useScroll()
 
@@ -174,6 +175,18 @@ const Hero = () => {
     color.setHSL(0, 1, 1 - 0.5 * eased) // red with white blending
     pointRef.current.color.copy(color)
     pointRef.current.intensity = 2 + eased * 1 // 2→3→2
+
+    // Fade the hero after passing the Dev section (~offset > 0.5)
+    const fadeStart = 0.6
+    const fadeEnd = 0.8
+    const k = Math.min(Math.max((t - fadeStart) / (fadeEnd - fadeStart), 0), 1)
+    const opacity = 1 - k
+    if (edgesRef.current && (edgesRef.current.material as any)) {
+      const mat: any = edgesRef.current.material
+      mat.transparent = true
+      mat.opacity = opacity
+      mat.needsUpdate = true
+    }
   })
 
   const handlePointerOver = () => {
@@ -204,7 +217,6 @@ const Hero = () => {
   return (
     <mesh
       ref={meshRef}
-      renderOrder={-10}
       onPointerOver={handlePointerOver}
       onPointerDown={handlePointerDown}
       onPointerOut={handlePointerOut}
@@ -213,7 +225,7 @@ const Hero = () => {
       <icosahedronGeometry args={[0.25, 0]} />
       <meshBasicMaterial {...materialArgs} />
       <pointLight ref={pointRef} color={'white'} intensity={2} />
-      <Edges color={'white'} renderOrder={-10} />
+      <Edges ref={edgesRef as any} color={'white'} />
     </mesh>
   )
 }
@@ -336,100 +348,71 @@ const ModelDev = () => {
   )
 }
 
-const ModelArt = () => {
-  // Performant dot sphere using a single InstancedMesh and procedural shader
+const ClothArt = () => {
   const groupRef = useRef<THREE.Group>(null)
   const { viewport } = useThree()
 
   const { mesh, material } = useMemo(() => {
-    const count = 1000
-    const radius = 1.4
-    const geometry = new THREE.PlaneGeometry(0.04, 0.04)
+    const width = 2
+    const height = 1.2
+    const segments = 64
+    const geometry = new THREE.PlaneGeometry(width, height, segments, segments)
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
-      depthTest: true,
+      depthTest: false,
+      depthWrite: false,
       uniforms: {
         time: { value: 0 },
-        noiseScale: { value: 1.0 },
-        speed: { value: 0.1 },
-        minSize: { value: 0.1 },
-        maxSize: { value: 0.6 },
-        dotColor: { value: new THREE.Color('#1ea7ff') },
+        amp: { value: 1.1 },
+        freq: { value: 3.0 },
+        speed: { value: 0.5 },
+        color: { value: new THREE.Color('#ffffff') },
+        pointSize: { value: 2.0 }, // pixels
+        fadeStart: { value: 0.15 }, // start fading at 15% from bottom (≈ after ~10 rows when segments=64)
+        fadeEnd: { value: 1.0 }, // fully faded near the very top
       },
       vertexShader: `
-        varying vec2 vUv;
-        varying vec3 vWorldPos;
         uniform float time;
-        uniform float noiseScale;
+        uniform float amp;
+        uniform float freq;
         uniform float speed;
-        uniform float minSize;
-        uniform float maxSize;
-
-        float triNoise(vec3 p) {
-          float f1 = sin(p.x * 6.3 + p.y * 5.7 + p.z * 4.9);
-          float f2 = cos(p.x * 3.7 - p.y * 6.1 + p.z * 5.3);
-          float f3 = sin(p.x * 9.1 + p.y * 2.9 - p.z * 7.7);
-          return (f1 * 0.5 + f2 * 0.3 + f3 * 0.2) * 0.5 + 0.5;
-        }
-
+        uniform float pointSize;
+        varying float vYNorm; // 0 at bottom, 1 at top in local space
         void main() {
-          vUv = uv;
-          vec4 worldInstance = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-          vWorldPos = worldInstance.xyz;
-
-          // Animated noise decides size: darker (low n) => larger dots
-          float n = triNoise(vWorldPos * noiseScale + vec3(time * speed));
-          float size = mix(maxSize, minSize, n); // n=0 -> maxSize (black), n=1 -> minSize (white)
-
           vec3 pos = position;
-          pos.xy *= size;
-
-          vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(pos, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
+          float w1 = sin((pos.x * freq) + time * speed) * amp;
+          float w2 = sin((pos.y * freq * 1.3) - time * speed * 0.8) * amp * 0.7;
+          pos.z += w1 + w2;
+          // geometry height is roughly [-0.6, 0.6] for height 1.2
+          vYNorm = clamp((pos.y + 0.6) / 1.2, 0.0, 1.0);
+          vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+          gl_Position = projectionMatrix * mv;
+          gl_PointSize = pointSize;
         }
       `,
       fragmentShader: `
         precision mediump float;
-        varying vec2 vUv;
-        uniform vec3 dotColor;
+        uniform vec3 color;
+        uniform float fadeStart;
+        uniform float fadeEnd;
+        varying float vYNorm;
         void main() {
-          // Make a circular dot with smooth edge
-          vec2 p = vUv * 2.0 - 1.0; // -1..1
+          // circular white dot
+          vec2 p = gl_PointCoord * 2.0 - 1.0;
           float r = length(p);
-          float alpha = smoothstep(1.0, 0.85, r); // soft edge
+          float alpha = smoothstep(1.0, 0.7, 1.0 - r);
+          // vertical fade ramp (1 at bottom, ramps to 0 towards top)
+          float ramp = smoothstep(fadeEnd, fadeStart, vYNorm);
+          alpha *= ramp;
           if (alpha <= 0.0) discard;
-          gl_FragColor = vec4(dotColor, alpha);
+          gl_FragColor = vec4(color, alpha);
         }
       `,
     })
 
-    const instanced = new THREE.InstancedMesh(geometry, material, count)
-
-    const dummy = new THREE.Object3D()
-
-    // Fibonacci sphere distribution
-    const phi = Math.PI * (3 - Math.sqrt(5))
-    for (let i = 0; i < count; i++) {
-      const y = 1 - (i / (count - 1)) * 2
-      const r = Math.sqrt(1 - y * y)
-      const theta = phi * i
-      const x = Math.cos(theta) * r
-      const z = Math.sin(theta) * r
-      const pos = new THREE.Vector3(x, y, z).multiplyScalar(radius)
-
-      dummy.position.copy(pos)
-      // face outward: orient plane so its normal points from center to pos
-      dummy.lookAt(pos.clone().multiplyScalar(2))
-      dummy.updateMatrix()
-      instanced.setMatrixAt(i, dummy.matrix)
-
-      // (no per-instance attributes needed for dots)
-    }
-
-    instanced.instanceMatrix.needsUpdate = true
-
-    return { mesh: instanced, material }
+    const mesh = new THREE.Points(geometry, material)
+    return { mesh, material }
   }, [])
 
   useEffect(() => {
@@ -441,24 +424,18 @@ const ModelArt = () => {
     }
   }, [mesh])
 
-  // Responsively scale the sphere with viewport
   useEffect(() => {
     if (!groupRef.current) return
-    const baseScale = Math.min(viewport.width, viewport.height) * 0.28
-    const radius = 1.4 // must match radius used to build positions
-    const maxScaleByWidth = viewport.width / (4 * radius) // ensures diameter <= 0.5 * viewport.width
-    const scale = Math.min(baseScale, maxScaleByWidth)
-    groupRef.current.scale.setScalar(scale)
+    groupRef.current.scale.set(viewport.width, viewport.height, 1)
   }, [viewport.width, viewport.height])
 
   useFrame((_, delta) => {
-    if (groupRef.current) groupRef.current.rotation.y += 0.0001
-    if (material && (material as any).uniforms) {
+    if ((material as any)?.uniforms) {
       ;(material as any).uniforms.time.value += delta
     }
   })
 
-  return <group ref={groupRef} renderOrder={10} />
+  return <group ref={groupRef} />
 }
 
 const RigPages = ({ page }) => {
@@ -539,7 +516,7 @@ const RigPages = ({ page }) => {
           <ModelDev />
         </group>
         <group ref={sectionArt} position={[0, -height * 3, 0]}>
-          <ModelArt />
+          <ClothArt />
         </group>
       </Scroll>
       <mesh ref={anchorHome}>

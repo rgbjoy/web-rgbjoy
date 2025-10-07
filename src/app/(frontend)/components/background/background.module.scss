@@ -162,13 +162,14 @@
 }
 
 .art {
-  top: 40vh;
+  transform: translateY(-50%);
+  top: 50vh;
   left: 30vw;
   right: 15vw;
 
   @include mobile-only {
     left: 15vw;
-    top: 30vh;
+    top: 50vh;
   }
 }
 
