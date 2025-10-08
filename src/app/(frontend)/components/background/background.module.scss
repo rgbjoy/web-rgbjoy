@@ -34,12 +34,13 @@
   h2 {
     margin-top: 20px;
     margin-bottom: 40px;
-    max-width: 600px;
+    max-width: 500px;
+    font-size: 1rem;
 
     @include mobile-only {
       margin-top: 10px;
       margin-bottom: 20px;
-      max-width: 95%;
+      max-width: 100%;
       font-size: 0.8rem;
     }
   }
@@ -141,10 +142,12 @@
 
 .info {
   top: 45vh;
-  left: 15vw;
+  left: 30vw;
   right: 15vw;
 
   @include mobile-only {
+    left: 5%;
+    right: 5%;
     top: 30vh;
   }
 }
@@ -152,11 +155,11 @@
 .dev {
   text-align: right;
   top: 50vh;
-  left: 30vw;
+  right: 30vw;
 
   @include mobile-only {
-    max-width: 50%;
-    left: 30vw;
+    left: 5%;
+    right: 5%;
     top: 40vh;
   }
 }
@@ -168,7 +171,8 @@
   right: 15vw;
 
   @include mobile-only {
-    left: 15vw;
+    left: 5%;
+    right: 5%;
     top: 50vh;
   }
 }
