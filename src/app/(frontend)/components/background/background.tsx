@@ -3,7 +3,7 @@
 import * as THREE from 'three'
 import { Suspense, useState, useRef, useEffect, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Float, ScrollControls, Scroll, useScroll, useGLTF, Edges, Html } from '@react-three/drei'
+import { Float, ScrollControls, Scroll, useScroll, useGLTF, Html } from '@react-three/drei'
 import state from './state'
 import Rig404 from './rig404'
 import style from './background.module.scss'
