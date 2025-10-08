@@ -28,7 +28,8 @@ class StarfieldMaterial extends ShaderMaterial {
           }
         `,
       uniforms: {},
-      depthTest: true,
+      depthTest: false,
+      depthWrite: false,
       transparent: true,
     })
   }
@@ -38,11 +39,11 @@ function getRandomBetween(min = -5, max = 5) {
   return Math.random() * (max - min) + min
 }
 
-function Stars({ count = 50, startRadius = 2, canReset = true }) {
+function Stars({ count = 100, startRadius = 2, canReset = true }) {
   const size = 2
-  const distance = 20
-  const viewDistance = 10
-  const particleSpeed = 0.08
+  const distance = 10
+  const viewDistance = 5
+  const particleSpeed = 0.05
   const fadeSpeed = 0.01
   const minOpacity = 0
   const maxOpacity = 1
@@ -57,7 +58,9 @@ function Stars({ count = 50, startRadius = 2, canReset = true }) {
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2
-      const radius = Math.random() * startRadius
+      // Create a donut shape - inner radius 0.5, outer radius startRadius
+      const innerRadius = 0.5
+      const radius = innerRadius + Math.random() * (startRadius - innerRadius)
       positions[i * 3] = Math.cos(angle) * radius
       positions[i * 3 + 1] = Math.sin(angle) * radius
       positions[i * 3 + 2] = getRandomBetween(-distance * 2, -1)
@@ -84,38 +87,43 @@ function Stars({ count = 50, startRadius = 2, canReset = true }) {
 
   useFrame(() => {
     const geometry = mesh.current?.geometry
-
     if (!geometry?.attributes?.position || !geometry.attributes.opacity) return
 
-    const positions = geometry.attributes.position.array as Float32Array | undefined
-    const opacity = geometry.attributes.opacity.array as Float32Array | undefined
-
+    const positions = geometry.attributes.position.array as Float32Array
+    const opacity = geometry.attributes.opacity.array as Float32Array
     if (!positions || !opacity) return
 
-    for (let i = 0; i < positions.length; i += 3) {
-      const z = positions[i + 2]
-      if (z === undefined) continue
+    let needsUpdate = false
+    const count = positions.length / 3
 
-      positions[i + 2] = z + particleSpeed
-      const opacityIndex = i / 3
-      let currentOpacity = opacity[opacityIndex] ?? 0
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3
+      const z = positions[i3 + 2]!
 
+      positions[i3 + 2] = z + particleSpeed
+
+      let currentOpacity = opacity[i]!
       if (z > -viewDistance && canReset && currentOpacity < maxOpacity) {
         currentOpacity += fadeSpeed
+        needsUpdate = true
       } else if (!canReset) {
         currentOpacity -= fadeSpeed
+        needsUpdate = true
       }
 
-      opacity[opacityIndex] = Math.max(minOpacity, Math.min(maxOpacity, currentOpacity))
+      opacity[i] = Math.max(minOpacity, Math.min(maxOpacity, currentOpacity))
 
       if (z >= 5) {
-        positions[i + 2] = getRandomBetween(-distance * 2, 0)
-        opacity[opacityIndex] = minOpacity
+        positions[i3 + 2] = getRandomBetween(-distance * 2, 0)
+        opacity[i] = minOpacity
+        needsUpdate = true
       }
     }
 
-    geometry.attributes.position.needsUpdate = true
-    geometry.attributes.opacity.needsUpdate = true
+    if (needsUpdate) {
+      geometry.attributes.position.needsUpdate = true
+      geometry.attributes.opacity.needsUpdate = true
+    }
   })
 
   return (
