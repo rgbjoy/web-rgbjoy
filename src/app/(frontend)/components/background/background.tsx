@@ -138,7 +138,7 @@ const Shards = () => {
 const Hero = () => {
   const [isPointerOver, setIsPointerOver] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
-  const edgesRef = useRef<THREE.LineSegments>(null)
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null)
   const pointRef = useRef<THREE.PointLight>(null)
   const scroll = useScroll()
 
@@ -167,16 +167,19 @@ const Hero = () => {
     pointRef.current.color.copy(color)
     pointRef.current.intensity = 2 + eased * 1 // 2→3→2
 
-    // Fade the hero after passing the Dev section (~offset > 0.5)
-    const fadeStart = 0.6
-    const fadeEnd = 0.8
-    const k = Math.min(Math.max((t - fadeStart) / (fadeEnd - fadeStart), 0), 1)
-    const opacity = 1 - k
-    if (edgesRef.current && (edgesRef.current.material as any)) {
-      const mat: any = edgesRef.current.material
-      mat.transparent = true
-      mat.opacity = opacity
-      mat.needsUpdate = true
+    // Change hero material color per section with a lerp
+    if (materialRef.current) {
+      const section = t < 0.25 ? 'home' : t < 0.5 ? 'info' : t < 0.75 ? 'dev' : 'art'
+      const target =
+        section === 'home'
+          ? '#ffffff'
+          : section === 'info'
+            ? '#ff3b30'
+            : section === 'dev'
+              ? '#34c759'
+              : '#1ea7ff'
+      const targetColor = new THREE.Color(target)
+      materialRef.current.color.lerp(targetColor, 0.05)
     }
   })
 
@@ -200,10 +203,6 @@ const Hero = () => {
     }
   }
 
-  const materialArgs = {
-    color: 'black',
-  }
-
   return (
     <mesh
       ref={meshRef}
@@ -213,9 +212,8 @@ const Hero = () => {
       onPointerUp={handlePointerUp}
     >
       <icosahedronGeometry args={[0.25, 0]} />
-      <meshBasicMaterial {...materialArgs} />
+      <meshPhysicalMaterial ref={materialRef} />
       <pointLight ref={pointRef} color={'white'} intensity={2} />
-      <Edges ref={edgesRef as any} color={'white'} lineWidth={2} />
     </mesh>
   )
 }
