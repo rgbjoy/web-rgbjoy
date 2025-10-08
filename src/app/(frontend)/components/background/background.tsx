@@ -3,16 +3,7 @@
 import * as THREE from 'three'
 import { Suspense, useState, useRef, useEffect, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import {
-  Float,
-  ScrollControls,
-  Scroll,
-  useScroll,
-  useGLTF,
-  Edges,
-  PerformanceMonitor,
-  Html,
-} from '@react-three/drei'
+import { Float, ScrollControls, Scroll, useScroll, useGLTF, Edges, Html } from '@react-three/drei'
 import state from './state'
 import Rig404 from './rig404'
 import style from './background.module.scss'
@@ -210,8 +201,7 @@ const Hero = () => {
   }
 
   const materialArgs = {
-    opacity: 0,
-    transparent: true,
+    color: 'black',
   }
 
   return (
@@ -225,7 +215,7 @@ const Hero = () => {
       <icosahedronGeometry args={[0.25, 0]} />
       <meshBasicMaterial {...materialArgs} />
       <pointLight ref={pointRef} color={'white'} intensity={2} />
-      <Edges ref={edgesRef as any} color={'white'} />
+      <Edges ref={edgesRef as any} color={'white'} lineWidth={2} />
     </mesh>
   )
 }
@@ -335,16 +325,19 @@ const ModelDev = () => {
   })
 
   return (
-    <group ref={helixRef}>
-      <mesh geometry={(nodes.Helix as THREE.Mesh).geometry} scale={8.355}>
-        <meshPhysicalMaterial
-          emissive={'green'}
-          emissiveIntensity={0.2}
-          roughness={0.4}
-          color={'green'}
-        />
-      </mesh>
-    </group>
+    <>
+      <directionalLight position={[5, 5, 5]} intensity={0.8} />
+      <group ref={helixRef}>
+        <mesh geometry={(nodes.Helix as THREE.Mesh).geometry} scale={8.355}>
+          <meshPhysicalMaterial
+            emissive={'green'}
+            emissiveIntensity={0.2}
+            roughness={0.4}
+            color={'green'}
+          />
+        </mesh>
+      </group>
+    </>
   )
 }
 
@@ -355,13 +348,12 @@ const ClothArt = () => {
   const { mesh, material } = useMemo(() => {
     const width = 2
     const height = 1.2
-    const segments = 64
+    const segments = 16
     const geometry = new THREE.PlaneGeometry(width, height, segments, segments)
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
       depthTest: false,
-      depthWrite: false,
       uniforms: {
         time: { value: 0 },
         amp: { value: 1.1 },
@@ -625,28 +617,20 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
 
 const Background = ({ pathname, router, homeData }) => {
   const page = pathname !== '/' ? pathname.split('/')[1] : 'home'
-  const [dpr, setDpr] = useState(1)
 
   return (
     <Suspense fallback={<LoadingComponent />}>
       <Canvas
         className={`${style.background} ${page !== 'home' && style.disableScroll}`}
         camera={{ position: [0, 0, 5], fov: 50 }}
-        dpr={dpr}
+        dpr={1}
         gl={{
           antialias: false,
           toneMapping: THREE.ACESFilmicToneMapping,
         }}
         key={'canvas' + page}
       >
-        <PerformanceMonitor onDecline={() => setDpr(0.5)} onIncline={() => setDpr(1)} />
-
         <color attach="background" args={['#000000']} />
-
-        {/* Scene lighting */}
-        <ambientLight intensity={0.2} />
-        <directionalLight position={[5, 5, 5]} intensity={0.8} />
-        <pointLight position={[-5, -5, -5]} intensity={0.5} color="#1ea7ff" />
 
         <ScrollControls pages={4} key={'scrollControls' + page}>
           <RenderPageBackground page={page} />
