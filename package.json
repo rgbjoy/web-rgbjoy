@@ -19,9 +19,9 @@
     "generate:importmap": "payload generate:importmap",
     "generate:db-schema": "payload generate:db-schema",
     "=== Production commands ===": "",
-    "migrate_build": "payload migrate && pnpm build",
+    "migrate_build": "payload migrate && bun build",
     "=== Development tools ===": "",
-    "update packages": "pnpm update --latest",
+    "update packages": "bun update --latest",
     "lint": "eslint",
     "type-check": "tsc",
     "format": "prettier --write ."
@@ -69,5 +69,5 @@
     "prettier": "^3.6.2",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.17.0"
+  "packageManager": "bun@1.1.31"
 }
