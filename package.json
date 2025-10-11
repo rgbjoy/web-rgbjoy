@@ -19,7 +19,7 @@
     "generate:importmap": "payload generate:importmap",
     "generate:db-schema": "payload generate:db-schema",
     "=== Production commands ===": "",
-    "migrate_build": "payload migrate && bun build",
+    "migrate_build": "payload migrate && next build --turbopack",
     "=== Development tools ===": "",
     "update packages": "bun update --latest",
     "lint": "eslint",
