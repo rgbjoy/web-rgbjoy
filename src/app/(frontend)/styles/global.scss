@@ -137,13 +137,16 @@ h3 {
   -moz-osx-font-smoothing: grayscale;
 }
 
+h2 {
+  line-height: 1.8;
+}
+
 @include mobile-only {
   h1 {
     font-size: 1.5em;
   }
   h2 {
     font-size: 1.1em;
-    line-height: 1.8;
   }
 }
 

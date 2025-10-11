@@ -53,8 +53,8 @@
       background-color: #ffffff;
       padding: 4px 0;
       box-shadow:
-        0.5rem 0px 0px #ffffff,
-        -0.5rem 0px 0px #ffffff;
+        0.4rem 0px 0px #ffffff,
+        -0.4rem 0px 0px #ffffff;
       -webkit-box-decoration-break: clone;
       -moz-box-decoration-break: clone;
       box-decoration-break: clone;
@@ -133,6 +133,14 @@
 .intro {
   top: 25vh;
   left: 15vw;
+  max-width: 540px;
+
+  h2 {
+    max-width: 100%;
+    @include mobile-only {
+      max-width: 340px;
+    }
+  }
 
   @include mobile-only {
     top: 15vh;
