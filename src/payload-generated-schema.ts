@@ -6,7 +6,7 @@
  * and re-run `payload generate:db-schema` to regenerate this file.
  */
 
-import type {} from '@payloadcms/db-vercel-postgres'
+import type { } from '@payloadcms/db-vercel-postgres'
 import {
   pgTable,
   index,
@@ -73,7 +73,7 @@ export const users = pgTable(
     }),
     salt: varchar('salt'),
     hash: varchar('hash'),
-    loginAttempts: numeric('login_attempts').default('0'),
+    loginAttempts: numeric('login_attempts', { mode: 'number' }).default(0),
     lockUntil: timestamp('lock_until', { mode: 'string', withTimezone: true, precision: 3 }),
   },
   (columns) => [
@@ -99,28 +99,28 @@ export const media = pgTable(
     thumbnailURL: varchar('thumbnail_u_r_l'),
     filename: varchar('filename'),
     mimeType: varchar('mime_type'),
-    filesize: numeric('filesize'),
-    width: numeric('width'),
-    height: numeric('height'),
-    focalX: numeric('focal_x'),
-    focalY: numeric('focal_y'),
+    filesize: numeric('filesize', { mode: 'number' }),
+    width: numeric('width', { mode: 'number' }),
+    height: numeric('height', { mode: 'number' }),
+    focalX: numeric('focal_x', { mode: 'number' }),
+    focalY: numeric('focal_y', { mode: 'number' }),
     sizes_thumbnail_url: varchar('sizes_thumbnail_url'),
-    sizes_thumbnail_width: numeric('sizes_thumbnail_width'),
-    sizes_thumbnail_height: numeric('sizes_thumbnail_height'),
+    sizes_thumbnail_width: numeric('sizes_thumbnail_width', { mode: 'number' }),
+    sizes_thumbnail_height: numeric('sizes_thumbnail_height', { mode: 'number' }),
     sizes_thumbnail_mimeType: varchar('sizes_thumbnail_mime_type'),
-    sizes_thumbnail_filesize: numeric('sizes_thumbnail_filesize'),
+    sizes_thumbnail_filesize: numeric('sizes_thumbnail_filesize', { mode: 'number' }),
     sizes_thumbnail_filename: varchar('sizes_thumbnail_filename'),
     sizes_card_url: varchar('sizes_card_url'),
-    sizes_card_width: numeric('sizes_card_width'),
-    sizes_card_height: numeric('sizes_card_height'),
+    sizes_card_width: numeric('sizes_card_width', { mode: 'number' }),
+    sizes_card_height: numeric('sizes_card_height', { mode: 'number' }),
     sizes_card_mimeType: varchar('sizes_card_mime_type'),
-    sizes_card_filesize: numeric('sizes_card_filesize'),
+    sizes_card_filesize: numeric('sizes_card_filesize', { mode: 'number' }),
     sizes_card_filename: varchar('sizes_card_filename'),
     sizes_tablet_url: varchar('sizes_tablet_url'),
-    sizes_tablet_width: numeric('sizes_tablet_width'),
-    sizes_tablet_height: numeric('sizes_tablet_height'),
+    sizes_tablet_width: numeric('sizes_tablet_width', { mode: 'number' }),
+    sizes_tablet_height: numeric('sizes_tablet_height', { mode: 'number' }),
     sizes_tablet_mimeType: varchar('sizes_tablet_mime_type'),
-    sizes_tablet_filesize: numeric('sizes_tablet_filesize'),
+    sizes_tablet_filesize: numeric('sizes_tablet_filesize', { mode: 'number' }),
     sizes_tablet_filename: varchar('sizes_tablet_filename'),
   },
   (columns) => [
@@ -331,7 +331,7 @@ export const payload_migrations = pgTable(
   {
     id: serial('id').primaryKey(),
     name: varchar('name'),
-    batch: numeric('batch'),
+    batch: numeric('batch', { mode: 'number' }),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),

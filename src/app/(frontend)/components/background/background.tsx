@@ -626,13 +626,12 @@ const Background = ({ pathname, router, homeData }) => {
           antialias: false,
           toneMapping: THREE.ACESFilmicToneMapping,
         }}
-        key={'canvas' + page}
       >
         <color attach="background" args={['#000000']} />
 
-        <ScrollControls pages={4} key={'scrollControls' + page}>
+        <ScrollControls pages={4}>
           <RenderPageBackground page={page} />
-          <Scroll html style={{ width: '100vw', height: '100vh' }} key={'scroll' + page}>
+          <Scroll html style={{ width: '100vw', height: '100vh' }}>
             <div
               style={{
                 display: page !== 'home' ? 'none' : 'block',
