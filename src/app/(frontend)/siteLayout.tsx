@@ -15,6 +15,26 @@ const DynamicBackground = dynamic(() => import('@/components/background/backgrou
   ssr: false,
 })
 
+const EditPageButton = ({
+  isAdmin,
+  pathname,
+  links,
+}: {
+  isAdmin: boolean
+  pathname: string
+  links: Array<{ global?: boolean; path: string }>
+}) => {
+  if (isAdmin && links.some((link) => link.global && link.path === '/' + pathname.split('/')[1])) {
+    const slug = pathname.split('/')[1] || 'home'
+    return (
+      <Link href={`/dashboard/globals/${slug}`} className={style.editButton}>
+        Edit Page
+      </Link>
+    )
+  }
+  return null
+}
+
 const Footer = ({ footerLinks }) => {
   return (
     <div className={style.footerWrapper}>
@@ -98,22 +118,6 @@ const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
     },
   ]
 
-  // if isadmin and pathname is a global, then make a edit page button
-  const EditPageButton = () => {
-    if (
-      isAdmin &&
-      links.some((link) => link.global && link.path === '/' + pathname.split('/')[1])
-    ) {
-      const slug = pathname.split('/')[1] || 'home'
-      return (
-        <Link href={`/dashboard/globals/${slug}`} className={style.editButton}>
-          Edit Page
-        </Link>
-      )
-    }
-    return null
-  }
-
   const isNotFound = !links.some((link) => link.path === '/' + pathname.split('/')[1])
   const router = useRouter()
 
@@ -125,7 +129,7 @@ const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
         homeData={homeData}
       />
 
-      <EditPageButton />
+      <EditPageButton isAdmin={isAdmin} pathname={pathname} links={links} />
 
       {children}
 

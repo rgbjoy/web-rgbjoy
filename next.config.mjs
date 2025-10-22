@@ -7,6 +7,9 @@ const NEXT_PUBLIC_SERVER_URL = ensureProtocol(process.env.SERVER_URL) || 'http:/
 
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    turbopackUseBuiltinSass: true,
+  },
   images: {
     remotePatterns: [
       ...[NEXT_PUBLIC_SERVER_URL].map((item) => {
@@ -18,18 +21,6 @@ const nextConfig = {
         }
       }),
     ],
-  },
-  turbopack: {
-    rules: {
-      '*.module.scss': {
-        loaders: ['sass-loader'],
-        as: '*.module.css',
-      },
-      '*.scss': {
-        loaders: ['sass-loader'],
-        as: '*.css',
-      },
-    },
   },
   sassOptions: {
     compilerOptions: {

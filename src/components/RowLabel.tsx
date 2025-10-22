@@ -32,20 +32,30 @@ const MediaLabelImpl: React.FC<RowLabelProps> = () => {
   useEffect(() => {
     const id = typeof data?.data?.image === 'number' ? data.data.image : undefined
     if (!id) {
-      setMedia(null)
-      setTitle(data?.data?.title || '')
-      setIsLoading(false)
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setMedia(null)
+        setTitle(data?.data?.title || '')
+        setIsLoading(false)
+      }, 0)
       return
     }
 
-    setIsLoading(true)
     const cached = mediaCache.get(id)
     if (cached) {
-      setMedia(cached)
-      setTitle(data?.data?.title || '')
-      setIsLoading(false)
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setMedia(cached)
+        setTitle(data?.data?.title || '')
+        setIsLoading(false)
+      }, 0)
       return
     }
+
+    // Use setTimeout to avoid synchronous setState in effect
+    setTimeout(() => {
+      setIsLoading(true)
+    }, 0)
 
     let aborted = false
     ;(async () => {

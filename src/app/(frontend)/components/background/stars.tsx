@@ -35,7 +35,10 @@ class StarfieldMaterial extends ShaderMaterial {
   }
 }
 
-function getRandomBetween(min = -5, max = 5) {
+function getRandomBetween(min = -5, max = 5, seededRandom?: () => number) {
+  if (seededRandom) {
+    return seededRandom() * (max - min) + min
+  }
   return Math.random() * (max - min) + min
 }
 
@@ -49,6 +52,36 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
   const maxOpacity = 1
 
   const mesh = useRef<THREE.Points>(null)
+
+  // Generate random values once using a seeded approach
+  const randomValues = useMemo(() => {
+    const angles: number[] = []
+    const radii: number[] = []
+    const zPositions: number[] = []
+
+    // Generate all random values upfront to avoid reassignment
+    const randomValuesArray: number[] = []
+    let seed = 54321
+    for (let i = 0; i < count * 3; i++) {
+      // Generate enough values for angles, radii, and z positions
+      seed = (seed * 9301 + 49297) % 233280
+      randomValuesArray.push(seed / 233280)
+    }
+
+    let randomIndex = 0
+    const seededRandom = () => randomValuesArray[randomIndex++] ?? 0
+
+    for (let i = 0; i < count; i++) {
+      angles.push(seededRandom() * Math.PI * 2)
+      // Create a donut shape - inner radius 0.5, outer radius startRadius
+      const innerRadius = 0.5
+      radii.push(innerRadius + seededRandom() * (startRadius - innerRadius))
+      zPositions.push(getRandomBetween(-distance * 2, -1, seededRandom))
+    }
+
+    return { angles, radii, zPositions }
+  }, [count, startRadius, distance])
+
   const { positions, colors, sizes, opacity } = useMemo(() => {
     const positions = new Float32Array(count * 3)
     const colors = new Float32Array(count * 3)
@@ -57,13 +90,13 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
     const opacity = new Float32Array(count)
 
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2
-      // Create a donut shape - inner radius 0.5, outer radius startRadius
-      const innerRadius = 0.5
-      const radius = innerRadius + Math.random() * (startRadius - innerRadius)
+      const angle = randomValues.angles[i] ?? 0
+      const radius = randomValues.radii[i] ?? 0.5
+      const zPos = randomValues.zPositions[i] ?? 0
+      
       positions[i * 3] = Math.cos(angle) * radius
       positions[i * 3 + 1] = Math.sin(angle) * radius
-      positions[i * 3 + 2] = getRandomBetween(-distance * 2, -1)
+      positions[i * 3 + 2] = zPos
       colors[i * 3] = color.x
       colors[i * 3 + 1] = color.y
       colors[i * 3 + 2] = color.z
@@ -72,7 +105,7 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
     }
 
     return { positions, colors, sizes, opacity }
-  }, [count, startRadius])
+  }, [count, randomValues, size, minOpacity])
 
   const geometry = useMemo(() => {
     const geometry = new THREE.BufferGeometry()

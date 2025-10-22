@@ -35,11 +35,44 @@ const RandomShard = ({ position, color = '#FF0000' }) => {
   const thickness = 0.02
   const numPoints = 3
 
+  // Generate random values once per component instance using seeded approach
+  const randomValues = useMemo(() => {
+    const radiusVariations: number[] = []
+
+    // Generate all random values upfront to avoid reassignment
+    const randomValuesArray: number[] = []
+    let seed = Math.floor(Math.random() * 100000) // Use Math.random only once for seed
+    for (let i = 0; i < numPoints + 3; i++) {
+      // Generate enough values for radius variations and rotation
+      seed = (seed * 9301 + 49297) % 233280
+      randomValuesArray.push(seed / 233280)
+    }
+
+    let randomIndex = 0
+    const seededRandom = () => randomValuesArray[randomIndex++]
+
+    for (let i = 0; i < numPoints; i++) {
+      const randomValue = seededRandom()
+      if (randomValue !== undefined) {
+        radiusVariations.push(0.3 + randomValue * 0.2)
+      }
+    }
+
+    const rotationX = seededRandom() ?? 0
+    const rotationY = seededRandom() ?? 0
+    const rotationZ = seededRandom() ?? 0
+
+    return {
+      radiusVariations,
+      rotation: new THREE.Euler(rotationX * Math.PI, rotationY * Math.PI, rotationZ * Math.PI),
+    }
+  }, [])
+
   const geometry = useMemo(() => {
     const points: THREE.Vector2[] = []
     for (let i = 0; i < numPoints; i++) {
       const angle = 2 * Math.PI * (i / numPoints)
-      const radius = 0.3 + Math.random() * 0.2
+      const radius = randomValues.radiusVariations[i] ?? 0.3
       const x = Math.cos(angle) * radius
       const y = Math.sin(angle) * radius
       points.push(new THREE.Vector2(x, y))
@@ -48,13 +81,9 @@ const RandomShard = ({ position, color = '#FF0000' }) => {
     points.sort((a, b) => a.angle() - b.angle())
 
     return GenerateShard(points, thickness)
-  }, [])
+  }, [randomValues])
 
-  const rotation = useMemo(
-    () =>
-      new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
-    [],
-  )
+  const rotation = randomValues.rotation
 
   const materialArgs = {
     side: THREE.DoubleSide,
@@ -264,8 +293,8 @@ const ModelInfo = () => {
   const groupRef = useRef<THREE.Group>(null)
   const { nodes, materials } = useGLTF('/glb/stylized_rock/scene.gltf')
 
-  // Pick unique vertices from an icosahedron (no duplicates)
-  const rockPositions = useMemo(() => {
+  // Pick unique vertices from an icosahedron (no duplicates) and generate rotations
+  const rockData = useMemo(() => {
     const numRocks = 5
     const radius = 1.5
 
@@ -273,32 +302,46 @@ const ModelInfo = () => {
     const candidates = baseVertices.map((v) => v.clone().normalize().multiplyScalar(radius))
 
     const selected: THREE.Vector3[] = []
+    const rotations: THREE.Euler[] = []
     const used = new Set<number>()
     const max = Math.min(numRocks, candidates.length)
 
+    // Generate all random values upfront to avoid reassignment
+    const randomValues: number[] = []
+    let seed = 98765
+    for (let i = 0; i < max * 4; i++) {
+      // Generate enough values for positions and rotations
+      seed = (seed * 9301 + 49297) % 233280
+      randomValues.push(seed / 233280)
+    }
+
+    let randomIndex = 0
+    const seededRandom = () => randomValues[randomIndex++]
+
     while (selected.length < max) {
-      const idx = Math.floor(Math.random() * candidates.length)
+      const randomValue = seededRandom()
+      if (randomValue === undefined) break
+
+      const idx = Math.floor(randomValue * candidates.length)
       if (idx < 0 || idx >= candidates.length || used.has(idx)) continue
       const candidate = candidates[idx]
       if (!candidate) continue
       used.add(idx)
       selected.push(candidate.clone())
+
+      // Generate rotation for this rock
+      const rotX = seededRandom() ?? 0
+      const rotY = seededRandom() ?? 0
+      const rotZ = seededRandom() ?? 0
+
+      rotations.push(new THREE.Euler(rotX * Math.PI * 2, rotY * Math.PI * 2, rotZ * Math.PI * 2))
     }
 
-    return selected
+    return { positions: selected, rotations }
   }, [])
 
-  // Generate random rotations
-  const rockRotations = useMemo(() => {
-    return rockPositions.map(
-      () =>
-        new THREE.Euler(
-          Math.random() * Math.PI * 2,
-          Math.random() * Math.PI * 2,
-          Math.random() * Math.PI * 2,
-        ),
-    )
-  }, [rockPositions])
+  const rockPositions = rockData.positions
+  const rockRotations = rockData.rotations
 
   useFrame(() => {
     if (groupRef.current) {
@@ -359,6 +402,8 @@ const ModelDev = () => {
 
 const ClothArt = () => {
   const groupRef = useRef<THREE.Group>(null)
+  const timeRef = useRef(0)
+  const materialRef = useRef<THREE.ShaderMaterial | null>(null)
   const { viewport } = useThree()
 
   const { mesh, material } = useMemo(() => {
@@ -424,6 +469,10 @@ const ClothArt = () => {
   }, [])
 
   useEffect(() => {
+    materialRef.current = material
+  }, [material])
+
+  useEffect(() => {
     const group = groupRef.current
     if (!group || !mesh) return
     group.add(mesh)
@@ -438,8 +487,10 @@ const ClothArt = () => {
   }, [viewport.width, viewport.height])
 
   useFrame((_, delta) => {
-    if ((material as any)?.uniforms) {
-      ;(material as any).uniforms.time.value += delta
+    if (materialRef.current?.uniforms?.time) {
+      timeRef.current += delta
+      // Update the uniform value using the ref
+      materialRef.current.uniforms.time.value = timeRef.current
     }
   })
 
