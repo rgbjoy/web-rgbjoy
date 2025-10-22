@@ -23,6 +23,10 @@ const myFont = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://rgbjoy.com'),
+  title: {
+    template: '%s | RGBJOY',
+    default: 'RGBJOY',
+  },
   icons: {
     icon: '/social/icon.png',
   },

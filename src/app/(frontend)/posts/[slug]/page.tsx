@@ -9,11 +9,42 @@ import parse from 'html-react-parser'
 import NextImage from 'next/image'
 import Link from 'next/link'
 import ImageWithShimmer from '@/components/imageWithShimmer'
+import { Metadata } from 'next'
 
 interface PostPageProps {
   params: Promise<{
     slug: string
   }>
+}
+
+export async function generateMetadata(props: PostPageProps): Promise<Metadata> {
+  const { slug } = await props.params
+  const payload = await getPayload({ config: configPromise })
+  const { docs } = await payload.find({
+    collection: 'posts',
+    draft: true,
+    limit: 1,
+    pagination: false,
+    where: {
+      slug: { equals: slug },
+    },
+  })
+
+  const post = docs?.[0] || null
+
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested post could not be found.',
+    }
+  }
+
+  return {
+    title: post.title,
+    description:
+      post.contentRichText_html?.replace(/<[^>]*>/g, '').substring(0, 160) ||
+      'A post by Tom Fletcher',
+  }
 }
 
 const replaceTags = (node) => {

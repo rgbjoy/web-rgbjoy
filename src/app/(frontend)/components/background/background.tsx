@@ -61,7 +61,8 @@ const RandomShard = ({ position, color = '#FF0000' }) => {
     blending: THREE.AdditiveBlending,
     color: color,
     emissive: color,
-    depthTest: false,
+    depthTest: true,
+    depthWrite: false,
     transparent: true,
     emissiveIntensity: 1,
     toneMapped: false,
@@ -180,6 +181,17 @@ const Hero = () => {
               : '#1ea7ff'
       const targetColor = new THREE.Color(target)
       materialRef.current.color.lerp(targetColor, 0.05)
+
+      // Fade out hero in art section (last section)
+      if (section === 'art') {
+        const artProgress = Math.max(0, (t - 0.75) / 0.25) // 0 to 1 in art section
+        const fadeOut = Math.max(0, 1 - artProgress * 1.5) // Start fading earlier in art section
+        materialRef.current.opacity = fadeOut
+        materialRef.current.transparent = true
+      } else {
+        materialRef.current.opacity = 1
+        materialRef.current.transparent = true
+      }
     }
   })
 
@@ -212,7 +224,13 @@ const Hero = () => {
       onPointerUp={handlePointerUp}
     >
       <icosahedronGeometry args={[0.25, 0]} />
-      <meshPhysicalMaterial ref={materialRef} />
+      <meshPhysicalMaterial
+        ref={materialRef}
+        transparent={true}
+        opacity={1}
+        depthTest={true}
+        depthWrite={true}
+      />
       <pointLight ref={pointRef} color={'white'} intensity={2} />
     </mesh>
   )

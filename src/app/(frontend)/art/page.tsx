@@ -4,7 +4,8 @@ import { getCachedGlobal } from '@/utilities/getGlobals'
 
 export const metadata: Metadata = {
   title: 'Art & Design',
-  description: 'Multidisciplinary digital creator & software engineer',
+  description:
+    'A collection of visual explorations — abstract, human-made, and digital. Each piece studies color, rhythm, and emotion through form and texture.',
 }
 
 export default async function Page() {
