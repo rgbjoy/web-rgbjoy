@@ -89,5 +89,51 @@ export const Dev: GlobalConfig = {
         },
       ],
     },
+    {
+      name: 'playground',
+      type: 'array',
+      label: 'Playground',
+      labels: {
+        singular: 'Item',
+        plural: 'Items',
+      },
+      admin: {
+        components: {
+          RowLabel: '../components/RowLabel',
+        },
+      },
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'link',
+          type: 'group',
+          fields: [
+            {
+              name: 'url',
+              type: 'text',
+              required: true,
+              hooks: {
+                beforeValidate: [
+                  ({ value }) => {
+                    if (value && !value.startsWith('https://')) {
+                      return `https://${value}`
+                    }
+                    return value
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+        },
+      ],
+    },
   ],
 }

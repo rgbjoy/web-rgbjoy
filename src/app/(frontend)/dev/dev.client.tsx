@@ -73,6 +73,27 @@ const GetProjects = ({ pastProjects }: { pastProjects: Dev['pastProjects'] }) =>
   )
 }
 
+const GetPlayground = ({ playground }: { playground: Dev['playground'] }) => {
+  return (
+    <ul className={style.list}>
+      {playground?.map((item, i) => {
+        const title = item.title
+        const description = item.description
+        const link = item.link.url
+
+        return (
+          <li className={style.item} key={'playground' + i}>
+            <a className="link" href={link} target="_blank" rel="noreferrer">
+              <div className={style.name}>{title}</div>
+              <div className={style.description}>{description}</div>
+            </a>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 export default function DevClient(page: Dev) {
   return (
     <PageWrapper className={style.dev}>
@@ -87,6 +108,9 @@ export default function DevClient(page: Dev) {
 
       <h2 className={style.sectionTitle}>Projects</h2>
       <GetProjects pastProjects={page.pastProjects} />
+
+      <h2 className={style.sectionTitle}>Playground</h2>
+      <GetPlayground playground={page.playground} />
     </PageWrapper>
   )
 }

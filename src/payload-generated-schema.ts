@@ -442,6 +442,27 @@ export const dev_past_projects = pgTable(
   ],
 )
 
+export const dev_playground = pgTable(
+  'dev_playground',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    title: varchar('title').notNull(),
+    link_url: varchar('link_url').notNull(),
+    description: varchar('description'),
+  },
+  (columns) => [
+    index('dev_playground_order_idx').on(columns._order),
+    index('dev_playground_parent_id_idx').on(columns._parentID),
+    foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [dev.id],
+      name: 'dev_playground_parent_id_fk',
+    }).onDelete('cascade'),
+  ],
+)
+
 export const dev = pgTable('dev', {
   id: serial('id').primaryKey(),
   header: varchar('header'),
@@ -643,9 +664,19 @@ export const relations_dev_past_projects = relations(dev_past_projects, ({ one }
     relationName: 'image',
   }),
 }))
+export const relations_dev_playground = relations(dev_playground, ({ one }) => ({
+  _parentID: one(dev, {
+    fields: [dev_playground._parentID],
+    references: [dev.id],
+    relationName: 'playground',
+  }),
+}))
 export const relations_dev = relations(dev, ({ many }) => ({
   pastProjects: many(dev_past_projects, {
     relationName: 'pastProjects',
+  }),
+  playground: many(dev_playground, {
+    relationName: 'playground',
   }),
 }))
 export const relations_art_artworks = relations(art_artworks, ({ one }) => ({
@@ -697,6 +728,7 @@ type DatabaseSchema = {
   info_strengths: typeof info_strengths
   info: typeof info
   dev_past_projects: typeof dev_past_projects
+  dev_playground: typeof dev_playground
   dev: typeof dev
   art_artworks: typeof art_artworks
   art: typeof art
@@ -717,6 +749,7 @@ type DatabaseSchema = {
   relations_info_strengths: typeof relations_info_strengths
   relations_info: typeof relations_info
   relations_dev_past_projects: typeof relations_dev_past_projects
+  relations_dev_playground: typeof relations_dev_playground
   relations_dev: typeof relations_dev
   relations_art_artworks: typeof relations_art_artworks
   relations_art: typeof relations_art

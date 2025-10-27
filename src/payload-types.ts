@@ -508,6 +508,16 @@ export interface Dev {
         id?: string | null;
       }[]
     | null;
+  playground?:
+    | {
+        title: string;
+        link: {
+          url: string;
+        };
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -619,6 +629,18 @@ export interface DevSelect<T extends boolean = true> {
     | {
         title?: T;
         image?: T;
+        link?:
+          | T
+          | {
+              url?: T;
+            };
+        description?: T;
+        id?: T;
+      };
+  playground?:
+    | T
+    | {
+        title?: T;
         link?:
           | T
           | {
