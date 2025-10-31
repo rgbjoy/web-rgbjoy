@@ -410,7 +410,68 @@ const ClothArt = () => {
     const width = 2
     const height = 1.2
     const segments = 16
-    const geometry = new THREE.PlaneGeometry(width, height, segments, segments)
+    const tempGeometry = new THREE.PlaneGeometry(width, height, segments, segments)
+
+    // Extract positions from the plane geometry
+    const positionAttr = tempGeometry.attributes.position
+    if (!positionAttr) throw new Error('Position attribute not found')
+    const positions = positionAttr.array as Float32Array
+    const vertexCount = positions.length / 3
+
+    // Group vertices by Y position to create horizontal lines without overlap
+    // Use a Map to store vertices for each unique Y value (rounded to avoid floating point issues)
+    const yGroups = new Map<number, Array<{ x: number; y: number; z: number }>>()
+    const yPrecision = 1000 // Round Y to 3 decimal places
+
+    for (let i = 0; i < vertexCount; i++) {
+      const i3 = i * 3
+      const x = positions[i3]!
+      const y = positions[i3 + 1]!
+      const z = positions[i3 + 2]!
+
+      // Round Y to avoid floating point precision issues
+      const yKey = Math.round(y * yPrecision) / yPrecision
+
+      if (!yGroups.has(yKey)) {
+        yGroups.set(yKey, [])
+      }
+      yGroups.get(yKey)!.push({ x, y, z })
+    }
+
+    // Sort vertices within each Y group by X to create ordered horizontal lines
+    const linePositions: number[] = []
+    const lineYNorm: number[] = []
+
+    yGroups.forEach((vertices, yKey) => {
+      // Sort by X to ensure lines go from left to right
+      vertices.sort((a, b) => a.x - b.x)
+
+      // Calculate normalized Y for fade (0 at bottom, 1 at top)
+      const yNorm = Math.max(0.0, Math.min(1.0, (yKey + 0.6) / 1.2))
+
+      // Create horizontal line segments connecting adjacent vertices
+      for (let i = 0; i < vertices.length - 1; i++) {
+        const v1 = vertices[i]!
+        const v2 = vertices[i + 1]!
+
+        // Only create line if vertices are not too far apart (avoid connecting across gaps)
+        const xDistance = Math.abs(v2.x - v1.x)
+        if (xDistance < (width / segments) * 1.5) {
+          // Threshold to avoid connecting non-adjacent vertices
+          // Start vertex
+          linePositions.push(v1.x, v1.y, v1.z)
+          lineYNorm.push(yNorm)
+
+          // End vertex
+          linePositions.push(v2.x, v2.y, v2.z)
+          lineYNorm.push(yNorm)
+        }
+      }
+    })
+
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePositions), 3))
+    geometry.setAttribute('yNorm', new THREE.BufferAttribute(new Float32Array(lineYNorm), 1))
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
@@ -421,27 +482,25 @@ const ClothArt = () => {
         freq: { value: 3.0 },
         speed: { value: 0.5 },
         color: { value: new THREE.Color('#ffffff') },
-        pointSize: { value: 2.0 }, // pixels
-        fadeStart: { value: 0.15 }, // start fading at 15% from bottom (≈ after ~10 rows when segments=64)
+        lineWidth: { value: 1.0 }, // line width in pixels
+        fadeStart: { value: 0.15 }, // start fading at 15% from bottom
         fadeEnd: { value: 1.0 }, // fully faded near the very top
       },
       vertexShader: `
+        attribute float yNorm;
         uniform float time;
         uniform float amp;
         uniform float freq;
         uniform float speed;
-        uniform float pointSize;
-        varying float vYNorm; // 0 at bottom, 1 at top in local space
+        varying float vYNorm;
         void main() {
           vec3 pos = position;
           float w1 = sin((pos.x * freq) + time * speed) * amp;
           float w2 = sin((pos.y * freq * 1.3) - time * speed * 0.8) * amp * 0.7;
           pos.z += w1 + w2;
-          // geometry height is roughly [-0.6, 0.6] for height 1.2
-          vYNorm = clamp((pos.y + 0.6) / 1.2, 0.0, 1.0);
+          vYNorm = yNorm;
           vec4 mv = modelViewMatrix * vec4(pos, 1.0);
           gl_Position = projectionMatrix * mv;
-          gl_PointSize = pointSize;
         }
       `,
       fragmentShader: `
@@ -451,20 +510,16 @@ const ClothArt = () => {
         uniform float fadeEnd;
         varying float vYNorm;
         void main() {
-          // circular white dot
-          vec2 p = gl_PointCoord * 2.0 - 1.0;
-          float r = length(p);
-          float alpha = smoothstep(1.0, 0.7, 1.0 - r);
           // vertical fade ramp (1 at bottom, ramps to 0 towards top)
           float ramp = smoothstep(fadeEnd, fadeStart, vYNorm);
-          alpha *= ramp;
+          float alpha = ramp;
           if (alpha <= 0.0) discard;
           gl_FragColor = vec4(color, alpha);
         }
       `,
     })
 
-    const mesh = new THREE.Points(geometry, material)
+    const mesh = new THREE.LineSegments(geometry, material)
     return { mesh, material }
   }, [])
 
@@ -598,6 +653,7 @@ const RenderPageBackground = ({ page }) => {
   const scroll = useScroll()
   const [scrolledDown, setScrolledDown] = useState(false)
   const [reset, setReset] = useState(false)
+  const [inLastSection, setInLastSection] = useState(false)
 
   useFrame(() => {
     if (scroll.offset > 0.02) {
@@ -610,6 +666,8 @@ const RenderPageBackground = ({ page }) => {
       }
     }
     setScrolledDown(scroll.range(0, 1 / 8) >= 1)
+    // Last section starts at 75% (page 3 of 4 pages)
+    setInLastSection(scroll.offset > 0.75)
   })
 
   if (!page) {
@@ -618,7 +676,10 @@ const RenderPageBackground = ({ page }) => {
 
   return (
     <group visible={page !== 'posts'}>
-      <Stars canReset={page === 'home' && !scrolledDown ? true : false} />
+      <Stars
+        canReset={page === 'home' && !scrolledDown ? true : false}
+        stillCount={inLastSection ? 0 : 50}
+      />
       <RigPages page={page} />
     </group>
   )

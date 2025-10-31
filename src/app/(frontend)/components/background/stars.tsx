@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { ShaderMaterial, Vector3 } from 'three'
 
 class StarfieldMaterial extends ShaderMaterial {
-  constructor() {
+  constructor(enableDepthTest = false) {
     super({
       vertexShader: `
           attribute float size;
@@ -28,8 +28,8 @@ class StarfieldMaterial extends ShaderMaterial {
           }
         `,
       uniforms: {},
-      depthTest: false,
-      depthWrite: false,
+      depthTest: enableDepthTest,
+      depthWrite: enableDepthTest,
       transparent: true,
     })
   }
@@ -42,7 +42,7 @@ function getRandomBetween(min = -5, max = 5, seededRandom?: () => number) {
   return Math.random() * (max - min) + min
 }
 
-function Stars({ count = 100, startRadius = 2, canReset = true }) {
+function Stars({ count = 100, startRadius = 2, canReset = true, stillCount = 50 }) {
   const size = 2
   const distance = 10
   const viewDistance = 5
@@ -50,6 +50,7 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
   const fadeSpeed = 0.01
   const minOpacity = 0
   const maxOpacity = 1
+  const stillStarDistance = -10 // Position still stars much further back so 3D models render in front
 
   const mesh = useRef<THREE.Points>(null)
 
@@ -93,7 +94,7 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
       const angle = randomValues.angles[i] ?? 0
       const radius = randomValues.radii[i] ?? 0.5
       const zPos = randomValues.zPositions[i] ?? 0
-      
+
       positions[i * 3] = Math.cos(angle) * radius
       positions[i * 3 + 1] = Math.sin(angle) * radius
       positions[i * 3 + 2] = zPos
@@ -117,6 +118,49 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
   }, [positions, colors, sizes, opacity])
 
   const material = useMemo(() => new StarfieldMaterial(), [])
+
+  // Generate still background stars
+  const stillStarsGeometry = useMemo(() => {
+    if (stillCount === 0) return null
+
+    const positions = new Float32Array(stillCount * 3)
+    const colors = new Float32Array(stillCount * 3)
+    const sizes = new Float32Array(stillCount)
+    const opacity = new Float32Array(stillCount)
+    const color = new Vector3(1, 1, 1)
+
+    // Use a different seed for still stars to ensure different distribution
+    let seed = 12345
+    const seededRandom = () => {
+      seed = (seed * 9301 + 49297) % 233280
+      return seed / 233280
+    }
+
+    for (let i = 0; i < stillCount; i++) {
+      const angle = seededRandom() * Math.PI * 2
+      const innerRadius = 0.5
+      const radius = innerRadius + seededRandom() * (startRadius * 4 - innerRadius) // Much wider distribution for background
+
+      positions[i * 3] = Math.cos(angle) * radius
+      positions[i * 3 + 1] = Math.sin(angle) * radius
+      positions[i * 3 + 2] = stillStarDistance + seededRandom() * 10 // Spread them out more in z
+
+      colors[i * 3] = color.x
+      colors[i * 3 + 1] = color.y
+      colors[i * 3 + 2] = color.z
+      sizes[i] = size * 0.8 // Slightly smaller than animated stars
+      opacity[i] = 0.6 // Slightly dimmer for depth effect
+    }
+
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
+    geometry.setAttribute('opacity', new THREE.BufferAttribute(opacity, 1))
+    return geometry
+  }, [stillCount, startRadius, size, stillStarDistance])
+
+  const stillStarsMaterial = useMemo(() => new StarfieldMaterial(true), []) // Enable depth testing for still stars
 
   useFrame(() => {
     const geometry = mesh.current?.geometry
@@ -160,11 +204,16 @@ function Stars({ count = 100, startRadius = 2, canReset = true }) {
   })
 
   return (
-    <points
-      position={[0, 0, 0]}
-      ref={mesh as React.RefObject<THREE.Points | null>}
-      args={[geometry, material]}
-    />
+    <>
+      <points
+        position={[0, 0, 0]}
+        ref={mesh as React.RefObject<THREE.Points | null>}
+        args={[geometry, material]}
+      />
+      {stillStarsGeometry && (
+        <points position={[0, 0, 0]} args={[stillStarsGeometry, stillStarsMaterial]} />
+      )}
+    </>
   )
 }
 

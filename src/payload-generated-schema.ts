@@ -6,7 +6,7 @@
  * and re-run `payload generate:db-schema` to regenerate this file.
  */
 
-import type { } from '@payloadcms/db-vercel-postgres'
+import type {} from '@payloadcms/db-vercel-postgres'
 import {
   pgTable,
   index,
@@ -219,6 +219,16 @@ export const _posts_v = pgTable(
   ],
 )
 
+export const payload_kv = pgTable(
+  'payload_kv',
+  {
+    id: serial('id').primaryKey(),
+    key: varchar('key').notNull(),
+    data: jsonb('data').notNull(),
+  },
+  (columns) => [uniqueIndex('payload_kv_key_idx').on(columns.key)],
+)
+
 export const payload_locked_documents = pgTable(
   'payload_locked_documents',
   {
@@ -248,6 +258,7 @@ export const payload_locked_documents_rels = pgTable(
     usersID: integer('users_id'),
     mediaID: integer('media_id'),
     postsID: integer('posts_id'),
+    'payload-kvID': integer('payload_kv_id'),
   },
   (columns) => [
     index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -256,6 +267,7 @@ export const payload_locked_documents_rels = pgTable(
     index('payload_locked_documents_rels_users_id_idx').on(columns.usersID),
     index('payload_locked_documents_rels_media_id_idx').on(columns.mediaID),
     index('payload_locked_documents_rels_posts_id_idx').on(columns.postsID),
+    index('payload_locked_documents_rels_payload_kv_id_idx').on(columns['payload-kvID']),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -275,6 +287,11 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['postsID']],
       foreignColumns: [posts.id],
       name: 'payload_locked_documents_rels_posts_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['payload-kvID']],
+      foreignColumns: [payload_kv.id],
+      name: 'payload_locked_documents_rels_payload_kv_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -565,6 +582,7 @@ export const relations__posts_v = relations(_posts_v, ({ one }) => ({
     relationName: 'version_featuredImage',
   }),
 }))
+export const relations_payload_kv = relations(payload_kv, () => ({}))
 export const relations_payload_locked_documents_rels = relations(
   payload_locked_documents_rels,
   ({ one }) => ({
@@ -587,6 +605,11 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.postsID],
       references: [posts.id],
       relationName: 'posts',
+    }),
+    'payload-kvID': one(payload_kv, {
+      fields: [payload_locked_documents_rels['payload-kvID']],
+      references: [payload_kv.id],
+      relationName: 'payload-kv',
     }),
   }),
 )
@@ -718,6 +741,7 @@ type DatabaseSchema = {
   media: typeof media
   posts: typeof posts
   _posts_v: typeof _posts_v
+  payload_kv: typeof payload_kv
   payload_locked_documents: typeof payload_locked_documents
   payload_locked_documents_rels: typeof payload_locked_documents_rels
   payload_preferences: typeof payload_preferences
@@ -739,6 +763,7 @@ type DatabaseSchema = {
   relations_media: typeof relations_media
   relations_posts: typeof relations_posts
   relations__posts_v: typeof relations__posts_v
+  relations_payload_kv: typeof relations_payload_kv
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels
   relations_payload_locked_documents: typeof relations_payload_locked_documents
   relations_payload_preferences_rels: typeof relations_payload_preferences_rels
