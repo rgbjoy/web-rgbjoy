@@ -258,7 +258,6 @@ export const payload_locked_documents_rels = pgTable(
     usersID: integer('users_id'),
     mediaID: integer('media_id'),
     postsID: integer('posts_id'),
-    'payload-kvID': integer('payload_kv_id'),
   },
   (columns) => [
     index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -267,7 +266,6 @@ export const payload_locked_documents_rels = pgTable(
     index('payload_locked_documents_rels_users_id_idx').on(columns.usersID),
     index('payload_locked_documents_rels_media_id_idx').on(columns.mediaID),
     index('payload_locked_documents_rels_posts_id_idx').on(columns.postsID),
-    index('payload_locked_documents_rels_payload_kv_id_idx').on(columns['payload-kvID']),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -287,11 +285,6 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['postsID']],
       foreignColumns: [posts.id],
       name: 'payload_locked_documents_rels_posts_fk',
-    }).onDelete('cascade'),
-    foreignKey({
-      columns: [columns['payload-kvID']],
-      foreignColumns: [payload_kv.id],
-      name: 'payload_locked_documents_rels_payload_kv_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -605,11 +598,6 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.postsID],
       references: [posts.id],
       relationName: 'posts',
-    }),
-    'payload-kvID': one(payload_kv, {
-      fields: [payload_locked_documents_rels['payload-kvID']],
-      references: [payload_kv.id],
-      relationName: 'payload-kv',
     }),
   }),
 )
