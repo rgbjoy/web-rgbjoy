@@ -10,6 +10,7 @@ import NextImage from 'next/image'
 import Link from 'next/link'
 import ImageWithShimmer from '@/components/imageWithShimmer'
 import { Metadata } from 'next'
+import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
 
 interface PostPageProps {
   params: Promise<{
@@ -22,11 +23,11 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
   const payload = await getPayload({ config: configPromise })
   const { docs } = await payload.find({
     collection: 'posts',
-    draft: true,
     limit: 1,
     pagination: false,
     where: {
       slug: { equals: slug },
+      _status: { equals: 'published' },
     },
   })
 
@@ -39,11 +40,11 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
     }
   }
 
+  const html = post.contentRichText ? convertLexicalToHTML({ data: post.contentRichText }) : ''
+
   return {
     title: post.title,
-    description:
-      post.contentRichText_html?.replace(/<[^>]*>/g, '').substring(0, 160) ||
-      'A post by Tom Fletcher',
+    description: html.replace(/<[^>]*>/g, '').substring(0, 160) || 'A post by Tom Fletcher',
   }
 }
 
@@ -82,11 +83,11 @@ export default async function PostPage(props: PostPageProps) {
   const payload = await getPayload({ config: configPromise })
   const { docs } = await payload.find({
     collection: 'posts',
-    draft: true,
     limit: 1,
     pagination: false,
     where: {
       slug: { equals: slug },
+      _status: { equals: 'published' },
     },
   })
 
@@ -96,7 +97,8 @@ export default async function PostPage(props: PostPageProps) {
     return notFound()
   }
 
-  const contentParsed = parse(post.contentRichText_html || '', {
+  const html = post.contentRichText ? convertLexicalToHTML({ data: post.contentRichText }) : ''
+  const contentParsed = parse(html || '', {
     replace: replaceTags,
   })
 

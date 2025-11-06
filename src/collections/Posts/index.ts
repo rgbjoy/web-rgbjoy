@@ -1,36 +1,12 @@
 import type { CollectionConfig } from 'payload'
 import {
   lexicalEditor,
-  BlocksFeature,
-  lexicalHTML,
-  HTMLConverterFeature,
-  HTMLConverter,
-  SerializedBlockNode,
 } from '@payloadcms/richtext-lexical'
 import { revalidatePost } from './hooks/revalidatePost'
 import { slugField } from '@/fields/slug'
 import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
-
-const BlockHtmlConverter: HTMLConverter<SerializedBlockNode> = {
-  converter({ node }) {
-    switch (node.fields.blockType) {
-      case 'embed':
-        const id = `embed-container-${node.fields.id}`
-        const width = node.fields.width + 'px' || 'auto'
-        const height = node.fields.height + 'px' || 'auto'
-        return `
-          <div class="embed" id="${id}" style="width:${width}; height:${height};">
-            ${node.fields.embed_code}
-          </div>
-        `
-      default:
-        return `<span>unknown node.</span>`
-    }
-  },
-  nodeTypes: ['block'],
-}
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -88,41 +64,8 @@ export const Posts: CollectionConfig = {
       name: 'contentRichText',
       type: 'richText',
       label: 'Content',
-      editor: lexicalEditor({
-        features: ({ defaultFeatures }) => [
-          ...defaultFeatures,
-          BlocksFeature({
-            blocks: [
-              {
-                slug: 'embed',
-                fields: [
-                  {
-                    name: 'embed_code',
-                    label: 'Embed Code',
-                    type: 'textarea',
-                  },
-                  {
-                    name: 'width',
-                    label: 'Width',
-                    type: 'text',
-                  },
-                  {
-                    name: 'height',
-                    label: 'Height',
-                    type: 'text',
-                  },
-                ],
-              },
-            ],
-          }),
-          HTMLConverterFeature({
-            converters: ({ defaultConverters }) =>
-              [...defaultConverters, BlockHtmlConverter] as HTMLConverter[],
-          }),
-        ],
-      }),
+      editor: lexicalEditor({}),
     },
-    lexicalHTML('contentRichText', { name: 'contentRichText_html' }),
     ...slugField(),
   ],
   hooks: {

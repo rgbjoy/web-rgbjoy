@@ -1,5 +1,5 @@
 import { GlobalConfig } from 'payload'
-import { lexicalEditor, HTMLConverterFeature, lexicalHTML } from '@payloadcms/richtext-lexical'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { revalidateGlobal } from '../hooks/revalidateGlobal'
 
 export const Art: GlobalConfig = {
@@ -30,11 +30,8 @@ export const Art: GlobalConfig = {
       name: 'content',
       type: 'richText',
       label: 'Page Content',
-      editor: lexicalEditor({
-        features: ({ defaultFeatures }) => [...defaultFeatures, HTMLConverterFeature({})],
-      }),
+      editor: lexicalEditor({}),
     },
-    lexicalHTML('content', { name: 'content_html' }),
     {
       name: 'artworks',
       type: 'array',

@@ -2,6 +2,7 @@ import InfoClient from './info.client'
 import { Metadata } from 'next'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import type { Info } from '@/payload-types'
+import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
 
 export const metadata: Metadata = {
   title: 'Info',
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const infoData = await getCachedGlobal('info', 1)()
+  const content_html = infoData?.content ? convertLexicalToHTML({ data: infoData.content }) : ''
 
-  return <InfoClient {...(infoData as Info)} />
+  return <InfoClient {...(infoData as Info)} content_html={content_html} />
 }

@@ -145,7 +145,6 @@ export const posts = pgTable(
     title: varchar('title'),
     publishedAt: timestamp('published_at', { mode: 'string', withTimezone: true, precision: 3 }),
     contentRichText: jsonb('content_rich_text'),
-    contentRichText_html: varchar('contentrichtext_html'),
     slug: varchar('slug'),
     slugLock: boolean('slug_lock').default(true),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
@@ -182,7 +181,6 @@ export const _posts_v = pgTable(
       precision: 3,
     }),
     version_contentRichText: jsonb('version_content_rich_text'),
-    version_contentRichText_html: varchar('version_contentrichtext_html'),
     version_slug: varchar('version_slug'),
     version_slugLock: boolean('version_slug_lock').default(true),
     version_updatedAt: timestamp('version_updated_at', {
@@ -417,7 +415,6 @@ export const info = pgTable(
       onDelete: 'set null',
     }),
     content: jsonb('content'),
-    content_html: varchar('content_html'),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 }),
     createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
   },
@@ -477,7 +474,6 @@ export const dev = pgTable('dev', {
   id: serial('id').primaryKey(),
   header: varchar('header'),
   content: jsonb('content'),
-  content_html: varchar('content_html'),
   updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 }),
   createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
 })
@@ -512,7 +508,6 @@ export const art = pgTable('art', {
   id: serial('id').primaryKey(),
   header: varchar('header'),
   content: jsonb('content'),
-  content_html: varchar('content_html'),
   updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 }),
   createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
 })

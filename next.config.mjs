@@ -10,6 +10,7 @@ const nextConfig = {
   experimental: {
     turbopackUseBuiltinSass: true,
   },
+  allowedDevOrigins: ['10.0.0.141'],
   images: {
     remotePatterns: [
       ...[NEXT_PUBLIC_SERVER_URL].map((item) => {

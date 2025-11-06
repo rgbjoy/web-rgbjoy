@@ -1,6 +1,7 @@
 import DevClient from './dev.client'
 import { Metadata } from 'next'
 import { getCachedGlobal } from '@/utilities/getGlobals'
+import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
 
 export const metadata: Metadata = {
   title: 'Development',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const devData = await getCachedGlobal('dev', 1)()
+  const content_html = devData?.content ? convertLexicalToHTML({ data: devData.content }) : ''
 
-  return <DevClient {...devData} />
+  return <DevClient {...devData} content_html={content_html} />
 }

@@ -224,7 +224,6 @@ export interface Post {
     };
     [k: string]: unknown;
   } | null;
-  contentRichText_html?: string | null;
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;
@@ -266,10 +265,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: number | Post;
-      } | null)
-    | ({
-        relationTo: 'payload-kv';
-        value: number | PayloadKv;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -398,7 +393,6 @@ export interface PostsSelect<T extends boolean = true> {
   title?: T;
   publishedAt?: T;
   contentRichText?: T;
-  contentRichText_html?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;
@@ -494,7 +488,6 @@ export interface Info {
     };
     [k: string]: unknown;
   } | null;
-  content_html?: string | null;
   strengths?:
     | {
         title: string;
@@ -527,7 +520,6 @@ export interface Dev {
     };
     [k: string]: unknown;
   } | null;
-  content_html?: string | null;
   pastProjects?:
     | {
         title: string;
@@ -574,7 +566,6 @@ export interface Art {
     };
     [k: string]: unknown;
   } | null;
-  content_html?: string | null;
   artworks?:
     | {
         title: string;
@@ -635,7 +626,6 @@ export interface InfoSelect<T extends boolean = true> {
         id?: T;
       };
   content?: T;
-  content_html?: T;
   strengths?:
     | T
     | {
@@ -654,7 +644,6 @@ export interface InfoSelect<T extends boolean = true> {
 export interface DevSelect<T extends boolean = true> {
   header?: T;
   content?: T;
-  content_html?: T;
   pastProjects?:
     | T
     | {
@@ -691,7 +680,6 @@ export interface DevSelect<T extends boolean = true> {
 export interface ArtSelect<T extends boolean = true> {
   header?: T;
   content?: T;
-  content_html?: T;
   artworks?:
     | T
     | {

@@ -1,6 +1,7 @@
 import ArtClient from './art.client'
 import { Metadata } from 'next'
 import { getCachedGlobal } from '@/utilities/getGlobals'
+import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
 
 export const metadata: Metadata = {
   title: 'Art & Design',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const artData = await getCachedGlobal('art', 1)()
+  const content_html = artData?.content ? convertLexicalToHTML({ data: artData.content }) : ''
 
-  return <ArtClient {...artData} />
+  return <ArtClient {...artData} content_html={content_html} />
 }
