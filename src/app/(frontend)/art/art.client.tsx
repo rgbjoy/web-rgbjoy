@@ -10,7 +10,7 @@ import { SplitText } from '@/components/splitText'
 import { useState, useEffect, useRef } from 'react'
 import { Art } from '@payload-types'
 
-export default function ArtClient(page: Art) {
+export default function ArtClient(page: Art & { content_html?: string }) {
   const artwork = page.artworks
 
   function useHover<HTMLDivElement>() {

@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { motion, useAnimation } from 'framer-motion'
 import { Info, Media } from '@payload-types'
 
-export default function InfoClient(page: Info) {
+export default function InfoClient(page: Info & { content_html?: string }) {
   const GetLinks = () => {
     return (
       <div className={style.links}>

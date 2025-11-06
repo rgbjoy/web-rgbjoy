@@ -94,7 +94,7 @@ const GetPlayground = ({ playground }: { playground: Dev['playground'] }) => {
   )
 }
 
-export default function DevClient(page: Dev) {
+export default function DevClient(page: Dev & { content_html?: string }) {
   return (
     <PageWrapper className={style.dev}>
       <h1 className={style.header}>

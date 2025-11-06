@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  const infoData = await getCachedGlobal('info', 1)()
+  const infoData = (await getCachedGlobal('info', 1)()) as Info
   const content_html = infoData?.content ? convertLexicalToHTML({ data: infoData.content }) : ''
 
-  return <InfoClient {...(infoData as Info)} content_html={content_html} />
+  return <InfoClient {...infoData} content_html={content_html} />
 }
