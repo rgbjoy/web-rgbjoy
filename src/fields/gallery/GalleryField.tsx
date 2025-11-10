@@ -647,7 +647,10 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
       {/* Gallery Grid */}
       {galleryValue.length > 0 && (
         <div className="gallery-grid">
-          {galleryValue.map((item, index) => {
+          {[...galleryValue].reverse().map((item, reversedIndex) => {
+            // Calculate the original index (from the end)
+            const originalIndex = galleryValue.length - 1 - reversedIndex
+
             // Handle both cases: image can be an ID (number) or a populated Media object
             const imageId = typeof item.image === 'number' ? item.image : item.image?.id
             const image =
@@ -655,7 +658,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
                 ? item.image
                 : null
 
-            const itemPath = `${fieldPath}.${index}`
+            const itemPath = `${fieldPath}.${originalIndex}`
             const titlePath = `${itemPath}.title`
             const descriptionPath = `${itemPath}.description`
 
@@ -663,7 +666,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
             const isVideo = image?.mimeType?.startsWith('video/') || image?.mimeType === 'video/mp4'
 
             return (
-              <div key={index} className="gallery-item-wrapper">
+              <div key={originalIndex} className="gallery-item-wrapper">
                 <div className="gallery-item">
                   {isVideo && image?.url ? (
                     <video
@@ -689,24 +692,24 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
                     <div className="gallery-item-loading">Loading...</div>
                   )}
                   <div className="gallery-item-actions">
-                    {index > 0 && (
+                    {originalIndex < galleryValue.length - 1 && (
                       <Button
                         buttonStyle="none"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleMove(index, index - 1)
+                          handleMove(originalIndex, originalIndex + 1)
                         }}
                         className="move-button"
                       >
                         ←
                       </Button>
                     )}
-                    {index < galleryValue.length - 1 && (
+                    {originalIndex > 0 && (
                       <Button
                         buttonStyle="none"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleMove(index, index + 1)
+                          handleMove(originalIndex, originalIndex - 1)
                         }}
                         className="move-button"
                       >
@@ -717,7 +720,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
                       buttonStyle="none"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleRemove(index)
+                        handleRemove(originalIndex)
                       }}
                       className="remove-button"
                     >
@@ -727,7 +730,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
                       buttonStyle="none"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleOpenMoreDrawer(index)
+                        handleOpenMoreDrawer(originalIndex)
                       }}
                       className="more-button"
                     >
@@ -735,7 +738,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
                     </Button>
                   </div>
                 </div>
-                {openDrawerIndex === index && (
+                {openDrawerIndex === originalIndex && (
                   <GalleryItemDrawer
                     titlePath={titlePath}
                     descriptionPath={descriptionPath}

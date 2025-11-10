@@ -63,9 +63,12 @@ export default function ArtClient(page: Art & { content_html?: string }) {
         className={style['my-masonry-grid'] ?? ''}
         columnClassName={style['my-masonry-grid_column']}
       >
-        {gallery?.map((item, i) => {
-          return item.image && <DoodleImage key={'gallery' + i} media={item} />
-        })}
+        {gallery
+          ?.slice()
+          .reverse()
+          .map((item, i) => {
+            return item.image && <DoodleImage key={'gallery' + i} media={item} />
+          })}
       </Masonry>
     </PageWrapper>
   )
