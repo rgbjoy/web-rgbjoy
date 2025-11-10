@@ -1,7 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import {
-  lexicalEditor,
-} from '@payloadcms/richtext-lexical'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { revalidatePost } from './hooks/revalidatePost'
 import { slugField } from '@/fields/slug'
 import { authenticated } from '../../access/authenticated'

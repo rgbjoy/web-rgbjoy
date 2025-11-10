@@ -33,38 +33,34 @@ export const Art: GlobalConfig = {
       editor: lexicalEditor({}),
     },
     {
-      name: 'artworks',
+      name: 'gallery',
       type: 'array',
-      label: 'Artworks',
-      labels: {
-        singular: 'Artwork',
-        plural: 'Artworks',
-      },
-      admin: {
-        components: {
-          RowLabel: '../components/RowLabel#MediaLabel',
-        },
-      },
+      label: 'Gallery',
+      minRows: 0,
       fields: [
-        {
-          name: 'title',
-          type: 'text',
-          required: true,
-          label: 'Artwork Title',
-        },
         {
           name: 'image',
           type: 'upload',
           relationTo: 'media',
           required: true,
-          label: 'Artwork Image',
+        },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'Title',
         },
         {
           name: 'description',
           type: 'textarea',
-          label: 'Artwork Description',
+          label: 'Description',
         },
       ],
+      admin: {
+        components: {
+          Field: '@/fields/gallery/GalleryField#GalleryField',
+        },
+        description: 'Drag and drop multiple images to create a gallery',
+      },
     },
   ],
   hooks: {

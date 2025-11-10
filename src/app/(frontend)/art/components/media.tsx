@@ -52,7 +52,7 @@ const Media = ({ media, thumbnail = false }: { media: MediaType; thumbnail?: boo
             }
             width={thumbnail ? media.sizes?.card?.width || 300 : media.width || 300}
             height={thumbnail ? media.sizes?.card?.height || 300 : media.height || 300}
-            alt={media.alt}
+            alt={media.alt || ''}
             quality={thumbnail ? 75 : 100}
             onLoad={() => setLoaded(true)}
             unoptimized

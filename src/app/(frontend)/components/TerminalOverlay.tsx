@@ -132,13 +132,7 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
 `,
       ])
     } else if (input.trim() === 'ls') {
-      if (currentDirectory.startsWith('Posts/')) {
-        setOutput([...newOutput, ''])
-      } else if (currentDirectory === 'Posts') {
-        setOutput([...newOutput, `${posts.map((post) => post.slug).join('\t')}`])
-      } else {
-        setOutput([...newOutput, `Info\tDev\tArt\tPosts`])
-      }
+      setOutput([...newOutput, `Info\tDev\tArt`])
     } else if (input.trim() === 'blackjack') {
       startBlackjack()
     } else if (gameActive && input.trim() === 'hit') {

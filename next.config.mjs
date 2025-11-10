@@ -6,7 +6,7 @@ const ensureProtocol = (url) => (url?.startsWith('http') ? url : url ? `https://
 const NEXT_PUBLIC_SERVER_URL = ensureProtocol(process.env.SERVER_URL) || 'http://localhost:3000'
 
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false, // Temporarily disabled to fix drei Scroll root creation issue
   experimental: {
     turbopackUseBuiltinSass: true,
   },
@@ -29,6 +29,7 @@ const nextConfig = {
     },
     silenceDeprecations: ['legacy-js-api', 'import'],
   },
+  devIndicators: false,
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })

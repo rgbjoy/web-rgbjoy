@@ -160,7 +160,7 @@ export interface User {
  */
 export interface Media {
   id: number;
-  alt: string;
+  alt?: string | null;
   prefix?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -566,10 +566,13 @@ export interface Art {
     };
     [k: string]: unknown;
   } | null;
-  artworks?:
+  /**
+   * Drag and drop multiple images to create a gallery
+   */
+  gallery?:
     | {
-        title: string;
         image: number | Media;
+        title?: string | null;
         description?: string | null;
         id?: string | null;
       }[]
@@ -680,11 +683,11 @@ export interface DevSelect<T extends boolean = true> {
 export interface ArtSelect<T extends boolean = true> {
   header?: T;
   content?: T;
-  artworks?:
+  gallery?:
     | T
     | {
-        title?: T;
         image?: T;
+        title?: T;
         description?: T;
         id?: T;
       };

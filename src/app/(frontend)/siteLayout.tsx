@@ -110,12 +110,6 @@ const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
       color: 'blue',
       global: true,
     },
-    {
-      label: 'Posts',
-      path: '/posts',
-      targetSegment: 'posts',
-      color: 'yellow',
-    },
   ]
 
   const isNotFound = !links.some((link) => link.path === '/' + pathname.split('/')[1])

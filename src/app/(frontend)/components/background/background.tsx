@@ -743,6 +743,15 @@ const HomeHTML = ({ homeData, router }: { homeData: Home; router: NextRouter }) 
   )
 }
 
+// Simplified wrapper - React strict mode is disabled in next.config.mjs to prevent root conflicts
+const ScrollWrapper = ({ children, style: scrollStyle }) => {
+  return (
+    <Scroll html style={scrollStyle}>
+      {children}
+    </Scroll>
+  )
+}
+
 const Background = ({ pathname, router, homeData }) => {
   const page = pathname !== '/' ? pathname.split('/')[1] : 'home'
 
@@ -761,7 +770,7 @@ const Background = ({ pathname, router, homeData }) => {
 
         <ScrollControls pages={4}>
           <RenderPageBackground page={page} />
-          <Scroll html style={{ width: '100vw', height: '100vh' }}>
+          <ScrollWrapper style={{ width: '100vw', height: '100vh' }}>
             <div
               style={{
                 display: page !== 'home' ? 'none' : 'block',
@@ -770,7 +779,7 @@ const Background = ({ pathname, router, homeData }) => {
               <HomeHTML homeData={homeData} router={router} />
               <ScrollDots />
             </div>
-          </Scroll>
+          </ScrollWrapper>
         </ScrollControls>
       </Canvas>
     </Suspense>

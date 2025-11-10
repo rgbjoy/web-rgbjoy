@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Art } from '@payload-types'
 
 export default function ArtClient(page: Art & { content_html?: string }) {
-  const artwork = page.artworks
+  const gallery = page.gallery
 
   function useHover<HTMLDivElement>() {
     const [value, setValue] = useState<boolean>(false)
@@ -59,12 +59,12 @@ export default function ArtClient(page: Art & { content_html?: string }) {
 
       <div dangerouslySetInnerHTML={{ __html: page.content_html ?? '' }} />
       <Masonry
-        breakpointCols={2}
+        breakpointCols={5}
         className={style['my-masonry-grid'] ?? ''}
         columnClassName={style['my-masonry-grid_column']}
       >
-        {artwork?.map((item, i) => {
-          return item.image && <DoodleImage key={'media' + i} media={item} />
+        {gallery?.map((item, i) => {
+          return item.image && <DoodleImage key={'gallery' + i} media={item} />
         })}
       </Masonry>
     </PageWrapper>

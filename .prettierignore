@@ -13,4 +13,6 @@
 tsconfig.json
 **/src/migrations/**
 pnpm-lock.yaml
+next-env.d.ts
 **/src/app/(payload)/**
+**/public/**
