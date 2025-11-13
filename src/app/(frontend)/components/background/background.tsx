@@ -7,7 +7,6 @@ import { Float, ScrollControls, Scroll, useScroll, useGLTF, Html } from '@react-
 import state from './state'
 import Rig404 from './rig404'
 import style from './background.module.scss'
-import Stars from './stars'
 import { Home } from '@payload-types'
 import { NextRouter } from 'next/router'
 import LoadingComponent from '@/components/loading'
@@ -418,7 +417,7 @@ const ClothArt = () => {
     const positions = positionAttr.array as Float32Array
     const vertexCount = positions.length / 3
 
-    // Group vertices by Y position to create horizontal lines without overlap
+    // Group vertices by Y position
     // Use a Map to store vertices for each unique Y value (rounded to avoid floating point issues)
     const yGroups = new Map<number, Array<{ x: number; y: number; z: number }>>()
     const yPrecision = 1000 // Round Y to 3 decimal places
@@ -438,51 +437,39 @@ const ClothArt = () => {
       yGroups.get(yKey)!.push({ x, y, z })
     }
 
-    // Sort vertices within each Y group by X to create ordered horizontal lines
-    const linePositions: number[] = []
-    const lineYNorm: number[] = []
+    // Collect all vertices as points
+    const pointPositions: number[] = []
+    const pointYNorm: number[] = []
 
     yGroups.forEach((vertices, yKey) => {
-      // Sort by X to ensure lines go from left to right
-      vertices.sort((a, b) => a.x - b.x)
-
       // Calculate normalized Y for fade (0 at bottom, 1 at top)
       const yNorm = Math.max(0.0, Math.min(1.0, (yKey + 0.6) / 1.2))
 
-      // Create horizontal line segments connecting adjacent vertices
-      for (let i = 0; i < vertices.length - 1; i++) {
-        const v1 = vertices[i]!
-        const v2 = vertices[i + 1]!
-
-        // Only create line if vertices are not too far apart (avoid connecting across gaps)
-        const xDistance = Math.abs(v2.x - v1.x)
-        if (xDistance < (width / segments) * 1.5) {
-          // Threshold to avoid connecting non-adjacent vertices
-          // Start vertex
-          linePositions.push(v1.x, v1.y, v1.z)
-          lineYNorm.push(yNorm)
-
-          // End vertex
-          linePositions.push(v2.x, v2.y, v2.z)
-          lineYNorm.push(yNorm)
-        }
+      // Add all vertices as points
+      for (const vertex of vertices) {
+        pointPositions.push(vertex.x, vertex.y, vertex.z)
+        pointYNorm.push(yNorm)
       }
     })
 
     const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePositions), 3))
-    geometry.setAttribute('yNorm', new THREE.BufferAttribute(new Float32Array(lineYNorm), 1))
+    geometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array(pointPositions), 3),
+    )
+    geometry.setAttribute('yNorm', new THREE.BufferAttribute(new Float32Array(pointYNorm), 1))
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
-      depthTest: false,
+      depthTest: true,
+      depthWrite: false,
       uniforms: {
         time: { value: 0 },
         amp: { value: 1.1 },
         freq: { value: 3.0 },
         speed: { value: 0.5 },
         color: { value: new THREE.Color('#ffffff') },
-        lineWidth: { value: 1.0 }, // line width in pixels
+        pointSize: { value: 2.0 }, // point size in pixels
         fadeStart: { value: 0.15 }, // start fading at 15% from bottom
         fadeEnd: { value: 1.0 }, // fully faded near the very top
       },
@@ -492,6 +479,7 @@ const ClothArt = () => {
         uniform float amp;
         uniform float freq;
         uniform float speed;
+        uniform float pointSize;
         varying float vYNorm;
         void main() {
           vec3 pos = position;
@@ -501,6 +489,7 @@ const ClothArt = () => {
           vYNorm = yNorm;
           vec4 mv = modelViewMatrix * vec4(pos, 1.0);
           gl_Position = projectionMatrix * mv;
+          gl_PointSize = pointSize;
         }
       `,
       fragmentShader: `
@@ -510,16 +499,24 @@ const ClothArt = () => {
         uniform float fadeEnd;
         varying float vYNorm;
         void main() {
+          // Create circular point shape
+          vec2 center = gl_PointCoord - vec2(0.5);
+          float dist = length(center);
+          if (dist > 0.5) discard;
+
+          // Smooth circular edge
+          float circle = 1.0 - smoothstep(0.3, 0.5, dist);
+
           // vertical fade ramp (1 at bottom, ramps to 0 towards top)
           float ramp = smoothstep(fadeEnd, fadeStart, vYNorm);
-          float alpha = ramp;
+          float alpha = ramp * circle;
           if (alpha <= 0.0) discard;
           gl_FragColor = vec4(color, alpha);
         }
       `,
     })
 
-    const mesh = new THREE.LineSegments(geometry, material)
+    const mesh = new THREE.Points(geometry, material)
     return { mesh, material }
   }, [])
 
@@ -539,6 +536,9 @@ const ClothArt = () => {
   useEffect(() => {
     if (!groupRef.current) return
     groupRef.current.scale.set(viewport.width, viewport.height, 1)
+    // Position it far back in z-space and set render order to render first (behind everything)
+    groupRef.current.position.z = -10
+    groupRef.current.renderOrder = -1
   }, [viewport.width, viewport.height])
 
   useFrame((_, delta) => {
@@ -560,9 +560,6 @@ const RigPages = ({ page }) => {
 
   const sectionDev = useRef<THREE.Group>(null)
   const anchorDev = useRef<THREE.Mesh>(null)
-
-  const sectionArt = useRef<THREE.Group>(null)
-  const anchorArt = useRef<THREE.Mesh>(null)
 
   const { height } = useThree((state) => state.viewport)
 
@@ -612,15 +609,12 @@ const RigPages = ({ page }) => {
     if (anchorDev.current && sectionDev.current) {
       anchorDev.current.position.y = sectionDev.current.position.y + 2 - height / 2
     }
-
-    if (anchorArt.current && sectionArt.current) {
-      anchorArt.current.position.y = sectionArt.current.position.y + 3 - height
-    }
   })
 
   return (
     <>
       <Hero />
+      <ClothArt />
       <Scroll>
         <Shards />
         <group ref={sectionInfo} position={[0, -height, 0]}>
@@ -628,9 +622,6 @@ const RigPages = ({ page }) => {
         </group>
         <group ref={sectionDev} position={[0, -height * 2, 0]}>
           <ModelDev />
-        </group>
-        <group ref={sectionArt} position={[0, -height * 3, 0]}>
-          <ClothArt />
         </group>
       </Scroll>
       <mesh ref={anchorHome}>
@@ -642,7 +633,7 @@ const RigPages = ({ page }) => {
       <mesh ref={anchorDev}>
         <Html className="page-dev"></Html>
       </mesh>
-      <mesh ref={anchorArt}>
+      <mesh>
         <Html className="page-art"></Html>
       </mesh>
     </>
@@ -651,9 +642,7 @@ const RigPages = ({ page }) => {
 
 const RenderPageBackground = ({ page }) => {
   const scroll = useScroll()
-  const [scrolledDown, setScrolledDown] = useState(false)
   const [reset, setReset] = useState(false)
-  const [inLastSection, setInLastSection] = useState(false)
 
   useFrame(() => {
     if (scroll.offset > 0.02) {
@@ -665,9 +654,6 @@ const RenderPageBackground = ({ page }) => {
         state.scale = state.minScale
       }
     }
-    setScrolledDown(scroll.range(0, 1 / 8) >= 1)
-    // Last section starts at 75% (page 3 of 4 pages)
-    setInLastSection(scroll.offset > 0.75)
   })
 
   if (!page) {
@@ -676,10 +662,6 @@ const RenderPageBackground = ({ page }) => {
 
   return (
     <group visible={page !== 'posts'}>
-      <Stars
-        canReset={page === 'home' && !scrolledDown ? true : false}
-        stillCount={inLastSection ? 0 : 50}
-      />
       <RigPages page={page} />
     </group>
   )
