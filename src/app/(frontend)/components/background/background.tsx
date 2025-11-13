@@ -561,6 +561,9 @@ const RigPages = ({ page }) => {
   const sectionDev = useRef<THREE.Group>(null)
   const anchorDev = useRef<THREE.Mesh>(null)
 
+  const sectionArt = useRef<THREE.Group>(null)
+  const anchorArt = useRef<THREE.Mesh>(null)
+
   const { height } = useThree((state) => state.viewport)
 
   useEffect(() => {
@@ -609,6 +612,10 @@ const RigPages = ({ page }) => {
     if (anchorDev.current && sectionDev.current) {
       anchorDev.current.position.y = sectionDev.current.position.y + 2 - height / 2
     }
+
+    if (anchorArt.current && sectionArt.current) {
+      anchorArt.current.position.y = sectionArt.current.position.y + 3 - height
+    }
   })
 
   return (
@@ -623,6 +630,9 @@ const RigPages = ({ page }) => {
         <group ref={sectionDev} position={[0, -height * 2, 0]}>
           <ModelDev />
         </group>
+        <group ref={sectionArt} position={[0, -height * 3, 0]}>
+          {/* Art section - ClothArt is rendered persistently outside Scroll */}
+        </group>
       </Scroll>
       <mesh ref={anchorHome}>
         <Html className="page-home"></Html>
@@ -633,7 +643,7 @@ const RigPages = ({ page }) => {
       <mesh ref={anchorDev}>
         <Html className="page-dev"></Html>
       </mesh>
-      <mesh>
+      <mesh ref={anchorArt}>
         <Html className="page-art"></Html>
       </mesh>
     </>
