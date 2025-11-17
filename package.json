@@ -8,9 +8,9 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "dev-https": "next dev --experimental-https",
-    "build": "next build",
+    "build": "next build --turbopack",
     "start": "next start",
     ":::::::::::::::::::: Payload": "",
     "payload": "payload",
