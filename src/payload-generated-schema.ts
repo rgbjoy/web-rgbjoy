@@ -18,16 +18,10 @@ import {
   serial,
   numeric,
   jsonb,
-  boolean,
   pgEnum,
 } from '@payloadcms/db-vercel-postgres/drizzle/pg-core'
 import { sql, relations } from '@payloadcms/db-vercel-postgres/drizzle'
 export const enum_users_role = pgEnum('enum_users_role', ['admin', 'editor'])
-export const enum_posts_status = pgEnum('enum_posts_status', ['draft', 'published'])
-export const enum__posts_v_version_status = pgEnum('enum__posts_v_version_status', [
-  'draft',
-  'published',
-])
 
 export const users_sessions = pgTable(
   'users_sessions',
@@ -135,88 +129,6 @@ export const media = pgTable(
   ],
 )
 
-export const posts = pgTable(
-  'posts',
-  {
-    id: serial('id').primaryKey(),
-    featuredImage: integer('featured_image_id').references(() => media.id, {
-      onDelete: 'set null',
-    }),
-    title: varchar('title'),
-    publishedAt: timestamp('published_at', { mode: 'string', withTimezone: true, precision: 3 }),
-    contentRichText: jsonb('content_rich_text'),
-    slug: varchar('slug'),
-    slugLock: boolean('slug_lock').default(true),
-    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    _status: enum_posts_status('_status').default('draft'),
-  },
-  (columns) => [
-    index('posts_featured_image_idx').on(columns.featuredImage),
-    index('posts_slug_idx').on(columns.slug),
-    index('posts_updated_at_idx').on(columns.updatedAt),
-    index('posts_created_at_idx').on(columns.createdAt),
-    index('posts__status_idx').on(columns._status),
-  ],
-)
-
-export const _posts_v = pgTable(
-  '_posts_v',
-  {
-    id: serial('id').primaryKey(),
-    parent: integer('parent_id').references(() => posts.id, {
-      onDelete: 'set null',
-    }),
-    version_featuredImage: integer('version_featured_image_id').references(() => media.id, {
-      onDelete: 'set null',
-    }),
-    version_title: varchar('version_title'),
-    version_publishedAt: timestamp('version_published_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
-    version_contentRichText: jsonb('version_content_rich_text'),
-    version_slug: varchar('version_slug'),
-    version_slugLock: boolean('version_slug_lock').default(true),
-    version_updatedAt: timestamp('version_updated_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
-    version_createdAt: timestamp('version_created_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
-    version__status: enum__posts_v_version_status('version__status').default('draft'),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    latest: boolean('latest'),
-    autosave: boolean('autosave'),
-  },
-  (columns) => [
-    index('_posts_v_parent_idx').on(columns.parent),
-    index('_posts_v_version_version_featured_image_idx').on(columns.version_featuredImage),
-    index('_posts_v_version_version_slug_idx').on(columns.version_slug),
-    index('_posts_v_version_version_updated_at_idx').on(columns.version_updatedAt),
-    index('_posts_v_version_version_created_at_idx').on(columns.version_createdAt),
-    index('_posts_v_version_version__status_idx').on(columns.version__status),
-    index('_posts_v_created_at_idx').on(columns.createdAt),
-    index('_posts_v_updated_at_idx').on(columns.updatedAt),
-    index('_posts_v_latest_idx').on(columns.latest),
-    index('_posts_v_autosave_idx').on(columns.autosave),
-  ],
-)
-
 export const payload_kv = pgTable(
   'payload_kv',
   {
@@ -255,7 +167,6 @@ export const payload_locked_documents_rels = pgTable(
     path: varchar('path').notNull(),
     usersID: integer('users_id'),
     mediaID: integer('media_id'),
-    postsID: integer('posts_id'),
   },
   (columns) => [
     index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -263,7 +174,6 @@ export const payload_locked_documents_rels = pgTable(
     index('payload_locked_documents_rels_path_idx').on(columns.path),
     index('payload_locked_documents_rels_users_id_idx').on(columns.usersID),
     index('payload_locked_documents_rels_media_id_idx').on(columns.mediaID),
-    index('payload_locked_documents_rels_posts_id_idx').on(columns.postsID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -278,11 +188,6 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['mediaID']],
       foreignColumns: [media.id],
       name: 'payload_locked_documents_rels_media_fk',
-    }).onDelete('cascade'),
-    foreignKey({
-      columns: [columns['postsID']],
-      foreignColumns: [posts.id],
-      name: 'payload_locked_documents_rels_posts_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -551,25 +456,6 @@ export const relations_users = relations(users, ({ many }) => ({
   }),
 }))
 export const relations_media = relations(media, () => ({}))
-export const relations_posts = relations(posts, ({ one }) => ({
-  featuredImage: one(media, {
-    fields: [posts.featuredImage],
-    references: [media.id],
-    relationName: 'featuredImage',
-  }),
-}))
-export const relations__posts_v = relations(_posts_v, ({ one }) => ({
-  parent: one(posts, {
-    fields: [_posts_v.parent],
-    references: [posts.id],
-    relationName: 'parent',
-  }),
-  version_featuredImage: one(media, {
-    fields: [_posts_v.version_featuredImage],
-    references: [media.id],
-    relationName: 'version_featuredImage',
-  }),
-}))
 export const relations_payload_kv = relations(payload_kv, () => ({}))
 export const relations_payload_locked_documents_rels = relations(
   payload_locked_documents_rels,
@@ -588,11 +474,6 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.mediaID],
       references: [media.id],
       relationName: 'media',
-    }),
-    postsID: one(posts, {
-      fields: [payload_locked_documents_rels.postsID],
-      references: [posts.id],
-      relationName: 'posts',
     }),
   }),
 )
@@ -717,13 +598,9 @@ export const relations_footer = relations(footer, ({ many }) => ({
 
 type DatabaseSchema = {
   enum_users_role: typeof enum_users_role
-  enum_posts_status: typeof enum_posts_status
-  enum__posts_v_version_status: typeof enum__posts_v_version_status
   users_sessions: typeof users_sessions
   users: typeof users
   media: typeof media
-  posts: typeof posts
-  _posts_v: typeof _posts_v
   payload_kv: typeof payload_kv
   payload_locked_documents: typeof payload_locked_documents
   payload_locked_documents_rels: typeof payload_locked_documents_rels
@@ -744,8 +621,6 @@ type DatabaseSchema = {
   relations_users_sessions: typeof relations_users_sessions
   relations_users: typeof relations_users
   relations_media: typeof relations_media
-  relations_posts: typeof relations_posts
-  relations__posts_v: typeof relations__posts_v
   relations_payload_kv: typeof relations_payload_kv
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels
   relations_payload_locked_documents: typeof relations_payload_locked_documents

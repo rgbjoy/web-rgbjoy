@@ -3,9 +3,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import style from './terminalOverlay.module.scss'
 import useLocalStorage from '../hooks/useLocalStorage'
-import { Post } from '@payload-types'
-
-const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
+const TerminalOverlay = () => {
   const [input, setInput] = useState('')
   const [output, setOutput] = useState<string[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -21,8 +19,6 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
   const PLAY_AGAIN_MESSAGE = `Type 'blackjack' to play again.`
 
   const router = useRouter()
-
-  const posts = postsData
 
   const drawCard = (): number | string => {
     const cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'] as const
@@ -200,19 +196,6 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
       setOutput([...newOutput, `Changing directory to Art`])
       setCurrentDirectory('Art')
       router.push('/art')
-    } else if (input.trim() === 'cd Posts') {
-      setOutput([...newOutput, `Changing directory to Posts`])
-      setCurrentDirectory('Posts')
-      router.push('/posts')
-    } else if (currentDirectory === 'Posts' && input.trim().startsWith('cd ')) {
-      const postSlug = input.trim().split(' ')[1]
-      if (posts.some((post) => post.slug === postSlug)) {
-        setOutput([...newOutput, `Changing directory to Posts/${postSlug}`])
-        setCurrentDirectory(`Posts/${postSlug}`)
-        router.push(`/posts/${postSlug}`)
-      } else {
-        setOutput([...newOutput, `Unknown post: ${postSlug}.`])
-      }
     } else if (input.trim() === 'clear') {
       setOutput([])
     } else if (input.trim() === 'q') {
@@ -239,9 +222,7 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
     'Info',
     'Dev',
     'Art',
-    'Posts',
     'blackjack',
-    ...(Array.isArray(posts) ? posts.map((post) => post.slug) : []),
   ]
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
