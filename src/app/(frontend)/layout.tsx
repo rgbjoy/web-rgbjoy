@@ -30,6 +30,10 @@ export const metadata: Metadata = {
   icons: {
     icon: '/social/icon.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black',
+  },
   openGraph: {
     description: 'Multidisciplinary digital creator & software engineer',
     url: 'https://rgbjoy.com',
@@ -57,7 +61,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: 'black',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#000000' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
   colorScheme: 'dark',
 }
 

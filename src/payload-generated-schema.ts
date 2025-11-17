@@ -87,7 +87,7 @@ export const media = pgTable(
   'media',
   {
     id: serial('id').primaryKey(),
-    alt: varchar('alt').notNull(),
+    alt: varchar('alt').default('Image'),
     prefix: varchar('prefix').default('development'),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
       .defaultNow()
@@ -478,28 +478,28 @@ export const dev = pgTable('dev', {
   createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
 })
 
-export const art_artworks = pgTable(
-  'art_artworks',
+export const art_gallery = pgTable(
+  'art_gallery',
   {
     _order: integer('_order').notNull(),
     _parentID: integer('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
-    title: varchar('title').notNull(),
     image: integer('image_id')
       .notNull()
       .references(() => media.id, {
         onDelete: 'set null',
       }),
+    title: varchar('title'),
     description: varchar('description'),
   },
   (columns) => [
-    index('art_artworks_order_idx').on(columns._order),
-    index('art_artworks_parent_id_idx').on(columns._parentID),
-    index('art_artworks_image_idx').on(columns.image),
+    index('art_gallery_order_idx').on(columns._order),
+    index('art_gallery_parent_id_idx').on(columns._parentID),
+    index('art_gallery_image_idx').on(columns.image),
     foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [art.id],
-      name: 'art_artworks_parent_id_fk',
+      name: 'art_gallery_parent_id_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -685,21 +685,21 @@ export const relations_dev = relations(dev, ({ many }) => ({
     relationName: 'playground',
   }),
 }))
-export const relations_art_artworks = relations(art_artworks, ({ one }) => ({
+export const relations_art_gallery = relations(art_gallery, ({ one }) => ({
   _parentID: one(art, {
-    fields: [art_artworks._parentID],
+    fields: [art_gallery._parentID],
     references: [art.id],
-    relationName: 'artworks',
+    relationName: 'gallery',
   }),
   image: one(media, {
-    fields: [art_artworks.image],
+    fields: [art_gallery.image],
     references: [media.id],
     relationName: 'image',
   }),
 }))
 export const relations_art = relations(art, ({ many }) => ({
-  artworks: many(art_artworks, {
-    relationName: 'artworks',
+  gallery: many(art_gallery, {
+    relationName: 'gallery',
   }),
 }))
 export const relations_footer_links = relations(footer_links, ({ one }) => ({
@@ -737,7 +737,7 @@ type DatabaseSchema = {
   dev_past_projects: typeof dev_past_projects
   dev_playground: typeof dev_playground
   dev: typeof dev
-  art_artworks: typeof art_artworks
+  art_gallery: typeof art_gallery
   art: typeof art
   footer_links: typeof footer_links
   footer: typeof footer
@@ -759,7 +759,7 @@ type DatabaseSchema = {
   relations_dev_past_projects: typeof relations_dev_past_projects
   relations_dev_playground: typeof relations_dev_playground
   relations_dev: typeof relations_dev
-  relations_art_artworks: typeof relations_art_artworks
+  relations_art_gallery: typeof relations_art_gallery
   relations_art: typeof relations_art
   relations_footer_links: typeof relations_footer_links
   relations_footer: typeof relations_footer
