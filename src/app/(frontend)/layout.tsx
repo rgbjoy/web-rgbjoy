@@ -75,15 +75,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     const headers = await nextHeaders()
     const { user } = await payload.auth({ headers })
 
-    const [footer, home] = await Promise.all([
+    const [posts, footer, home] = await Promise.all([
+      payload.find({
+        collection: 'posts',
+        depth: 1,
+        limit: 12,
+        where: {
+          _status: { equals: 'published' },
+        },
+      }),
       getCachedGlobal('footer', 1)(),
       getCachedGlobal('home', 1)(),
     ])
 
-    return { footer, home, user }
+    return { posts, footer, home, user }
   }
 
-  const { footer: footerData, home: homeData, user } = use(getData())
+  const { posts: postsData, footer: footerData, home: homeData, user } = use(getData())
 
   return (
     <html lang="en">
@@ -92,6 +100,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           isAdmin={user}
           homeData={homeData}
           footerData={footerData}
+          postsData={postsData}
         >
           {children}
         </SiteLayout>

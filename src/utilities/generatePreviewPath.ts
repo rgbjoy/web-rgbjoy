@@ -1,6 +1,8 @@
 import { CollectionSlug } from 'payload'
 
-const collectionPrefixMap: Partial<Record<CollectionSlug, string>> = {}
+const collectionPrefixMap: Partial<Record<CollectionSlug, string>> = {
+  posts: '/posts',
+}
 
 type Props = {
   collection: keyof typeof collectionPrefixMap

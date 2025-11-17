@@ -49,7 +49,7 @@ const Footer = ({ footerLinks }) => {
   )
 }
 
-const SiteLayout = ({ children, homeData, footerData, isAdmin }) => {
+const SiteLayout = ({ children, homeData, footerData, postsData, isAdmin }) => {
   const pathname = usePathname()
 
   // hamburger
@@ -174,7 +174,7 @@ const SiteLayout = ({ children, homeData, footerData, isAdmin }) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.75, ease: 'easeOut' }}
       >
-        <TerminalOverlay />
+        <TerminalOverlay postsData={postsData.docs} />
       </motion.div>
     </>
   )

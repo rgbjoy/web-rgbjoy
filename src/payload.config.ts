@@ -13,6 +13,7 @@ import { regenerateMedia, regenerateSingleMedia } from './scripts/regenerate-med
 // Collections
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Posts } from './collections/Posts'
 
 // Globals
 //-- Content
@@ -47,7 +48,7 @@ export default buildConfig({
   routes: {
     admin: '/dashboard',
   },
-  collections: [Users, Media],
+  collections: [Users, Media, Posts],
   globals: [Home, Info, Dev, Art, Footer],
   editor: lexicalEditor(),
   cors: [getServerSideURL()].filter(Boolean),

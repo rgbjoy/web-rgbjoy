@@ -591,6 +591,14 @@ const RigPages = ({ page }) => {
         if (pageArt) {
           pageArt.scrollIntoView({ behavior: 'smooth' })
         }
+      } else if (page === 'posts') {
+        const pageHome = document.querySelector('.page-home')
+        if (pageHome) {
+          pageHome.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end',
+          })
+        }
       }
       FIRST_LOAD = false
     }, 100)
@@ -663,7 +671,9 @@ const RenderPageBackground = ({ page }) => {
   }
 
   return (
-    <RigPages page={page} />
+    <group visible={page !== 'posts'}>
+      <RigPages page={page} />
+    </group>
   )
 }
 
