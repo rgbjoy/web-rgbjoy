@@ -14,6 +14,7 @@ import { headers as nextHeaders } from 'next/headers'
 import configPromise from '@payload-config'
 
 import { getCachedGlobal } from '@/utilities/getGlobals'
+import { getCachedPosts } from '@/utilities/getCachedPosts'
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 const myFont = localFont({
@@ -76,14 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     const { user } = await payload.auth({ headers })
 
     const [posts, footer, home] = await Promise.all([
-      payload.find({
-        collection: 'posts',
-        depth: 1,
-        limit: 12,
-        where: {
-          _status: { equals: 'published' },
-        },
-      }),
+      getCachedPosts()(),
       getCachedGlobal('footer', 1)(),
       getCachedGlobal('home', 1)(),
     ])
