@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev-https": "next dev --experimental-https",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     ":::::::::::::::::::: Payload": "",
     "payload": "payload",

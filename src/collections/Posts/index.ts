@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { revalidatePost } from './hooks/revalidatePost'
-import { slugField } from '@/fields/slug'
+import { slugField } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
@@ -64,7 +64,7 @@ export const Posts: CollectionConfig = {
       label: 'Content',
       editor: lexicalEditor({}),
     },
-    ...slugField(),
+    slugField(),
   ],
   hooks: {
     beforeChange: [populatePublishedAt],

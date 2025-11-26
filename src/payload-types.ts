@@ -225,8 +225,11 @@ export interface Post {
     };
     [k: string]: unknown;
   } | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -394,8 +397,8 @@ export interface PostsSelect<T extends boolean = true> {
   title?: T;
   publishedAt?: T;
   contentRichText?: T;
+  generateSlug?: T;
   slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
