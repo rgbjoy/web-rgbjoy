@@ -145,8 +145,8 @@ export const posts = pgTable(
     title: varchar('title'),
     publishedAt: timestamp('published_at', { mode: 'string', withTimezone: true, precision: 3 }),
     contentRichText: jsonb('content_rich_text'),
+    generateSlug: boolean('generate_slug').default(true),
     slug: varchar('slug'),
-    slugLock: boolean('slug_lock').default(true),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
@@ -157,7 +157,7 @@ export const posts = pgTable(
   },
   (columns) => [
     index('posts_featured_image_idx').on(columns.featuredImage),
-    index('posts_slug_idx').on(columns.slug),
+    uniqueIndex('posts_slug_idx').on(columns.slug),
     index('posts_updated_at_idx').on(columns.updatedAt),
     index('posts_created_at_idx').on(columns.createdAt),
     index('posts__status_idx').on(columns._status),
@@ -181,8 +181,8 @@ export const _posts_v = pgTable(
       precision: 3,
     }),
     version_contentRichText: jsonb('version_content_rich_text'),
+    version_generateSlug: boolean('version_generate_slug').default(true),
     version_slug: varchar('version_slug'),
-    version_slugLock: boolean('version_slug_lock').default(true),
     version_updatedAt: timestamp('version_updated_at', {
       mode: 'string',
       withTimezone: true,
