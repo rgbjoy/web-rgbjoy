@@ -1,15 +1,12 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import style from './terminalOverlay.module.scss'
 import useLocalStorage from '../hooks/useLocalStorage'
-import { Post } from '@payload-types'
 
-const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
+const TerminalOverlay = () => {
   const [input, setInput] = useState('')
   const [output, setOutput] = useState<string[]>([])
   const [isOpen, setIsOpen] = useState(false)
-  const [currentDirectory, setCurrentDirectory] = useState('')
   const [playerHand, setPlayerHand] = useState<(string | number)[]>([])
   const [dealerHand, setDealerHand] = useState<(string | number)[]>([])
   const [gameActive, setGameActive] = useState(false)
@@ -19,10 +16,6 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const PLAY_AGAIN_MESSAGE = `Type 'blackjack' to play again.`
-
-  const router = useRouter()
-
-  const posts = postsData
 
   const drawCard = (): number | string => {
     const cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'] as const
@@ -122,8 +115,6 @@ const TerminalOverlay = ({ postsData }: { postsData: Post[] }) => {
         `Welcome to the terminal.
 ------------------------------
 ?\t\t\tterminal commands for help.
-ls\t\t\tlist directories.
-cd <directory>\t\tchange directory.
 clear\t\t\tclear the terminal.
 exit\t\t\tclose the terminal.
 doom\t\t\tplay doom's gate.
@@ -131,8 +122,6 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
 ------------------------------
 `,
       ])
-    } else if (input.trim() === 'ls') {
-      setOutput([...newOutput, `Info\tDev\tArt`])
     } else if (input.trim() === 'blackjack') {
       startBlackjack()
     } else if (gameActive && input.trim() === 'hit') {
@@ -184,35 +173,6 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
         ])
       }
       setGameActive(false)
-    } else if (input.trim() === 'cd') {
-      setOutput([...newOutput, `Returning to home directory`])
-      setCurrentDirectory('')
-      router.push('/')
-    } else if (input.trim() === 'cd Info') {
-      setOutput([...newOutput, `Changing directory to Info`])
-      setCurrentDirectory('Info')
-      router.push('/info')
-    } else if (input.trim() === 'cd Dev') {
-      setOutput([...newOutput, `Changing directory to Dev`])
-      setCurrentDirectory('Dev')
-      router.push('/dev')
-    } else if (input.trim() === 'cd Art') {
-      setOutput([...newOutput, `Changing directory to Art`])
-      setCurrentDirectory('Art')
-      router.push('/art')
-    } else if (input.trim() === 'cd Posts') {
-      setOutput([...newOutput, `Changing directory to Posts`])
-      setCurrentDirectory('Posts')
-      router.push('/posts')
-    } else if (currentDirectory === 'Posts' && input.trim().startsWith('cd ')) {
-      const postSlug = input.trim().split(' ')[1]
-      if (posts.some((post) => post.slug === postSlug)) {
-        setOutput([...newOutput, `Changing directory to Posts/${postSlug}`])
-        setCurrentDirectory(`Posts/${postSlug}`)
-        router.push(`/posts/${postSlug}`)
-      } else {
-        setOutput([...newOutput, `Unknown post: ${postSlug}.`])
-      }
     } else if (input.trim() === 'clear') {
       setOutput([])
     } else if (input.trim() === 'q') {
@@ -233,31 +193,18 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
     setInput('')
   }
 
-  const prompt = `user@rgbjoy:${currentDirectory ? `~/${currentDirectory}` : '~'}${gameActive ? ' (blackjack)' : ''}$`
+  const prompt = `user@rgbjoy:~${gameActive ? ' (blackjack)' : ''}$`
 
-  const directories = [
-    'Info',
-    'Dev',
-    'Art',
-    'Posts',
-    'blackjack',
-    ...(Array.isArray(posts) ? posts.map((post) => post.slug) : []),
-  ]
+  const commands = ['blackjack', 'doom', 'clear', 'exit', '?']
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault()
       const currentInput = input.trim()
-      const match = currentInput.match(/^(.*\s)?(\S*)$/)
+      const matchingCommands = commands.filter((cmd) => cmd.startsWith(currentInput))
 
-      if (match) {
-        const prefix = match[1] || ''
-        const dirInput = match[2] || ''
-        const matchingDirs = directories.filter((dir) => dir?.startsWith(dirInput))
-
-        if (matchingDirs.length === 1) {
-          setInput(`${prefix}${matchingDirs[0]}`)
-        }
+      if (matchingCommands.length === 1) {
+        setInput(matchingCommands[0] || '')
       }
     }
   }
@@ -283,12 +230,14 @@ blackjack <option>\tstart blackjack. Options: 'stats' to view stats, 'clear' to 
       }
     }
 
-    document.addEventListener('click', handleDocumentClick)
+    if (isOpen) {
+      document.addEventListener('click', handleDocumentClick)
+    }
 
     return () => {
       document.removeEventListener('click', handleDocumentClick)
     }
-  }, [])
+  }, [isOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

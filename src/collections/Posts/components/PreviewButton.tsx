@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { Button, useDocumentInfo } from '@payloadcms/ui'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 

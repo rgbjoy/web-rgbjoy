@@ -4,8 +4,8 @@
   font-family: 'Courier New', monospace;
   position: fixed;
   display: inline-block;
-  bottom: calc($gutter - 8px);
-  right: $gutter;
+  bottom: 20px;
+  left: 20px;
   cursor: $cursorPointer;
   color: white;
   text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);

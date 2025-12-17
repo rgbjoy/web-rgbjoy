@@ -1,5 +1,3 @@
-import React from 'react'
-import PageWrapper from '@/components/pageWrapper'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
@@ -103,7 +101,7 @@ export default async function PostPage(props: PostPageProps) {
   })
 
   return (
-    <PageWrapper className={style.post}>
+    <div className={style.post}>
       <span>← </span>
       <Link className="underline" href="/posts">
         Back to posts
@@ -127,6 +125,6 @@ export default async function PostPage(props: PostPageProps) {
       <Link className="underline" href="/posts">
         Back to posts
       </Link>
-    </PageWrapper>
+    </div>
   )
 }

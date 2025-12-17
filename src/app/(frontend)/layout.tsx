@@ -7,14 +7,11 @@ import { Analytics } from '@vercel/analytics/next'
 import { Montserrat } from 'next/font/google'
 import localFont from 'next/font/local'
 
-import SiteLayout from './siteLayout'
+import GlobalClient from '@/components/GlobalClient'
 import { use } from 'react'
 import { getPayload } from 'payload'
 import { headers as nextHeaders } from 'next/headers'
 import configPromise from '@payload-config'
-
-import { getCachedGlobal } from '@/utilities/getGlobals'
-import { getCachedPosts } from '@/utilities/getCachedPosts'
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 const myFont = localFont({
@@ -76,28 +73,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     const headers = await nextHeaders()
     const { user } = await payload.auth({ headers })
 
-    const [posts, footer, home] = await Promise.all([
-      getCachedPosts()(),
-      getCachedGlobal('footer', 1)(),
-      getCachedGlobal('home', 1)(),
-    ])
-
-    return { posts, footer, home, user }
+    return { user }
   }
 
-  const { posts: postsData, footer: footerData, home: homeData, user } = use(getData())
+  const { user } = use(getData())
 
   return (
     <html lang="en">
       <body className={`${montserrat.className} ${myFont.variable}`}>
-        <SiteLayout
-          isAdmin={user}
-          homeData={homeData}
-          footerData={footerData}
-          postsData={postsData}
-        >
-          {children}
-        </SiteLayout>
+        {children}
+        <GlobalClient isAdmin={!!user} />
         <Analytics />
       </body>
     </html>

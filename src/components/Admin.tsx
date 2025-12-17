@@ -1,4 +1,3 @@
-import React from 'react'
 import { getServerSideURL } from '@/utilities/getURL'
 
 export const ViewSite = () => {

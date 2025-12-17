@@ -36,7 +36,7 @@ a:hover {
 }
 
 body {
-  background-color: $colorBackground;
+  background-color: transparent;
   color: white;
   font-family: 'Montserrat', sans-serif;
   letter-spacing: 1px;
@@ -156,7 +156,7 @@ li {
 
 p,
 li {
-  line-height: 175%;
+  line-height: 150%;
 
   @include mobile-only {
     font-size: 80%;
@@ -181,27 +181,9 @@ pre {
 
 .wrapper {
   position: relative;
+  z-index: 1;
   padding: 240px ($gutter * 2) 200px $gutter;
-  width: 75%;
-  max-width: 960px;
   background-color: rgba(0, 0, 0, 0.5);
-
-  @include tablet-landscape-only {
-    padding-top: 160px;
-  }
-
-  @media screen and (max-height: 768px) {
-    padding-top: 120px;
-  }
-
-  @include desktop-up {
-    margin: 0 auto;
-  }
-
-  @include mobile-only {
-    padding: 120px 20px 100px 20px;
-    width: 100%;
-  }
 }
 
 .embed {
@@ -209,25 +191,22 @@ pre {
   overflow: hidden;
 }
 
-.badge {
-  pointer-events: none;
-  font-family: var(--rhode-font), sans-serif;
+.editButton {
   position: fixed;
-  writing-mode: vertical-rl;
-  right: $gutter;
-  transform: translateY(-50%);
-  font-size: 75%;
-  letter-spacing: 1px;
-  top: 50%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: inline-block;
+  padding: 5px 7px;
+  background-color: black;
+  color: white;
+  font-size: 14px;
+  text-decoration: none;
 
-  @include mobile-only {
-    display: none;
+  &:hover {
+    color: black;
+    background-color: white;
   }
-}
-
-#header,
-#footer {
-  transition: opacity 0.25s;
 }
 
 .hidden {

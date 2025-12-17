@@ -1,0 +1,65 @@
+.lightbox {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  background-color: rgba(0, 0, 0, 0.8);
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='25' viewBox='0 0 25 25'%3E%3Cpath d='M20.51 24.25c-.19 0-.38-.07-.53-.22l-7.48-7.48-7.48 7.48c-.15.15-.34.22-.53.22s-.38-.07-.53-.22L.97 21.04a.754.754 0 0 1 0-1.06l7.48-7.48L.97 5.02a.754.754 0 0 1 0-1.06L3.96.97c.15-.15.34-.22.53-.22s.38.07.53.22l7.48 7.48L19.98.97c.15-.15.34-.22.53-.22s.38.07.53.22l2.99 2.99c.29.29.29.77 0 1.06l-7.48 7.48 7.48 7.48c.29.29.29.77 0 1.06l-2.99 2.99c-.15.15-.34.22-.53.22Z'/%3E%3Cpath d='m20.51 1.5 2.99 2.99-8.01 8.01 8.01 8.01-2.99 2.99-8.01-8.01-8.01 8.01-2.99-2.99 8.01-8.01L1.5 4.49 4.49 1.5l8.01 8.01 8.01-8.01m0-1.5c-.38 0-.77.15-1.06.44L12.5 7.39 5.55.44C5.26.15 4.87 0 4.49 0s-.77.15-1.06.44L.44 3.43a1.49 1.49 0 0 0 0 2.12l6.95 6.95-6.95 6.95a1.49 1.49 0 0 0 0 2.12l2.99 2.99c.29.29.68.44 1.06.44s.77-.15 1.06-.44l6.95-6.95 6.95 6.95c.29.29.68.44 1.06.44s.77-.15 1.06-.44l2.99-2.99c.59-.59.59-1.54 0-2.12l-6.95-6.95 6.95-6.95c.59-.59.59-1.54 0-2.12L21.57.44C21.28.15 20.89 0 20.51 0Z' fill='%23fff'/%3E%3C/svg%3E")
+      12.5 12.5,
+    auto;
+  z-index: 9999 !important;
+  overflow: hidden !important;
+
+  &__inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image_wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+      max-width: 90%;
+      max-height: 90%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      max-height: 1080px;
+      object-fit: contain;
+    }
+  }
+
+  &__caption {
+    font-size: 14px;
+    padding: 5px 7px;
+    color: white;
+    background: black;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    border-radius: 5px;
+  }
+}
