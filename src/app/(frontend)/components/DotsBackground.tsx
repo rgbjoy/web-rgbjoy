@@ -3,6 +3,7 @@
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
+import gsap from 'gsap'
 
 import styles from './dotsBackground.module.scss'
 
@@ -26,6 +27,7 @@ const DotsShader = () => {
 
     const pointPositions: number[] = []
     const pointYNorm: number[] = []
+    const pointRandom: number[] = []
 
     for (let i = 0; i < vertexCount; i++) {
       const i3 = i * 3
@@ -37,11 +39,16 @@ const DotsShader = () => {
       // Normalize Y for a subtle top fade (0 bottom → 1 top)
       const yNorm = Math.max(0.0, Math.min(1.0, (y + height / 2) / height))
       pointYNorm.push(yNorm)
+      pointRandom.push(Math.random()) // eslint-disable-line
     }
 
     const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pointPositions), 3))
+    geometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array(pointPositions), 3),
+    )
     geometry.setAttribute('yNorm', new THREE.BufferAttribute(new Float32Array(pointYNorm), 1))
+    geometry.setAttribute('random', new THREE.BufferAttribute(new Float32Array(pointRandom), 1))
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
@@ -56,21 +63,25 @@ const DotsShader = () => {
         pointSize: { value: 2.0 },
         fadeStart: { value: 0.0 },
         fadeEnd: { value: 1.0 },
+        uReveal: { value: 0 },
       },
       vertexShader: `
         attribute float yNorm;
+        attribute float random;
         uniform float time;
         uniform float amp;
         uniform float freq;
         uniform float speed;
         uniform float pointSize;
         varying float vYNorm;
+        varying float vRandom;
         void main() {
           vec3 pos = position;
           float w1 = sin((pos.x * freq) + time * speed) * amp;
           float w2 = sin((pos.y * freq * 1.3) - time * speed * 0.8) * amp * 0.7;
           pos.z += w1 + w2;
           vYNorm = yNorm;
+          vRandom = random;
           vec4 mv = modelViewMatrix * vec4(pos, 1.0);
           gl_Position = projectionMatrix * mv;
           gl_PointSize = pointSize;
@@ -81,15 +92,24 @@ const DotsShader = () => {
         uniform vec3 color;
         uniform float fadeStart;
         uniform float fadeEnd;
+        uniform float uReveal;
         varying float vYNorm;
+        varying float vRandom;
         void main() {
           vec2 center = gl_PointCoord - vec2(0.5);
           float dist = length(center);
           if (dist > 0.5) discard;
 
+          // Per-dot ease in based on uReveal
+          // vRandom is 0.0-1.0.
+          // With uReveal duration of 2s, a window of 0.25 = 0.5s per dot.
+          float window = 0.25;
+          float individualAlpha = smoothstep(vRandom * (1.0 - window), vRandom * (1.0 - window) + window, uReveal);
+          if (individualAlpha <= 0.0) discard;
+
           float circle = 1.0 - smoothstep(0.3, 0.5, dist);
           float ramp = smoothstep(fadeEnd, fadeStart, vYNorm);
-          float alpha = ramp * circle;
+          float alpha = ramp * circle * individualAlpha;
           if (alpha <= 0.0) discard;
           gl_FragColor = vec4(color, alpha);
         }
@@ -102,6 +122,14 @@ const DotsShader = () => {
 
   useEffect(() => {
     materialRef.current = material
+    if (material && material.uniforms.uReveal) {
+      gsap.to(material.uniforms.uReveal, {
+        value: 1,
+        duration: 2,
+        ease: 'power2.inOut',
+        delay: 0.5,
+      })
+    }
   }, [material])
 
   useEffect(() => {
@@ -144,6 +172,3 @@ export default function DotsBackground() {
     </div>
   )
 }
-
-
-

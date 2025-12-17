@@ -43,8 +43,9 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
 
     // Sequential reveal (fast + deterministic)
     const sections = Array.from(root.querySelectorAll('[data-reveal]')) as HTMLElement[]
-    if (!reduceMotion) {
-      gsap.set(sections, { autoAlpha: 0, y: 10 })
+    if (reduceMotion) {
+      gsap.set(sections, { autoAlpha: 1, y: 0 })
+    } else {
       const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
       sections.forEach((el, i) => {
         tl.to(

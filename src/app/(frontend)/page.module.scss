@@ -25,6 +25,12 @@
   @include mobile-only {
     padding: 100px 10px 10px 10px;
   }
+
+  [data-reveal] {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+  }
 }
 
 .topbar {
