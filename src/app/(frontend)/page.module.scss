@@ -253,7 +253,7 @@
 .twoCol {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 28px;
 
   @include mobile-only {
     grid-template-columns: 1fr;
@@ -288,14 +288,6 @@
 // Art Section
 .artGalleryLabel {
   margin-top: 12px;
-}
-
-.projectItem {
-  padding: 8px 0;
-
-  &:last-child {
-    border-bottom: none;
-  }
 }
 
 .projectHeader {

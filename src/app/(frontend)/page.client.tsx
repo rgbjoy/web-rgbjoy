@@ -133,7 +133,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
     if (!title) return null
 
     return (
-      <div className={styles.projectItem}>
+      <>
         <div className={styles.projectHeader} onClick={() => setIsOpen(!isOpen)}>
           <span className={styles.projectPlus}>{isOpen ? '−' : '+'}</span>
           <span className={styles.projectTitle}>{title}</span>
@@ -165,7 +165,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             )}
           </div>
         )}
-      </div>
+      </>
     )
   }
 
