@@ -239,6 +239,15 @@
 // Home Section
 .collapsible {
   overflow: hidden;
+  transition: opacity 0.3s ease;
+
+  &.collapsed {
+    display: none;
+  }
+
+  &:not(.collapsed) {
+    display: block;
+  }
 
   .content {
     // Home section intro text (second div)

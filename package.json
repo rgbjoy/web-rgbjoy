@@ -25,7 +25,6 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "tsc:check": "tsc --noEmit",
-    "type-check": "tsc",
     "format": "prettier --write ."
   },
   "type": "module",
