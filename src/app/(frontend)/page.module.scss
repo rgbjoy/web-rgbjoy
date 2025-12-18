@@ -5,7 +5,7 @@
   position: relative;
   z-index: 1;
   min-height: 100vh;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'IBM Plex Mono', monospace;
   letter-spacing: 0.5px;
 }
 
@@ -19,11 +19,11 @@
 .frame {
   position: relative;
   z-index: 1;
-  padding: 144px 18px 18px 144px;
+  padding: 144px 18px 144px 144px;
   margin-bottom: 18px;
 
   @include mobile-only {
-    padding: 100px 10px 10px 10px;
+    padding: 100px 10px 100px 10px;
   }
 
   [data-reveal] {
@@ -83,6 +83,17 @@
 .muted {
   opacity: 0.7;
   font-size: 12px;
+}
+
+.strengthTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.strengthList {
+  font-size: 13px;
+  line-height: 150%;
 }
 
 .content {
@@ -199,6 +210,7 @@
   padding: 6px 10px;
   font-size: 12px;
   line-height: 1;
+  width: fit-content;
   text-decoration: none;
   color: white;
   transition: border-color 0.3s ease;
@@ -302,7 +314,7 @@
 
       .projectHoverImage {
         opacity: 0.5;
-        transform: translate(40px, -15%) rotate(-6deg);
+        transform: translate(40px, -15%);
       }
     }
   }
@@ -316,7 +328,7 @@
   pointer-events: none;
   opacity: 0;
   z-index: -1;
-  transform: translate(20px, -15%) rotate(0deg);
+  transform: translate(20px, -15%);
   transition:
     opacity 0.4s ease,
     transform 0.4s ease;

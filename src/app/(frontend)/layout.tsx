@@ -4,12 +4,12 @@ import './styles/global.scss'
 import { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 
-import { Montserrat } from 'next/font/google'
+import { IBM_Plex_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 
 import TerminalOverlay from '@/components/TerminalOverlay'
 
-const montserrat = Montserrat({ subsets: ['latin'] })
+const montserrat = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 const myFont = localFont({
   src: '../../../public/fonts/Rhode-Regular.woff2',
   variable: '--rhode-font',

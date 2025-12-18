@@ -159,8 +159,8 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             )}
             {description && <div className={styles.projectDescription}>{description}</div>}
             {url && (
-              <a href={url} target="_blank" rel="noreferrer" className={styles.projectLink}>
-                View Project ↗
+              <a href={url} target="_blank" rel="noreferrer" className={styles.pill}>
+                View Project
               </a>
             )}
           </div>
@@ -281,8 +281,8 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                 <div className={styles.content}>
                   {info.strengths?.map((s, i) => (
                     <div key={`strength-${i}`}>
-                      <div>{s.title}</div>
-                      <div>{s.strengthsList}</div>
+                      <div className={styles.strengthTitle}>{s.title}</div>
+                      <div className={styles.strengthList}>{s.strengthsList}</div>
                     </div>
                   ))}
                 </div>
