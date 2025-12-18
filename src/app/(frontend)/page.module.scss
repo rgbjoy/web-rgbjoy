@@ -114,7 +114,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin: 10px 0 0 0;
+  margin: 10px 0 0 0 !important;
 }
 
 .item {
@@ -198,6 +198,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 6px 10px;
   font-size: 12px;
+  line-height: 1;
   text-decoration: none;
   color: white;
   transition: border-color 0.3s ease;
@@ -272,30 +273,112 @@
   margin-top: 24px;
 }
 
-.previewImageContainer {
-  position: relative;
-  width: 0;
-  height: 0;
-  overflow: visible;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.previewImage {
-  position: fixed;
-  display: none;
-  width: 300px;
-  height: auto;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-  z-index: 1000;
-}
-
 // Art Section
 .artGalleryLabel {
   margin-top: 12px;
+}
+
+.projectItem {
+  padding: 8px 0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.projectHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  position: relative;
+
+  @media (hover: hover) {
+    &:hover {
+      .projectTitle {
+        opacity: 1;
+      }
+
+      .projectHoverImage {
+        opacity: 0.5;
+        transform: translate(40px, -15%) rotate(-6deg);
+      }
+    }
+  }
+}
+
+.projectHoverImage {
+  position: absolute;
+  left: 100px;
+  top: 50%;
+  width: 140px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: -1;
+  transform: translate(20px, -15%) rotate(0deg);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.projectPlus {
+  font-family: monospace;
+  font-size: 16px;
+  width: 14px;
+  display: inline-block;
+  opacity: 0.6;
+}
+
+.projectTitle {
+  font-size: 14px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.projectContent {
+  margin-top: 12px;
+  margin-left: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 500px;
+}
+
+.projectImageWrapper {
+  width: 100%;
+  max-width: 250px;
+}
+
+.projectImage {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.projectDescription {
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+.projectLink {
+  font-size: 12px;
+  color: white;
+  text-decoration: none;
+  opacity: 0.6;
+  width: fit-content;
+
+  &:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
 }
 
 .footerSection {

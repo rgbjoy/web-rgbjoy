@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   description: 'Multidisciplinary digital creator & software engineer',
 }
 
-const NotFound = () => (
-  <div className={style.notFound}>
-    <h1>Have you tried turning it off and on again?</h1>
-    <Link className={`btn ${style.btn}`} href="/">
-      Reset
-    </Link>
-  </div>
-)
-
-export default NotFound
+export default async function NotFound() {
+  return (
+    <div className={style.notFound}>
+      <h1>Have you tried turning it off and on again?</h1>
+      <Link className={`btn ${style.btn}`} href="/">
+        Reset
+      </Link>
+    </div>
+  )
+}

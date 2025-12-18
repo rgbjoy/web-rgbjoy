@@ -3,6 +3,8 @@ import { withPayload } from '@payloadcms/next/withPayload'
 
 const ensureProtocol = (url) => (url?.startsWith('http') ? url : url ? `https://${url}` : undefined)
 
+import redirects from './redirects.js'
+
 const NEXT_PUBLIC_SERVER_URL = ensureProtocol(process.env.SERVER_URL) || 'http://localhost:3000'
 
 const nextConfig = {
@@ -30,6 +32,7 @@ const nextConfig = {
     silenceDeprecations: ['legacy-js-api', 'import'],
   },
   devIndicators: false,
+  redirects,
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })

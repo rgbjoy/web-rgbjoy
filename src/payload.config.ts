@@ -1,6 +1,7 @@
 // storage-adapter-import-placeholder
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { s3Storage } from '@payloadcms/storage-s3'
+import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -14,6 +15,9 @@ import { regenerateMedia, regenerateSingleMedia } from './scripts/regenerate-med
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
+
+// Hooks
+import { revalidateRedirects } from './hooks/revalidateRedirects'
 
 // Globals
 //-- Content
@@ -98,6 +102,17 @@ export default buildConfig({
           secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
         },
         region: process.env.S3_REGION || '',
+      },
+    }),
+    redirectsPlugin({
+      collections: [Posts.slug],
+      overrides: {
+        admin: {
+          group: 'Site Settings',
+        },
+        hooks: {
+          afterChange: [revalidateRedirects],
+        },
       },
     }),
   ],

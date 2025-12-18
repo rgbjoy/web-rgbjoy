@@ -24,4 +24,3 @@ export const getCachedPosts = () =>
   unstable_cache(async () => getPosts(), ['posts'], {
     tags: ['posts'],
   })
-

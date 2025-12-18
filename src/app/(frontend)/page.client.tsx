@@ -117,6 +117,58 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
 
   const toggleRefs = useRef<Record<string, HTMLElement | null>>({})
 
+  const ProjectItem = ({
+    title,
+    description,
+    url,
+    image,
+  }: {
+    title: string
+    description?: string | null
+    url?: string | null
+    image?: MediaType | null
+  }) => {
+    const [isOpen, setIsOpen] = useState(false)
+
+    if (!title) return null
+
+    return (
+      <div className={styles.projectItem}>
+        <div className={styles.projectHeader} onClick={() => setIsOpen(!isOpen)}>
+          <span className={styles.projectPlus}>{isOpen ? '−' : '+'}</span>
+          <span className={styles.projectTitle}>{title}</span>
+          {!isOpen && image?.url && (
+            <div className={styles.projectHoverImage}>
+              <NextImage src={image.url} alt="" width={140} height={100} unoptimized />
+            </div>
+          )}
+        </div>
+        {isOpen && (
+          <div className={styles.projectContent}>
+            {image?.url && (
+              <div className={styles.projectImageWrapper}>
+                <NextImage
+                  src={image.url}
+                  alt={title}
+                  width={image.width || 600}
+                  height={image.height || 400}
+                  className={styles.projectImage}
+                  unoptimized
+                />
+              </div>
+            )}
+            {description && <div className={styles.projectDescription}>{description}</div>}
+            {url && (
+              <a href={url} target="_blank" rel="noreferrer" className={styles.projectLink}>
+                View Project ↗
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const toggle = (key: keyof typeof open) => {
     setOpen((prev) => {
       const newState = { ...prev, [key]: !prev[key] }
@@ -144,26 +196,6 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
   return (
     <div className={`${styles.home}`}>
       <DotsBackground />
-      <div className={styles.previewImageContainer}>
-        {devProjects.slice(0, 6).map((p, i) => {
-          const image = p?.image && typeof p.image === 'object' ? (p.image as MediaType) : null
-          if (image?.url) {
-            return (
-              <NextImage
-                key={`preview-${i}`}
-                src={image.url}
-                alt={p?.title || ''}
-                width={300}
-                height={200}
-                quality={75}
-                className={`${styles.previewImage} preview-${i}`}
-                unoptimized
-              />
-            )
-          }
-          return null
-        })}
-      </div>
       <div ref={rootRef} className={styles.frame}>
         <div className={styles.topbar} data-reveal>
           <div className={styles.title}>{safeText(home.header) || 'RGBJOY'}</div>
@@ -286,44 +318,17 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                   {devProjects.length === 0 ? (
                     <div className={styles.muted}>No projects yet.</div>
                   ) : null}
-                  {devProjects.slice(0, 6).map((p, i) => {
-                    const url = p?.link?.url || ''
-                    const title = p?.title || ''
-                    const desc = p?.description || ''
-                    const image =
-                      p?.image && typeof p.image === 'object' ? (p.image as MediaType) : null
-                    if (!title) return null
-                    return (
-                      <a
-                        key={`proj-${i}`}
-                        className={styles.item}
-                        href={url || '/dev'}
-                        target="_blank"
-                        rel="noreferrer"
-                        onMouseMove={(e) => {
-                          if (image) {
-                            const preview = document.querySelector(`.preview-${i}`) as HTMLElement
-                            if (preview) {
-                              preview.style.left = `${e.clientX + 15}px`
-                              preview.style.top = `${e.clientY + 15}px`
-                              preview.style.display = 'block'
-                            }
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          const preview = document.querySelector(`.preview-${i}`) as HTMLElement
-                          if (preview) {
-                            preview.style.display = 'none'
-                          }
-                        }}
-                      >
-                        <div className={styles.itemInner}>
-                          <div>{title}</div>
-                          {desc ? <div className={styles.muted}>{desc}</div> : null}
-                        </div>
-                      </a>
-                    )
-                  })}
+                  {devProjects.slice(0, 6).map((p, i) => (
+                    <ProjectItem
+                      key={`proj-${i}`}
+                      title={p?.title || ''}
+                      description={p?.description}
+                      url={p?.link?.url}
+                      image={
+                        p?.image && typeof p.image === 'object' ? (p.image as MediaType) : null
+                      }
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -333,26 +338,14 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                   {devPlayground.length === 0 ? (
                     <div className={styles.muted}>No playground items yet.</div>
                   ) : null}
-                  {devPlayground.slice(0, 6).map((p, i) => {
-                    const url = p?.link?.url || ''
-                    const title = p?.title || ''
-                    const desc = p?.description || ''
-                    if (!title) return null
-                    return (
-                      <a
-                        key={`play-${i}`}
-                        className={styles.item}
-                        href={url || '/dev'}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <div className={styles.itemInner}>
-                          <div>{title}</div>
-                          {desc ? <div className={styles.muted}>{desc}</div> : null}
-                        </div>
-                      </a>
-                    )
-                  })}
+                  {devPlayground.slice(0, 6).map((p, i) => (
+                    <ProjectItem
+                      key={`play-${i}`}
+                      title={p?.title || ''}
+                      description={p?.description}
+                      url={p?.link?.url}
+                    />
+                  ))}
                 </div>
               </div>
             </div>

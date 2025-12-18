@@ -28,6 +28,7 @@ export const enum__posts_v_version_status = pgEnum('enum__posts_v_version_status
   'draft',
   'published',
 ])
+export const enum_redirects_to_type = pgEnum('enum_redirects_to_type', ['reference', 'custom'])
 
 export const users_sessions = pgTable(
   'users_sessions',
@@ -217,6 +218,54 @@ export const _posts_v = pgTable(
   ],
 )
 
+export const redirects = pgTable(
+  'redirects',
+  {
+    id: serial('id').primaryKey(),
+    from: varchar('from').notNull(),
+    to_type: enum_redirects_to_type('to_type').default('reference'),
+    to_url: varchar('to_url'),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => [
+    uniqueIndex('redirects_from_idx').on(columns.from),
+    index('redirects_updated_at_idx').on(columns.updatedAt),
+    index('redirects_created_at_idx').on(columns.createdAt),
+  ],
+)
+
+export const redirects_rels = pgTable(
+  'redirects_rels',
+  {
+    id: serial('id').primaryKey(),
+    order: integer('order'),
+    parent: integer('parent_id').notNull(),
+    path: varchar('path').notNull(),
+    postsID: integer('posts_id'),
+  },
+  (columns) => [
+    index('redirects_rels_order_idx').on(columns.order),
+    index('redirects_rels_parent_idx').on(columns.parent),
+    index('redirects_rels_path_idx').on(columns.path),
+    index('redirects_rels_posts_id_idx').on(columns.postsID),
+    foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [redirects.id],
+      name: 'redirects_rels_parent_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['postsID']],
+      foreignColumns: [posts.id],
+      name: 'redirects_rels_posts_fk',
+    }).onDelete('cascade'),
+  ],
+)
+
 export const payload_kv = pgTable(
   'payload_kv',
   {
@@ -256,6 +305,7 @@ export const payload_locked_documents_rels = pgTable(
     usersID: integer('users_id'),
     mediaID: integer('media_id'),
     postsID: integer('posts_id'),
+    redirectsID: integer('redirects_id'),
   },
   (columns) => [
     index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -264,6 +314,7 @@ export const payload_locked_documents_rels = pgTable(
     index('payload_locked_documents_rels_users_id_idx').on(columns.usersID),
     index('payload_locked_documents_rels_media_id_idx').on(columns.mediaID),
     index('payload_locked_documents_rels_posts_id_idx').on(columns.postsID),
+    index('payload_locked_documents_rels_redirects_id_idx').on(columns.redirectsID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -283,6 +334,11 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['postsID']],
       foreignColumns: [posts.id],
       name: 'payload_locked_documents_rels_posts_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['redirectsID']],
+      foreignColumns: [redirects.id],
+      name: 'payload_locked_documents_rels_redirects_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -570,6 +626,23 @@ export const relations__posts_v = relations(_posts_v, ({ one }) => ({
     relationName: 'version_featuredImage',
   }),
 }))
+export const relations_redirects_rels = relations(redirects_rels, ({ one }) => ({
+  parent: one(redirects, {
+    fields: [redirects_rels.parent],
+    references: [redirects.id],
+    relationName: '_rels',
+  }),
+  postsID: one(posts, {
+    fields: [redirects_rels.postsID],
+    references: [posts.id],
+    relationName: 'posts',
+  }),
+}))
+export const relations_redirects = relations(redirects, ({ many }) => ({
+  _rels: many(redirects_rels, {
+    relationName: '_rels',
+  }),
+}))
 export const relations_payload_kv = relations(payload_kv, () => ({}))
 export const relations_payload_locked_documents_rels = relations(
   payload_locked_documents_rels,
@@ -593,6 +666,11 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.postsID],
       references: [posts.id],
       relationName: 'posts',
+    }),
+    redirectsID: one(redirects, {
+      fields: [payload_locked_documents_rels.redirectsID],
+      references: [redirects.id],
+      relationName: 'redirects',
     }),
   }),
 )
@@ -719,11 +797,14 @@ type DatabaseSchema = {
   enum_users_role: typeof enum_users_role
   enum_posts_status: typeof enum_posts_status
   enum__posts_v_version_status: typeof enum__posts_v_version_status
+  enum_redirects_to_type: typeof enum_redirects_to_type
   users_sessions: typeof users_sessions
   users: typeof users
   media: typeof media
   posts: typeof posts
   _posts_v: typeof _posts_v
+  redirects: typeof redirects
+  redirects_rels: typeof redirects_rels
   payload_kv: typeof payload_kv
   payload_locked_documents: typeof payload_locked_documents
   payload_locked_documents_rels: typeof payload_locked_documents_rels
@@ -746,6 +827,8 @@ type DatabaseSchema = {
   relations_media: typeof relations_media
   relations_posts: typeof relations_posts
   relations__posts_v: typeof relations__posts_v
+  relations_redirects_rels: typeof relations_redirects_rels
+  relations_redirects: typeof relations_redirects
   relations_payload_kv: typeof relations_payload_kv
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels
   relations_payload_locked_documents: typeof relations_payload_locked_documents

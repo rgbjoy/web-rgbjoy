@@ -7,11 +7,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { Montserrat } from 'next/font/google'
 import localFont from 'next/font/local'
 
-import GlobalClient from '@/components/GlobalClient'
-import { use } from 'react'
-import { getPayload } from 'payload'
-import { headers as nextHeaders } from 'next/headers'
-import configPromise from '@payload-config'
+import TerminalOverlay from '@/components/TerminalOverlay'
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 const myFont = localFont({
@@ -67,22 +63,11 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const getData = async () => {
-    const payload = await getPayload({ config: configPromise })
-
-    const headers = await nextHeaders()
-    const { user } = await payload.auth({ headers })
-
-    return { user }
-  }
-
-  const { user } = use(getData())
-
   return (
     <html lang="en">
       <body className={`${montserrat.className} ${myFont.variable}`}>
         {children}
-        <GlobalClient isAdmin={!!user} />
+        <TerminalOverlay />
         <Analytics />
       </body>
     </html>
