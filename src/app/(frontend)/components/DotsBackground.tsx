@@ -7,6 +7,11 @@ import gsap from 'gsap'
 
 import styles from './dotsBackground.module.scss'
 
+// Animation constants - adjust these to tweak the noise and speed
+const NOISE_AMPLITUDE = 0.18 // Intensity of the wave motion (higher = more movement)
+const NOISE_FREQUENCY = 6.0 // Frequency of the wave pattern (higher = more waves)
+const ANIMATION_SPEED = 0.65 // Speed of the animation (higher = faster)
+
 const DotsShader = () => {
   const groupRef = useRef<THREE.Group>(null)
   const timeRef = useRef(0)
@@ -16,7 +21,7 @@ const DotsShader = () => {
   const { mesh, material } = useMemo(() => {
     // A simple plane turned into point-vertices, then animated via a shader.
     const width = 2
-    const height = 2
+    const height = 1
     const segments = 22
     const tempGeometry = new THREE.PlaneGeometry(width, height, segments, segments)
 
@@ -24,6 +29,9 @@ const DotsShader = () => {
     if (!positionAttr) throw new Error('Position attribute not found')
     const positions = positionAttr.array as Float32Array
     const vertexCount = positions.length / 3
+    const verticesPerRow = segments + 1
+    const horizontalSpacing = width / segments
+    const offsetAmount = horizontalSpacing / 2
 
     const pointPositions: number[] = []
     const pointYNorm: number[] = []
@@ -31,9 +39,16 @@ const DotsShader = () => {
 
     for (let i = 0; i < vertexCount; i++) {
       const i3 = i * 3
-      const x = positions[i3]!
+      let x = positions[i3]!
       const y = positions[i3 + 1]!
       const z = positions[i3 + 2]!
+
+      // Determine which row this vertex is in
+      const row = Math.floor(i / verticesPerRow)
+      // Offset every other row for polkadot pattern
+      if (row % 2 === 1) {
+        x += offsetAmount
+      }
 
       pointPositions.push(x, y, z)
       // Normalize Y for a subtle top fade (0 bottom → 1 top)
@@ -56,9 +71,9 @@ const DotsShader = () => {
       depthWrite: false,
       uniforms: {
         time: { value: 0 },
-        amp: { value: 0.18 },
-        freq: { value: 6.0 },
-        speed: { value: 0.35 },
+        amp: { value: NOISE_AMPLITUDE },
+        freq: { value: NOISE_FREQUENCY },
+        speed: { value: ANIMATION_SPEED },
         color: { value: new THREE.Color('#ffffff') },
         pointSize: { value: 2.0 },
         fadeStart: { value: 0.0 },
@@ -66,6 +81,7 @@ const DotsShader = () => {
         uReveal: { value: 0 },
       },
       vertexShader: `
+        precision mediump float;
         attribute float yNorm;
         attribute float random;
         uniform float time;

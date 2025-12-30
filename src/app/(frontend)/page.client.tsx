@@ -27,6 +27,48 @@ const getMedia = (item: unknown): MediaType | null => {
   return item && typeof item === 'object' ? (item as MediaType) : null
 }
 
+const SplitTextTitle = memo(function SplitTextTitle({ text }: { text: string }) {
+  const titleRef = useRef<HTMLHeadingElement | null>(null)
+
+  useEffect(() => {
+    if (!titleRef.current) return
+
+    const chars = titleRef.current.querySelectorAll('.char')
+    if (chars.length === 0) return
+
+    // Set initial state (characters are already hidden via CSS)
+    gsap.set(chars, {
+      opacity: 0,
+      y: 100,
+    })
+
+    // Animate characters with random stagger
+    gsap.to(chars, {
+      opacity: 0.9,
+      y: 0,
+      duration: 1,
+      ease: 'power3.out',
+      delay: 0.2,
+      stagger: () => Math.random() * 0.3,
+    })
+  }, [text])
+
+  // Split text into characters, preserving spaces
+  const splitText = (str: string) => {
+    return str.split('').map((char, i) => (
+      <span key={i} className="char" style={{ display: 'inline-block' }}>
+        {char === ' ' ? '\u00A0' : char}
+      </span>
+    ))
+  }
+
+  return (
+    <h1 ref={titleRef} className={styles.title}>
+      {splitText(text)}
+    </h1>
+  )
+})
+
 type CollapsibleSectionProps = {
   isOpen: boolean
   onToggle: () => void
@@ -166,29 +208,20 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
     const root = rootRef.current
     if (!root) return
 
-    const reduceMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
     // Sequential reveal (fast + deterministic)
     const sections = Array.from(root.querySelectorAll('[data-reveal]')) as HTMLElement[]
-    if (reduceMotion) {
-      gsap.set(sections, { autoAlpha: 1, y: 0 })
-    } else {
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
-      sections.forEach((el, i) => {
-        tl.to(
-          el,
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.35,
-          },
-          i === 0 ? 0 : '+=0.08',
-        )
-      })
-    }
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+    sections.forEach((el, i) => {
+      tl.to(
+        el,
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.35,
+        },
+        i === 0 ? 0 : '+=0.08',
+      )
+    })
 
     return () => {}
   }, [])
@@ -197,7 +230,6 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
   const selfieImage = getMedia(info?.profileImage)
 
   const devProjects = dev.pastProjects || []
-  const devPlayground = dev.playground || []
   const artGallery = art.gallery || []
 
   const toggleRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -230,8 +262,10 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
     <div className={`${styles.home}`}>
       <DotsBackground />
       <div ref={rootRef} className={styles.frame}>
-        <div className={styles.topbar} data-reveal>
-          <div className={styles.title}>{safeText(home.header) || 'RGBJOY'}</div>
+        <div className={styles.topbar}>
+          <div className={styles.titleWrapper}>
+            <SplitTextTitle text={safeText(home.header) || 'RGBJOY'} />
+          </div>
         </div>
 
         <CollapsibleSection
@@ -327,23 +361,6 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                   />
                 )
               })}
-            </div>
-          </div>
-
-          <div className={styles.devSubSection}>
-            <div className={`${styles.muted} ${styles.devSubSectionLabel}`}>Playground</div>
-            <div className={styles.list}>
-              {devPlayground.length === 0 ? (
-                <div className={styles.muted}>No playground items yet.</div>
-              ) : null}
-              {devPlayground.slice(0, 6).map((p, i) => (
-                <ProjectItem
-                  key={`play-${p?.id || i}`}
-                  title={p?.title || ''}
-                  description={p?.description}
-                  url={p?.link?.url}
-                />
-              ))}
             </div>
           </div>
         </CollapsibleSection>

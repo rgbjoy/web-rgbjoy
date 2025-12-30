@@ -40,6 +40,7 @@ const Media = ({ media, thumbnail = false }: { media: MediaType; thumbnail?: boo
   } else {
     return (
       <motion.div
+        className={style.wrapper}
         initial={'hidden'}
         animate={animationControls}
         variants={animationVariants}
@@ -47,6 +48,7 @@ const Media = ({ media, thumbnail = false }: { media: MediaType; thumbnail?: boo
       >
         <div className={style.image_wrapper}>
           <Image
+            className={style.image}
             src={
               thumbnail ? media.sizes?.card?.url || '' : media.url || media.sizes?.card?.url || ''
             }

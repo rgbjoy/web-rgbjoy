@@ -40,7 +40,7 @@
     "@payloadcms/storage-s3": "^3.69.0",
     "@payloadcms/ui": "^3.69.0",
     "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.4.2",
+    "@react-three/fiber": "^9.5.0",
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/rapier": "^2.2.0",
     "@react-three/rapier-addons": "^5.0.0",

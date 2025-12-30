@@ -41,11 +41,28 @@
   margin-bottom: 16px;
 }
 
+.titleWrapper {
+  overflow: hidden;
+  line-height: 1.2;
+}
+
 .title {
   font-family: var(--rhode-font), sans-serif;
-  font-size: 26px;
+  font-size: 100px;
   letter-spacing: 1px;
   opacity: 0.9;
+  margin: 0;
+  margin-left: -13px;
+  font-weight: normal;
+
+  @include mobile-only {
+    font-size: 50px;
+    margin-left: -5px;
+  }
+
+  :global(.char) {
+    opacity: 0;
+  }
 }
 
 .section {
