@@ -349,7 +349,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
               {devProjects.length === 0 ? (
                 <div className={styles.muted}>No projects yet.</div>
               ) : null}
-              {devProjects.slice(0, 6).map((p, i) => {
+              {devProjects.map((p, i) => {
                 const image = getMedia(p?.image)
                 return (
                   <ProjectItem
@@ -383,7 +383,6 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             {artGallery
               .slice()
               .reverse()
-              .slice(0, 12)
               .map((g, i) => {
                 const media = getMedia(g.image)
                 if (!media) return null
