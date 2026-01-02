@@ -6,7 +6,6 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
-import { resendAdapter } from '@payloadcms/email-resend'
 import sharp from 'sharp'
 import { getServerSideURL } from './utilities/getURL'
 import { regenerateMedia, regenerateSingleMedia } from './scripts/regenerate-media'
@@ -116,9 +115,4 @@ export default buildConfig({
       },
     }),
   ],
-  email: resendAdapter({
-    defaultFromAddress: 'admin@rgbjoy.com',
-    defaultFromName: 'RGBJOY.com',
-    apiKey: process.env.RESEND_API_KEY || '',
-  }),
 })
