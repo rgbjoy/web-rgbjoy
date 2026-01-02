@@ -102,6 +102,10 @@
   font-size: 12px;
 }
 
+.strengthItem {
+  margin-bottom: 15px;
+}
+
 .strengthTitle {
   font-size: 14px;
   font-weight: 600;
@@ -244,6 +248,10 @@
   max-width: 300px;
   width: 100%;
 
+  @include mobile-only {
+    max-width: 150px;
+  }
+
   img {
     width: 100%;
     height: auto;
@@ -281,18 +289,6 @@
 
   @include mobile-only {
     grid-template-columns: 1fr;
-  }
-
-  .content {
-    // Strength items container
-    > div {
-      margin-bottom: 10px;
-
-      // Strength title
-      > div:first-child {
-        opacity: 0.9;
-      }
-    }
   }
 }
 

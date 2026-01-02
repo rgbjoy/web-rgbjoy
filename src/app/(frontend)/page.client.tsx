@@ -322,7 +322,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
 
             <div className={styles.content}>
               {info.strengths?.map((s, i) => (
-                <div key={`strength-${i}`}>
+                <div key={`strength-${i}`} className={styles.strengthItem}>
                   <div className={styles.strengthTitle}>{s.title}</div>
                   <div className={styles.strengthList}>{s.strengthsList}</div>
                 </div>
