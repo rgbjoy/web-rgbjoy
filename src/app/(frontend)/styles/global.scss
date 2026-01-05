@@ -18,6 +18,7 @@
   --color-scrollbar: rgba(94, 94, 94, 0.407);
   --color-selection-text: #000000;
   --color-selection-bg: #ffffff;
+  --color-terminal-text: #00ff00;
 }
 
 [data-theme='light'] {
@@ -32,6 +33,7 @@
   --color-scrollbar: rgba(94, 94, 94, 0.407);
   --color-selection-text: #ffffff;
   --color-selection-bg: #000000;
+  --color-terminal-text: #000000;
 }
 
 /* ===== Scrollbar CSS ===== */

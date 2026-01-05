@@ -8,16 +8,16 @@
   left: 20px;
   cursor: $cursorPointer;
   color: var(--color-text);
-  text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+  text-shadow: 0 0 5px color-mix(in srgb, var(--color-terminal-text) 30%, transparent);
   animation: mysteriousPulse 3s ease-in-out infinite;
   z-index: 1000;
 
   &:hover {
-    color: #00ff00;
+    color: var(--color-terminal-text);
     text-shadow:
-      0 0 10px rgba(0, 255, 0, 0.8),
-      0 0 20px rgba(0, 255, 0, 0.6),
-      0 0 30px rgba(0, 255, 0, 0.4);
+      0 0 10px color-mix(in srgb, var(--color-terminal-text) 80%, transparent),
+      0 0 20px color-mix(in srgb, var(--color-terminal-text) 60%, transparent),
+      0 0 30px color-mix(in srgb, var(--color-terminal-text) 40%, transparent);
     animation: mysteriousPulse 1.5s ease-in-out infinite;
   }
 
@@ -51,7 +51,9 @@
   background-color: var(--color-overlay);
   backdrop-filter: blur(5px);
   color: var(--color-text);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 
   z-index: 1000;
   font-family: monospace;
@@ -67,7 +69,7 @@
     font-family: 'Courier New', monospace;
     font-size: 14px;
     letter-spacing: 1px;
-    color: #00ff00;
+    color: var(--color-terminal-text);
   }
 }
 
