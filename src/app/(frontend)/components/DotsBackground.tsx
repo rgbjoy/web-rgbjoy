@@ -77,7 +77,7 @@ const DotsShader = () => {
         freq: { value: NOISE_FREQUENCY },
         speed: { value: ANIMATION_SPEED },
         color: { value: new THREE.Color(theme === 'dark' ? '#ffffff' : '#000000') },
-        pointSize: { value: 2.0 },
+        pointSize: { value: 3.0 },
         fadeStart: { value: 0.0 },
         fadeEnd: { value: 1.0 },
         uReveal: { value: 0 },
