@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import gsap from 'gsap'
 
+import { useTheme } from '../contexts/ThemeContext'
 import styles from './dotsBackground.module.scss'
 
 // Animation constants - adjust these to tweak the noise and speed
@@ -17,6 +18,7 @@ const DotsShader = () => {
   const timeRef = useRef(0)
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
   const { viewport } = useThree()
+  const { theme } = useTheme()
 
   const { mesh, material } = useMemo(() => {
     // A simple plane turned into point-vertices, then animated via a shader.
@@ -74,7 +76,7 @@ const DotsShader = () => {
         amp: { value: NOISE_AMPLITUDE },
         freq: { value: NOISE_FREQUENCY },
         speed: { value: ANIMATION_SPEED },
-        color: { value: new THREE.Color('#ffffff') },
+        color: { value: new THREE.Color(theme === 'dark' ? '#ffffff' : '#000000') },
         pointSize: { value: 2.0 },
         fadeStart: { value: 0.0 },
         fadeEnd: { value: 1.0 },
@@ -134,7 +136,7 @@ const DotsShader = () => {
 
     const mesh = new THREE.Points(geometry, material)
     return { mesh, material }
-  }, [])
+  }, [theme])
 
   useEffect(() => {
     materialRef.current = material
@@ -147,6 +149,19 @@ const DotsShader = () => {
       })
     }
   }, [material])
+
+  // Update dot color when theme changes
+  useEffect(() => {
+    if (materialRef.current?.uniforms?.color) {
+      gsap.to(materialRef.current.uniforms.color.value, {
+        r: theme === 'dark' ? 1 : 0,
+        g: theme === 'dark' ? 1 : 0,
+        b: theme === 'dark' ? 1 : 0,
+        duration: 0.3,
+        ease: 'power2.inOut',
+      })
+    }
+  }, [theme])
 
   useEffect(() => {
     const group = groupRef.current
