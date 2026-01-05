@@ -80,7 +80,7 @@
 .toggle {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-muted-2);
   padding: 0;
   font-size: 18px;
   line-height: 1;
@@ -91,10 +91,11 @@
   align-items: center;
   justify-content: center;
   transform-origin: center;
+  transition: color 0.3s ease;
 }
 
 .toggle:hover {
-  color: rgba(255, 255, 255, 1);
+  color: var(--color-text);
 }
 
 .muted {
@@ -153,13 +154,13 @@
   grid-template-columns: 1fr;
   padding: 8px 10px;
   text-decoration: none;
-  color: white;
+  color: var(--color-text);
   overflow: hidden;
   border-left: 1px solid transparent;
   transition: border-color 0.2s ease;
 
   &:hover {
-    border-left-color: white;
+    border-left-color: var(--color-text);
   }
 }
 
@@ -187,7 +188,7 @@
 }
 
 .thumb {
-  color: white;
+  color: var(--color-text);
   overflow: hidden;
   cursor: pointer;
   opacity: 0.7;
@@ -225,17 +226,17 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   padding: 6px 10px;
   font-size: 12px;
   line-height: 1;
   width: fit-content;
   text-decoration: none;
-  color: white;
+  color: var(--color-text);
   transition: border-color 0.3s ease;
 
   &:hover {
-    border-color: white;
+    border-color: var(--color-text);
   }
 }
 
@@ -393,10 +394,11 @@
 
 .projectLink {
   font-size: 12px;
-  color: white;
+  color: var(--color-text);
   text-decoration: none;
   opacity: 0.6;
   width: fit-content;
+  transition: opacity 0.3s ease;
 
   &:hover {
     opacity: 1;
@@ -406,7 +408,7 @@
 
 .footerSection {
   margin-top: 48px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--color-border);
   padding-top: 18px;
 }
 
@@ -420,7 +422,7 @@
   width: 100vw !important;
   margin: 0 !important;
   padding: 0 !important;
-  background-color: rgba(0, 0, 0, 0.8) !important;
+  background-color: var(--color-overlay-2) !important;
   cursor:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='25' viewBox='0 0 25 25'%3E%3Cpath d='M20.51 24.25c-.19 0-.38-.07-.53-.22l-7.48-7.48-7.48 7.48c-.15.15-.34.22-.53.22s-.38-.07-.53-.22L.97 21.04a.754.754 0 0 1 0-1.06l7.48-7.48L.97 5.02a.754.754 0 0 1 0-1.06L3.96.97c.15-.15.34-.22.53-.22s.38.07.53.22l7.48 7.48L19.98.97c.15-.15.34-.22.53-.22s.38.07.53.22l2.99 2.99c.29.29.29.77 0 1.06l-7.48 7.48 7.48 7.48c.29.29.29.77 0 1.06l-2.99 2.99c-.15.15-.34.22-.53.22Z'/%3E%3Cpath d='m20.51 1.5 2.99 2.99-8.01 8.01 8.01 8.01-2.99 2.99-8.01-8.01-8.01 8.01-2.99-2.99 8.01-8.01L1.5 4.49 4.49 1.5l8.01 8.01 8.01-8.01m0-1.5c-.38 0-.77.15-1.06.44L12.5 7.39 5.55.44C5.26.15 4.87 0 4.49 0s-.77.15-1.06.44L.44 3.43a1.49 1.49 0 0 0 0 2.12l6.95 6.95-6.95 6.95a1.49 1.49 0 0 0 0 2.12l2.99 2.99c.29.29.68.44 1.06.44s.77-.15 1.06-.44l6.95-6.95 6.95 6.95c.29.29.68.44 1.06.44s.77-.15 1.06-.44l2.99-2.99c.59-.59.59-1.54 0-2.12l-6.95-6.95 6.95-6.95c.59-.59.59-1.54 0-2.12L21.57.44C21.28.15 20.89 0 20.51 0Z' fill='%23fff'/%3E%3C/svg%3E")
       12.5 12.5,
@@ -466,8 +468,8 @@
     .lightbox__caption {
       font-size: 14px;
       padding: 5px 7px;
-      color: white;
-      background: black;
+      color: var(--color-text);
+      background: var(--color-background);
       position: absolute;
       top: 5px;
       left: 5px;

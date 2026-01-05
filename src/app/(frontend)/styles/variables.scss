@@ -1,19 +1,49 @@
+// Accent colors (theme-independent)
 $red: #ff0000;
 $green: #00ff00;
 $blue: #00aeff;
 $yellow: #ffff00;
 $magenta: #ff00ff;
 
+// Spacing
 $gutter: 60px;
 $gutter-mobile: 20px;
 $grid: 5px;
 
+// Breakpoints
 $mobile: 800px;
 $tablet: 1180px;
 $laptop: 1280px;
 $desktop: 1920px;
 
-$colorBackground: #000;
+// Theme colors - Dark (default)
+$colorBackgroundDark: #000000;
+$colorTextDark: #ffffff;
+$colorTextMutedDark: rgba(255, 255, 255, 0.7);
+$colorTextMutedDark2: rgba(255, 255, 255, 0.85);
+$colorBorderDark: rgba(255, 255, 255, 0.12);
+$colorBorderDark2: rgba(255, 255, 255, 1);
+$colorOverlayDark: rgba(0, 0, 0, 0.5);
+$colorOverlayDark2: rgba(0, 0, 0, 0.8);
+$colorScrollbarDark: rgba(94, 94, 94, 0.407);
+$colorSelectionTextDark: #000000;
+$colorSelectionBgDark: #ffffff;
+
+// Theme colors - Light
+$colorBackgroundLight: #ffffff;
+$colorTextLight: #000000;
+$colorTextMutedLight: rgba(0, 0, 0, 0.7);
+$colorTextMutedLight2: rgba(0, 0, 0, 0.85);
+$colorBorderLight: rgba(0, 0, 0, 0.12);
+$colorBorderLight2: rgba(0, 0, 0, 1);
+$colorOverlayLight: rgba(255, 255, 255, 0.5);
+$colorOverlayLight2: rgba(255, 255, 255, 0.8);
+$colorScrollbarLight: rgba(94, 94, 94, 0.407);
+$colorSelectionTextLight: #ffffff;
+$colorSelectionBgLight: #000000;
+
+// Legacy support (defaults to dark)
+$colorBackground: $colorBackgroundDark;
 
 $cursorPointer: pointer;
 
@@ -46,7 +76,7 @@ $cursorPointer: pointer;
 @mixin link-hover-effect {
   &::before {
     transition: transform 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
-    background-color: white;
+    background-color: var(--color-text);
     transform: scaleX(1);
     transform-origin: left;
   }

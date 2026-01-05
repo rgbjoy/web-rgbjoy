@@ -4,10 +4,40 @@
   box-sizing: border-box;
 }
 
+/* ===== CSS Custom Properties ===== */
+:root,
+[data-theme='dark'] {
+  --color-background: #000000;
+  --color-text: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-text-muted-2: rgba(255, 255, 255, 0.85);
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-2: rgba(255, 255, 255, 1);
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-overlay-2: rgba(0, 0, 0, 0.8);
+  --color-scrollbar: rgba(94, 94, 94, 0.407);
+  --color-selection-text: #000000;
+  --color-selection-bg: #ffffff;
+}
+
+[data-theme='light'] {
+  --color-background: #ffffff;
+  --color-text: #000000;
+  --color-text-muted: rgba(0, 0, 0, 0.7);
+  --color-text-muted-2: rgba(0, 0, 0, 0.85);
+  --color-border: rgba(0, 0, 0, 0.12);
+  --color-border-2: rgba(0, 0, 0, 1);
+  --color-overlay: rgba(255, 255, 255, 0.5);
+  --color-overlay-2: rgba(255, 255, 255, 0.8);
+  --color-scrollbar: rgba(94, 94, 94, 0.407);
+  --color-selection-text: #ffffff;
+  --color-selection-bg: #000000;
+}
+
 /* ===== Scrollbar CSS ===== */
 * {
   scrollbar-width: 10px;
-  scrollbar-color: rgba(94, 94, 94, 0.407) rgba(94, 94, 94, 0.407);
+  scrollbar-color: var(--color-scrollbar) var(--color-scrollbar);
 }
 
 /* Chrome, Edge, and Safari */
@@ -20,7 +50,7 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(94, 94, 94, 0.407);
+  background-color: var(--color-scrollbar);
   border-radius: 0px;
   border: none;
 }
@@ -31,13 +61,18 @@ body {
   height: 100%;
 }
 
+html {
+  background-color: var(--color-background);
+}
+
 a:hover {
   cursor: $cursorPointer;
 }
 
 body {
-  background-color: transparent;
-  color: white;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: 'IBM Plex Mono', monospace;
   letter-spacing: 1px;
   cursor:
@@ -52,7 +87,7 @@ body {
 
 a {
   position: relative;
-  color: #fff;
+  color: var(--color-text);
   text-decoration: none;
 
   &::before {
@@ -70,7 +105,7 @@ a {
   &.underline {
     &::before {
       transition: transform 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
-      background-color: white;
+      background-color: var(--color-text);
       transform: scaleX(1);
       transform-origin: left;
     }
@@ -90,7 +125,8 @@ a {
 }
 
 .btn {
-  border: 1px solid white;
+  border: 1px solid var(--color-border-2);
+  color: var(--color-text);
   display: inline-block;
   text-transform: uppercase;
   font-size: 0.8em;
@@ -162,7 +198,7 @@ pre {
   position: relative;
   z-index: 1;
   padding: 240px ($gutter * 2) 200px $gutter;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-overlay);
 }
 
 .embed {
@@ -177,14 +213,15 @@ pre {
   z-index: 1000;
   display: inline-block;
   padding: 5px 7px;
-  background-color: black;
-  color: white;
+  background-color: var(--color-background);
+  color: var(--color-text);
   font-size: 14px;
   text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
 
   &:hover {
-    color: black;
-    background-color: white;
+    color: var(--color-background);
+    background-color: var(--color-text);
   }
 }
 
@@ -193,13 +230,13 @@ pre {
 }
 
 ::selection {
-  color: black;
-  background: white;
+  color: var(--color-selection-text);
+  background: var(--color-selection-bg);
 }
 
 .error {
   position: absolute;
-  color: white;
+  color: var(--color-text);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

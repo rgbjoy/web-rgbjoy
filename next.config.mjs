@@ -9,6 +9,7 @@ const NEXT_PUBLIC_SERVER_URL = ensureProtocol(process.env.SERVER_URL) || 'http:/
 
 const nextConfig = {
   reactStrictMode: false, // Temporarily disabled to fix drei Scroll root creation issue
+  reactCompiler: false,
   experimental: {
     turbopackUseBuiltinSass: true,
   },

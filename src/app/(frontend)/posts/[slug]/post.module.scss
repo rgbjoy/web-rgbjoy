@@ -3,8 +3,9 @@
 .post {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-overlay);
   min-height: 100vh;
+  transition: background-color 0.3s ease;
 
   .title {
     margin: $gutter 0 10px;
@@ -22,7 +23,7 @@
   .content {
     margin-bottom: $gutter;
     padding-bottom: $gutter;
-    border-bottom: 1px dotted white;
+    border-bottom: 1px dotted var(--color-text);
 
     a {
       @include link-hover-effect;
@@ -30,7 +31,7 @@
   }
 
   iframe {
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--color-border);
     border-radius: 7px;
     overflow: hidden;
     border-radius: 0;

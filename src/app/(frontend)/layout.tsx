@@ -8,6 +8,8 @@ import { IBM_Plex_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 
 import TerminalOverlay from '@/components/TerminalOverlay'
+import { ThemeProvider } from './contexts/ThemeContext'
+import ThemeToggle from './components/ThemeToggle'
 
 const montserrat = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 const myFont = localFont({
@@ -64,11 +66,26 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${montserrat.className} ${myFont.variable}`}>
-        {children}
-        <TerminalOverlay />
-        <Analytics />
+        <ThemeProvider>
+          {children}
+          <ThemeToggle />
+          <TerminalOverlay />
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )
