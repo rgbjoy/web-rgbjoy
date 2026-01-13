@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useEffect, useSyncExternalStore } from 'react'
-import { Sun, Moon } from 'lucide-react'
+import { useRef, useEffect, useSyncExternalStore, useState } from 'react'
+import { Sun, Moon, Circle, Check } from 'lucide-react'
+import * as Popover from '@radix-ui/react-popover'
 import gsap from 'gsap'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './themeToggle.module.scss'
@@ -15,12 +16,23 @@ const useIsMounted = () =>
     () => false, // Server always returns false
   )
 
+type Theme = 'light' | 'dark' | 'red' | 'green' | 'blue'
+
+const themes: { value: Theme; label: string; icon: React.ReactNode }[] = [
+  { value: 'dark', label: 'Dark', icon: <Moon size={16} /> },
+  { value: 'light', label: 'Light', icon: <Sun size={16} /> },
+  { value: 'red', label: 'Red', icon: <Circle size={16} style={{ color: '#ff4444' }} /> },
+  { value: 'green', label: 'Green', icon: <Circle size={16} style={{ color: '#44ff44' }} /> },
+  { value: 'blue', label: 'Blue', icon: <Circle size={16} style={{ color: '#6666ff' }} /> },
+]
+
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const mounted = useIsMounted()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const lastScrollY = useRef(0)
   const isVisible = useRef(true)
+  const [open, setOpen] = useState(false)
 
   // Initial fade in
   useEffect(() => {
@@ -72,27 +84,52 @@ export default function ThemeToggle() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [mounted])
 
+  const getThemeIcon = () => {
+    if (!mounted) return <div style={{ width: 20, height: 20 }} />
+    const currentTheme = themes.find((t) => t.value === theme)
+    return currentTheme?.icon || <Sun size={20} />
+  }
+
   return (
-    <button
-      ref={buttonRef}
-      type="button"
-      onClick={toggleTheme}
-      className={styles.themeToggle}
-      style={{ opacity: 0 }}
-      aria-label={
-        mounted ? `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode` : 'Switch theme'
-      }
-      suppressHydrationWarning
-    >
-      {mounted ? (
-        theme === 'dark' ? (
-          <Sun size={20} />
-        ) : (
-          <Moon size={20} />
-        )
-      ) : (
-        <div style={{ width: 20, height: 20 }} />
-      )}
-    </button>
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger asChild>
+        <button
+          ref={buttonRef}
+          type="button"
+          className={styles.themeToggle}
+          style={{ opacity: 0 }}
+          aria-label="Select theme"
+          suppressHydrationWarning
+        >
+          {getThemeIcon()}
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content className={styles.popoverContent} sideOffset={5}>
+          <div className={styles.themeList}>
+            {themes.map((themeOption) => (
+              <button
+                key={themeOption.value}
+                type="button"
+                className={`${styles.themeOption} ${theme === themeOption.value ? styles.active : ''}`}
+                onClick={() => {
+                  setTheme(themeOption.value)
+                  setOpen(false)
+                }}
+                aria-label={`Switch to ${themeOption.label} theme`}
+              >
+                <span className={styles.themeIcon}>{themeOption.icon}</span>
+                <span className={styles.themeLabel}>{themeOption.label}</span>
+                {theme === themeOption.value && (
+                  <span className={styles.checkmark}>
+                    <Check size={16} />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }

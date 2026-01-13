@@ -2,10 +2,11 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
-type Theme = 'light' | 'dark'
+type Theme = 'light' | 'dark' | 'red' | 'green' | 'blue'
 
 interface ThemeContextType {
   theme: Theme
+  setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
 
@@ -29,15 +30,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(theme)
   }, [theme])
 
-  const toggleTheme = () => {
-    const newTheme: Theme = theme === 'dark' ? 'light' : 'dark'
+  const setThemeValue = (newTheme: Theme) => {
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
     applyTheme(newTheme)
   }
 
+  const toggleTheme = () => {
+    // Cycle through themes: dark -> light -> red -> green -> blue -> dark
+    const themeOrder: Theme[] = ['dark', 'light', 'red', 'green', 'blue']
+    const currentIndex = themeOrder.indexOf(theme)
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % themeOrder.length
+    setThemeValue(themeOrder[nextIndex]!)
+  }
+
   // Always provide the context, even before mount
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme: setThemeValue, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
 }
 
 export function useTheme() {

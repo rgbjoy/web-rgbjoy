@@ -10,7 +10,7 @@ import styles from './dotsBackground.module.scss'
 
 // Animation constants - adjust these to tweak the noise and speed
 const NOISE_AMPLITUDE = 0.18 // Intensity of the wave motion (higher = more movement)
-const NOISE_FREQUENCY = 6.0 // Frequency of the wave pattern (higher = more waves)
+const NOISE_FREQUENCY = 10.0 // Frequency of the wave pattern (higher = more waves)
 const ANIMATION_SPEED = 0.65 // Speed of the animation (higher = faster)
 
 const DotsShader = () => {
@@ -24,7 +24,7 @@ const DotsShader = () => {
     // A simple plane turned into point-vertices, then animated via a shader.
     const width = 2
     const height = 1
-    const segments = 22
+    const segments = 24
     const tempGeometry = new THREE.PlaneGeometry(width, height, segments, segments)
 
     const positionAttr = tempGeometry.attributes.position
@@ -76,7 +76,19 @@ const DotsShader = () => {
         amp: { value: NOISE_AMPLITUDE },
         freq: { value: NOISE_FREQUENCY },
         speed: { value: ANIMATION_SPEED },
-        color: { value: new THREE.Color(theme === 'dark' ? '#ffffff' : '#000000') },
+        color: {
+          value: new THREE.Color(
+            theme === 'dark'
+              ? '#ffffff'
+              : theme === 'light'
+                ? '#000000'
+                : theme === 'red'
+                  ? '#ff4444'
+                  : theme === 'green'
+                    ? '#44ff44'
+                    : '#6666ff', // blue
+          ),
+        },
         pointSize: { value: 3.0 },
         fadeStart: { value: 0.0 },
         fadeEnd: { value: 1.0 },
@@ -153,10 +165,28 @@ const DotsShader = () => {
   // Update dot color when theme changes
   useEffect(() => {
     if (materialRef.current?.uniforms?.color) {
+      const getColorValues = () => {
+        switch (theme) {
+          case 'dark':
+            return { r: 1, g: 1, b: 1 } // white
+          case 'light':
+            return { r: 0, g: 0, b: 0 } // black
+          case 'red':
+            return { r: 1, g: 0.267, b: 0.267 } // #ff4444
+          case 'green':
+            return { r: 0.267, g: 1, b: 0.267 } // #44ff44
+          case 'blue':
+            return { r: 0.4, g: 0.4, b: 1 } // #6666ff
+          default:
+            return { r: 1, g: 1, b: 1 }
+        }
+      }
+
+      const colorValues = getColorValues()
       gsap.to(materialRef.current.uniforms.color.value, {
-        r: theme === 'dark' ? 1 : 0,
-        g: theme === 'dark' ? 1 : 0,
-        b: theme === 'dark' ? 1 : 0,
+        r: colorValues.r,
+        g: colorValues.g,
+        b: colorValues.b,
         duration: 0.3,
         ease: 'power2.inOut',
       })

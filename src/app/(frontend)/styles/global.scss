@@ -36,6 +36,51 @@
   --color-terminal-text: #000000;
 }
 
+[data-theme='red'] {
+  --color-background: #1a0000;
+  --color-text: #ff4444;
+  --color-text-muted: rgba(255, 68, 68, 0.7);
+  --color-text-muted-2: rgba(255, 68, 68, 0.85);
+  --color-border: rgba(255, 68, 68, 0.12);
+  --color-border-2: rgba(255, 68, 68, 1);
+  --color-overlay: rgba(26, 0, 0, 0.5);
+  --color-overlay-2: rgba(26, 0, 0, 0.8);
+  --color-scrollbar: rgba(255, 68, 68, 0.407);
+  --color-selection-text: #1a0000;
+  --color-selection-bg: #ff4444;
+  --color-terminal-text: #ff6666;
+}
+
+[data-theme='green'] {
+  --color-background: #001a00;
+  --color-text: #44ff44;
+  --color-text-muted: rgba(68, 255, 68, 0.7);
+  --color-text-muted-2: rgba(68, 255, 68, 0.85);
+  --color-border: rgba(68, 255, 68, 0.12);
+  --color-border-2: rgba(68, 255, 68, 1);
+  --color-overlay: rgba(0, 26, 0, 0.5);
+  --color-overlay-2: rgba(0, 26, 0, 0.8);
+  --color-scrollbar: rgba(68, 255, 68, 0.407);
+  --color-selection-text: #001a00;
+  --color-selection-bg: #44ff44;
+  --color-terminal-text: #66ff66;
+}
+
+[data-theme='blue'] {
+  --color-background: #000033;
+  --color-text: #6666ff;
+  --color-text-muted: rgba(102, 102, 255, 0.7);
+  --color-text-muted-2: rgba(102, 102, 255, 0.85);
+  --color-border: rgba(102, 102, 255, 0.12);
+  --color-border-2: rgba(102, 102, 255, 1);
+  --color-overlay: rgba(0, 0, 51, 0.5);
+  --color-overlay-2: rgba(0, 0, 51, 0.8);
+  --color-scrollbar: rgba(102, 102, 255, 0.407);
+  --color-selection-text: #000033;
+  --color-selection-bg: #6666ff;
+  --color-terminal-text: #8888ff;
+}
+
 /* ===== Scrollbar CSS ===== */
 * {
   scrollbar-width: 10px;
@@ -74,7 +119,9 @@ a:hover {
 body {
   background-color: var(--color-background);
   color: var(--color-text);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
   font-family: 'IBM Plex Mono', monospace;
   letter-spacing: 1px;
   cursor:
@@ -219,7 +266,9 @@ pre {
   color: var(--color-text);
   font-size: 14px;
   text-decoration: none;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 
   &:hover {
     color: var(--color-background);
