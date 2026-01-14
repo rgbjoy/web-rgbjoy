@@ -39,15 +39,15 @@ const SplitTextTitle = memo(function SplitTextTitle({ text }: { text: string }) 
     // Set initial state (characters are already hidden via CSS)
     gsap.set(chars, {
       opacity: 0,
-      y: 100,
+      color: '#b00000',
     })
 
     // Animate characters with random stagger
     gsap.to(chars, {
       opacity: 0.9,
-      y: 0,
+      color: 'currentColor',
       duration: 1,
-      ease: 'power3.out',
+      ease: 'expo.inOut',
       delay: 0.2,
       stagger: () => Math.random() * 0.3,
     })
@@ -56,7 +56,11 @@ const SplitTextTitle = memo(function SplitTextTitle({ text }: { text: string }) 
   // Split text into characters, preserving spaces
   const splitText = (str: string) => {
     return str.split('').map((char, i) => (
-      <span key={i} className="char" style={{ display: 'inline-block' }}>
+      <span
+        key={i}
+        className={`char ${['r', 'g', 'b'].includes(char.toLowerCase()) ? `rgb-letter rgb-${char.toLowerCase()}` : ''}`}
+        style={{ display: 'inline-block' }}
+      >
         {char === ' ' ? '\u00A0' : char}
       </span>
     ))
@@ -98,8 +102,8 @@ const Selfie = memo(function Selfie({ image }: { image: MediaType | null }) {
   const [loaded, setLoaded] = useState(false)
   const animationControls = useAnimation()
   const animationVariants = {
-    visible: { opacity: 1 },
-    hidden: { opacity: 0 },
+    visible: { opacity: 1, filter: 'none' },
+    hidden: { opacity: 0, filter: 'sepia(1) saturate(6) hue-rotate(-20deg)' },
   }
 
   useEffect(() => {
@@ -210,14 +214,18 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
 
     // Sequential reveal (fast + deterministic)
     const sections = Array.from(root.querySelectorAll('[data-reveal]')) as HTMLElement[]
-    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+    const tl = gsap.timeline({ defaults: { ease: 'expo.inOut' } })
     sections.forEach((el, i) => {
-      tl.to(
+      tl.fromTo(
         el,
         {
+          autoAlpha: 0,
+          color: '#b00000',
+        },
+        {
           autoAlpha: 1,
-          y: 0,
-          duration: 0.35,
+          duration: 0.5,
+          color: 'currentColor',
         },
         i === 0 ? 0 : '+=0.08',
       )
@@ -260,6 +268,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
 
   return (
     <div className={`${styles.home}`}>
+      <div className={styles.grainOverlay} aria-hidden="true" />
       <DotsBackground />
       <div ref={rootRef} className={styles.frame}>
         <div className={styles.topbar}>
