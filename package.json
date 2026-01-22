@@ -39,7 +39,7 @@
     "@radix-ui/react-popover": "^1.1.15",
     "@react-three/fiber": "^9.5.0",
     "@vercel/analytics": "^1.6.1",
-    "framer-motion": "^12.27.5",
+    "framer-motion": "^12.29.0",
     "graphql": "^16.12.0",
     "gsap": "^3.14.2",
     "html-react-parser": "^5.2.11",
@@ -49,20 +49,20 @@
     "payload": "^3.72.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "sass": "1.97.2",
+    "sass": "1.97.3",
     "sass-loader": "^16.0.6",
     "sharp": "0.34.5",
     "three": "^0.182.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.0.10",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.182.0",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.4",
-    "prettier": "^3.8.0",
+    "prettier": "^3.8.1",
     "typescript": "^5.9.3"
   }
 }
