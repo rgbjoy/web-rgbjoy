@@ -5,7 +5,7 @@ import { Sun, Moon, Circle, Check } from 'lucide-react'
 import * as Popover from '@radix-ui/react-popover'
 import gsap from 'gsap'
 import { useTheme } from '../contexts/ThemeContext'
-import styles from './themeToggle.module.scss'
+import styles from './themeToggle.module.css'
 
 // useSyncExternalStore is the React-recommended way to handle client-only rendering
 const emptySubscribe = () => () => {}

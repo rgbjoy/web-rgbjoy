@@ -11,7 +11,7 @@ import DotsBackground from '@/app/(frontend)/components/DotsBackground'
 
 import type { Art, Dev, Footer, Home, Info, Media as MediaType } from '@payload-types'
 
-import styles from './page.module.scss'
+import styles from './page.module.css'
 
 type Props = {
   home: Home
@@ -234,7 +234,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
       )
     })
 
-    return () => { }
+    return () => {}
   }, [])
 
   const infoResumeUrl = getMedia(info.resume)?.url ?? ''

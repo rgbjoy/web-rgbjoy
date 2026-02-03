@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import Media from '@/app/(frontend)/components/media'
-import styles from './lightbox.module.scss'
+import styles from './lightbox.module.css'
 
 const LightBox = ({ children, media }) => {
   const [isOpen, setIsOpen] = useState(false)

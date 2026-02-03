@@ -1,0 +1,25 @@
+.posts ::selection {
+  background: transparent;
+  color: var(--accent-yellow);
+}
+
+.posts .header {
+  color: var(--accent-yellow);
+}
+
+.posts .postLink {
+  width: max-content;
+  border-bottom: 1px solid transparent;
+  transition: all 0.25s ease-in-out;
+  font-size: 1.5rem;
+}
+
+.posts .postLink:hover {
+  color: var(--accent-yellow);
+}
+
+.posts .date {
+  margin-top: var(--gutter);
+  margin-bottom: 0.8em;
+  font-size: 0.8rem;
+}

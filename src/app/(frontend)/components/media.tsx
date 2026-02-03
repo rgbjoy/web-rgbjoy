@@ -1,7 +1,7 @@
 import { motion, useAnimation } from 'framer-motion'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import style from './media.module.scss'
+import style from './media.module.css'
 import { Media as MediaType } from '@payload-types'
 
 const Media = ({ media, thumbnail = false }: { media: MediaType; thumbnail?: boolean }) => {

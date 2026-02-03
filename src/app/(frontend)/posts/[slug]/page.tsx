@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import style from './post.module.scss'
+import style from './post.module.css'
 import formatDate from '@/components/formatDate'
 import parse from 'html-react-parser'
 import NextImage from 'next/image'

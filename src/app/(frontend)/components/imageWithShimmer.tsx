@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import NextImage from 'next/image'
-import style from '@/components/imageShimmer.module.scss'
+import style from '@/components/imageShimmer.module.css'
 
 function ImageWithShimmer({ imageUrl, post, imageWidth, imageHeight }) {
   const [isLoading, setIsLoading] = useState(true)

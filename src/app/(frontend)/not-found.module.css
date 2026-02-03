@@ -6,8 +6,8 @@
   justify-content: center;
   height: 100vh;
   padding: 18px;
+}
 
-  .btn {
-    margin-top: 30px;
-  }
+.notFound .btn {
+  margin-top: 30px;
 }

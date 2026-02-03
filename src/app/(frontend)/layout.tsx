@@ -1,5 +1,5 @@
 import 'normalize.css/normalize.css'
-import './styles/global.scss'
+import './styles/global.css'
 
 import { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'

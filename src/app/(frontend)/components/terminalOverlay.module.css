@@ -1,27 +1,27 @@
-@use '../styles/variables.scss' as *;
-
 .terminalButton {
   font-family: 'Courier New', monospace;
   position: fixed;
   display: inline-block;
   bottom: 20px;
   left: 20px;
-  cursor: $cursorPointer;
+  cursor: pointer;
   color: var(--color-text);
   text-shadow: 0 0 5px color-mix(in srgb, var(--color-terminal-text) 30%, transparent);
   animation: mysteriousPulse 3s ease-in-out infinite;
   z-index: 1000;
+}
 
-  &:hover {
-    color: var(--color-terminal-text);
-    text-shadow:
-      0 0 10px color-mix(in srgb, var(--color-terminal-text) 80%, transparent),
-      0 0 20px color-mix(in srgb, var(--color-terminal-text) 60%, transparent),
-      0 0 30px color-mix(in srgb, var(--color-terminal-text) 40%, transparent);
-    animation: mysteriousPulse 1.5s ease-in-out infinite;
-  }
+.terminalButton:hover {
+  color: var(--color-terminal-text);
+  text-shadow:
+    0 0 10px color-mix(in srgb, var(--color-terminal-text) 80%, transparent),
+    0 0 20px color-mix(in srgb, var(--color-terminal-text) 60%, transparent),
+    0 0 30px color-mix(in srgb, var(--color-terminal-text) 40%, transparent);
+  animation: mysteriousPulse 1.5s ease-in-out infinite;
+}
 
-  @include mobile-only {
+@media screen and (max-width: 799px) {
+  .terminalButton {
     display: none;
   }
 }
@@ -54,7 +54,6 @@
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
-
   z-index: 1000;
   font-family: monospace;
   height: 100vh;
@@ -64,13 +63,13 @@
   height: 100%;
   overflow-y: auto;
   padding: 10px;
+}
 
-  * {
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    letter-spacing: 1px;
-    color: var(--color-terminal-text);
-  }
+.terminalBody * {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--color-terminal-text);
 }
 
 .terminalForm {

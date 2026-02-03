@@ -1,7 +1,7 @@
 'use client'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import style from '../siteLayout.module.scss'
+import style from '../siteLayout.module.css'
 
 const EditPageButton = ({ isAdmin }: { isAdmin: boolean }) => {
   const pathname = usePathname()

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
-import style from './terminalOverlay.module.scss'
+import style from './terminalOverlay.module.css'
 import useLocalStorage from '../hooks/useLocalStorage'
 
 const TerminalOverlay = () => {

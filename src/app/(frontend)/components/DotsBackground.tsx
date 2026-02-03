@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import gsap from 'gsap'
 
 import { useTheme } from '../contexts/ThemeContext'
-import styles from './dotsBackground.module.scss'
+import styles from './dotsBackground.module.css'
 
 // Animation constants - adjust these to tweak the noise and speed
 const NOISE_AMPLITUDE = 0.18 // Intensity of the wave motion (higher = more movement)

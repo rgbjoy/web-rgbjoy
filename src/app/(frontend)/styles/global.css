@@ -1,4 +1,4 @@
-@use 'variables' as *;
+@import './variables.css';
 
 * {
   box-sizing: border-box;
@@ -113,7 +113,7 @@ html {
 }
 
 a:hover {
-  cursor: $cursorPointer;
+  cursor: pointer;
 }
 
 body {
@@ -127,49 +127,48 @@ body {
   cursor:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='26' fill='none' viewBox='0 0 24 26'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M1.69 2.69a2.357 2.357 0 0 1 2.495-.54L21.47 8.632a2.357 2.357 0 0 1-.255 4.494l-7.271 1.818-1.818 7.27a2.357 2.357 0 0 1-4.494.256L1.15 5.185a2.357 2.357 0 0 1 .54-2.495Z' fill='%23fff'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3.633 3.622A.786.786 0 0 0 2.62 4.633L9.103 21.92a.786.786 0 0 0 1.498-.086l2.047-8.185 8.185-2.046a.785.785 0 0 0 .086-1.498L3.633 3.622Z' fill='%23010101'/%3E%3C/svg%3E"),
     auto;
+}
 
-  &.noscroll {
-    position: sticky;
-    overflow: hidden;
-  }
+body.noscroll {
+  position: sticky;
+  overflow: hidden;
 }
 
 a {
   position: relative;
   color: var(--color-text);
   text-decoration: none;
+}
 
-  &::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 1px;
-    bottom: -2px;
-    left: 0;
-    transform-origin: right;
+a::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  transform-origin: right;
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+a.underline::before {
+  transition: transform 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  background-color: var(--color-text);
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@media (hover: hover) {
+  a.underline:hover::before {
     transform: scaleX(0);
-    transition: transform 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
   }
+}
 
-  &.underline {
-    &::before {
-      transition: transform 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
-      background-color: var(--color-text);
-      transform: scaleX(1);
-      transform-origin: left;
-    }
-    @media (hover: hover) {
-      &:hover::before {
-        transform: scaleX(0);
-      }
-    }
-  }
-
-  @media (hover: hover) {
-    &:not(.btn, .underline):hover::before {
-      transform-origin: left;
-      transform: scaleX(1);
-    }
+@media (hover: hover) {
+  a:not(.btn, .underline):hover::before {
+    transform-origin: left;
+    transform: scaleX(1);
   }
 }
 
@@ -182,9 +181,11 @@ a {
   padding: 0 10px;
   line-height: 33px;
   transition: all 0.15s cubic-bezier(0.455, 0.03, 0.515, 0.955);
-  cursor: $cursorPointer;
+  cursor: pointer;
+}
 
-  @include mobile-only {
+@media screen and (max-width: 799px) {
+  .btn {
     font-size: 0.8em;
     line-height: 10px;
     padding: 10px;
@@ -205,10 +206,11 @@ h2 {
   line-height: 1.8;
 }
 
-@include mobile-only {
+@media screen and (max-width: 799px) {
   h1 {
     font-size: 1.5em;
   }
+
   h2 {
     font-size: 1.1em;
   }
@@ -221,8 +223,11 @@ li {
 p,
 li {
   line-height: 170%;
+}
 
-  @include mobile-only {
+@media screen and (max-width: 799px) {
+  p,
+  li {
     font-size: 80%;
     line-height: 150%;
   }
@@ -231,22 +236,24 @@ li {
 pre {
   margin: 0;
   padding: 20px;
+}
 
-  @include mobile-only {
+@media screen and (max-width: 799px) {
+  pre {
     font-size: 10px !important;
     line-height: 1.4;
     padding: 10px;
+  }
 
-    .wp-block-kevinbatdorf-code-block-pro {
-      margin-right: $gutter-mobile;
-    }
+  pre .wp-block-kevinbatdorf-code-block-pro {
+    margin-right: var(--gutter-mobile);
   }
 }
 
 .wrapper {
   position: relative;
   z-index: 1;
-  padding: 240px ($gutter * 2) 200px $gutter;
+  padding: 240px calc(var(--gutter) * 2) 200px var(--gutter);
   background-color: var(--color-overlay);
 }
 
@@ -269,11 +276,11 @@ pre {
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+}
 
-  &:hover {
-    color: var(--color-background);
-    background-color: var(--color-text);
-  }
+.editButton:hover {
+  color: var(--color-background);
+  background-color: var(--color-text);
 }
 
 .hidden {
@@ -298,15 +305,17 @@ pre {
   justify-content: center;
   align-items: center;
   position: absolute;
-  top: $gutter;
+  top: var(--gutter);
   transform: translateY(-50%);
-  left: $gutter;
+  left: var(--gutter);
   z-index: 1000;
+}
 
-  @include mobile-only {
+@media screen and (max-width: 799px) {
+  .loading {
     top: 50%;
     transform: translateY(-50%);
-    left: $gutter-mobile;
+    left: var(--gutter-mobile);
   }
 }
 

@@ -1,0 +1,204 @@
+.gallery-field .field-description {
+  margin-bottom: 1rem;
+  color: var(--theme-elevation-500);
+  font-size: 0.875rem;
+}
+
+.gallery-field .gallery-drop-zone {
+  border: 2px dashed var(--theme-border-color);
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--theme-elevation-50);
+  margin-bottom: 1.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.gallery-field .gallery-drop-zone:hover,
+.gallery-field .gallery-drop-zone.is-dragging {
+  border-color: var(--theme-success-500);
+  background: var(--theme-success-50);
+}
+
+.gallery-field .gallery-drop-zone .drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gallery-field .gallery-drop-zone .drop-zone-content svg {
+  width: 48px;
+  height: 48px;
+  color: var(--theme-elevation-400);
+}
+
+.gallery-field .gallery-drop-zone .drop-zone-content p {
+  margin: 0;
+  color: var(--theme-elevation-600);
+  font-size: 0.875rem;
+}
+
+.gallery-field .gallery-upload-button {
+  margin-bottom: 1.5rem;
+}
+
+.gallery-field .gallery-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.gallery-field .gallery-actions .select-media-button {
+  flex-shrink: 0;
+}
+
+.gallery-field .gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.gallery-field .gallery-item-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gallery-field .gallery-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-color);
+  background: var(--theme-elevation-50);
+}
+
+.gallery-field .gallery-item img,
+.gallery-field .gallery-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-field .gallery-item .gallery-video {
+  background: #000;
+}
+
+.gallery-field .gallery-item .gallery-item-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--theme-elevation-400);
+}
+
+.gallery-field .gallery-item .gallery-item-actions {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 5px;
+}
+
+.gallery-field .gallery-item .move-button,
+.gallery-field .gallery-item .remove-button,
+.gallery-field .gallery-item .more-button {
+  margin: 0;
+  padding: 0;
+  color: white;
+  min-width: 20px;
+  width: 20px;
+  height: 20px;
+  font-size: 0.875rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.gallery-field .gallery-item .move-button:hover,
+.gallery-field .gallery-item .remove-button:hover,
+.gallery-field .gallery-item .more-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.gallery-field .gallery-item .remove-button {
+  color: white;
+  background: rgba(220, 38, 38, 0.8);
+}
+
+.gallery-field .gallery-item .remove-button:hover {
+  background: rgb(6, 6, 6);
+}
+
+.gallery-field .gallery-item .more-button {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.gallery-field .gallery-item .more-button:hover {
+  background: rgba(59, 130, 246, 1);
+}
+
+.gallery-field .gallery-item-drawer {
+  position: relative;
+  margin-top: 0.75rem;
+  border: 1px solid var(--theme-border-color);
+  border-radius: 8px;
+  background: var(--theme-elevation-0);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.gallery-field .gallery-item-drawer-overlay {
+  display: none;
+}
+
+.gallery-field .gallery-item-drawer-content {
+  padding: 1.5rem;
+  position: relative;
+}
+
+.gallery-field .close-drawer-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  margin: 0;
+  padding: 0;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--theme-elevation-600);
+  z-index: 1;
+}
+
+.gallery-field .close-drawer-button:hover {
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-800);
+}
+
+.gallery-field .gallery-item-drawer-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.gallery-field .gallery-item-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

@@ -29,7 +29,7 @@ export default async function proxy(request: NextRequest) {
           const url = new URL(from)
           from = url.pathname
         }
-      } catch (_e) { }
+      } catch (_e) {}
 
       // Normalize slashes for comparison
       from = from.replace(/\/$/, '') || '/'

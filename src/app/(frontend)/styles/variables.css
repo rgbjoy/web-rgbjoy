@@ -1,0 +1,10 @@
+:root {
+  --accent-red: #ff0000;
+  --accent-green: #00ff00;
+  --accent-blue: #00aeff;
+  --accent-yellow: #ffff00;
+  --accent-magenta: #ff00ff;
+  --gutter: 60px;
+  --gutter-mobile: 20px;
+  --grid: 5px;
+}

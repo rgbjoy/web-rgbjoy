@@ -8,11 +8,8 @@ import redirects from './redirects.js'
 const NEXT_PUBLIC_SERVER_URL = ensureProtocol(process.env.SERVER_URL) || 'http://localhost:3000'
 
 const nextConfig = {
-  reactStrictMode: false, // Temporarily disabled to fix drei Scroll root creation issue
+  reactStrictMode: true,
   reactCompiler: false,
-  experimental: {
-    turbopackUseBuiltinSass: true,
-  },
   allowedDevOrigins: ['10.0.0.141'],
   images: {
     remotePatterns: [
@@ -25,12 +22,6 @@ const nextConfig = {
         }
       }),
     ],
-  },
-  sassOptions: {
-    compilerOptions: {
-      quietDeps: true,
-    },
-    silenceDeprecations: ['legacy-js-api', 'import'],
   },
   devIndicators: false,
   redirects,

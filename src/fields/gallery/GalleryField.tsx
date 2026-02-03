@@ -14,7 +14,7 @@ import {
 import type { ArrayFieldClientProps } from 'payload'
 import type { Media } from '@/payload-types'
 import NextImage from 'next/image'
-import './gallery.scss'
+import './gallery.css'
 import Image from 'next/image'
 
 type GalleryFieldProps = ArrayFieldClientProps

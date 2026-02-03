@@ -1,6 +1,6 @@
 'use client'
 import formatDate from '@/components/formatDate'
-import style from './posts.module.scss'
+import style from './posts.module.css'
 import Link from 'next/link'
 import { Post } from '@payload-types'
 
