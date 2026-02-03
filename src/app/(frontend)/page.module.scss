@@ -251,6 +251,26 @@
   text-overflow: ellipsis;
 }
 
+.loadMoreButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  font-size: 13px;
+  line-height: 1;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    border-color 0.3s ease,
+    opacity 0.3s ease;
+  opacity: 0.85;
+
+  &:hover {
+    border-color: var(--color-text);
+    opacity: 1;
+  }
+}
+
 .pill {
   display: inline-flex;
   align-items: center;

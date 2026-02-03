@@ -201,6 +201,9 @@ const ProjectItem = memo(function ProjectItem({
 
 export default function PageClient({ home, info, dev, art, footer }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null)
+  const GALLERY_INITIAL = 5
+  const GALLERY_LOAD_MORE = 5
+  const [galleryVisibleCount, setGalleryVisibleCount] = useState(GALLERY_INITIAL)
   const [open, setOpen] = useState({
     home: true,
     info: true,
@@ -231,7 +234,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
       )
     })
 
-    return () => {}
+    return () => { }
   }, [])
 
   const infoResumeUrl = getMedia(info.resume)?.url ?? ''
@@ -392,6 +395,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             {artGallery
               .slice()
               .reverse()
+              .slice(0, galleryVisibleCount)
               .map((g, i) => {
                 const media = getMedia(g.image)
                 if (!media) return null
@@ -412,6 +416,19 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                 )
               })}
           </div>
+          {artGallery.length > galleryVisibleCount ? (
+            <button
+              type="button"
+              className={styles.loadMoreButton}
+              onClick={() =>
+                setGalleryVisibleCount((prev) =>
+                  Math.min(prev + GALLERY_LOAD_MORE, artGallery.length),
+                )
+              }
+            >
+              Load more
+            </button>
+          ) : null}
         </CollapsibleSection>
 
         {footer?.links && footer.links.length > 0 && (
