@@ -234,7 +234,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
       )
     })
 
-    return () => {}
+    return () => { }
   }, [])
 
   const infoResumeUrl = getMedia(info.resume)?.url ?? ''
@@ -280,156 +280,158 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
           </div>
         </div>
 
-        <CollapsibleSection
-          isOpen={open.home}
-          onToggle={() => toggle('home')}
-          onToggleRef={(el) => {
-            toggleRefs.current['toggle-home'] = el
-          }}
-        >
-          <div className={`${styles.content} ${styles.contentNarrow}`}>
-            <div>{safeText(home.subhead)}</div>
-            <div>{safeText(home.intro)}</div>
-          </div>
-        </CollapsibleSection>
+        <div className={styles.sections}>
+          <CollapsibleSection
+            isOpen={open.home}
+            onToggle={() => toggle('home')}
+            onToggleRef={(el) => {
+              toggleRefs.current['toggle-home'] = el
+            }}
+          >
+            <div className={`${styles.content} ${styles.contentNarrow}`}>
+              <div className={styles.subhead}>{safeText(home.subhead)}</div>
+              <div><p>{safeText(home.intro)}</p></div>
+            </div>
+          </CollapsibleSection>
 
-        <CollapsibleSection
-          isOpen={open.info}
-          onToggle={() => toggle('info')}
-          onToggleRef={(el) => {
-            toggleRefs.current['toggle-info'] = el
-          }}
-        >
-          <div className={styles.selfieSection}>
-            <Selfie key={`selfie-${selfieImage?.id || 'none'}`} image={selfieImage} />
-          </div>
+          <CollapsibleSection
+            isOpen={open.info}
+            onToggle={() => toggle('info')}
+            onToggleRef={(el) => {
+              toggleRefs.current['toggle-info'] = el
+            }}
+          >
+            <div className={styles.selfieSection}>
+              <Selfie key={`selfie-${selfieImage?.id || 'none'}`} image={selfieImage} />
+            </div>
 
-          <div className={styles.twoCol}>
-            <div className={styles.content}>
-              <div dangerouslySetInnerHTML={{ __html: info.content_html || '' }} />
-              <div className={styles.linksRow}>
-                {infoResumeUrl ? (
-                  <a className={styles.pill} href={infoResumeUrl} target="_blank" rel="noreferrer">
-                    Resume
-                  </a>
-                ) : null}
-                {info.links?.map((v, i) => {
-                  const title = v?.link?.title || ''
-                  const url = v?.link?.url || ''
-                  if (!title || !url) return null
-                  return (
-                    <a
-                      key={`info-link-${i}`}
-                      className={styles.pill}
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {title}
+            <div className={styles.twoCol}>
+              <div className={styles.content}>
+                <div dangerouslySetInnerHTML={{ __html: info.content_html || '' }} />
+                <div className={styles.linksRow}>
+                  {infoResumeUrl ? (
+                    <a className={styles.pill} href={infoResumeUrl} target="_blank" rel="noreferrer">
+                      Resume
                     </a>
+                  ) : null}
+                  {info.links?.map((v, i) => {
+                    const title = v?.link?.title || ''
+                    const url = v?.link?.url || ''
+                    if (!title || !url) return null
+                    return (
+                      <a
+                        key={`info-link-${i}`}
+                        className={styles.pill}
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {title}
+                      </a>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className={styles.content}>
+                {info.strengths?.map((s, i) => (
+                  <div key={`strength-${i}`} className={styles.strengthItem}>
+                    <div className={styles.strengthTitle}>{s.title}</div>
+                    <div className={styles.strengthList}>{s.strengthsList}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            isOpen={open.dev}
+            onToggle={() => toggle('dev')}
+            onToggleRef={(el) => {
+              toggleRefs.current['toggle-dev'] = el
+            }}
+          >
+            <div
+              className={`${styles.content} ${styles.contentNarrow}`}
+              dangerouslySetInnerHTML={{ __html: dev.content_html || '' }}
+            />
+
+            <div>
+              <div className={`${styles.muted} ${styles.devSubSectionLabel}`}>Projects</div>
+              <div className={styles.list}>
+                {devProjects.length === 0 ? (
+                  <div className={styles.muted}>No projects yet.</div>
+                ) : null}
+                {devProjects.map((p, i) => {
+                  const image = getMedia(p?.image)
+                  return (
+                    <ProjectItem
+                      key={`proj-${p?.id || i}-${image?.id || 'no-image'}`}
+                      title={p?.title || ''}
+                      description={p?.description}
+                      url={p?.link?.url}
+                      image={image}
+                    />
                   )
                 })}
               </div>
             </div>
+          </CollapsibleSection>
 
-            <div className={styles.content}>
-              {info.strengths?.map((s, i) => (
-                <div key={`strength-${i}`} className={styles.strengthItem}>
-                  <div className={styles.strengthTitle}>{s.title}</div>
-                  <div className={styles.strengthList}>{s.strengthsList}</div>
-                </div>
-              ))}
+          <CollapsibleSection
+            isOpen={open.art}
+            onToggle={() => toggle('art')}
+            onToggleRef={(el) => {
+              toggleRefs.current['toggle-art'] = el
+            }}
+          >
+            <div
+              className={`${styles.content} ${styles.contentNarrow}`}
+              dangerouslySetInnerHTML={{ __html: art.content_html || '' }}
+            />
+            {artGallery.length === 0 ? (
+              <div className={styles.muted}>No gallery items yet.</div>
+            ) : null}
+            <div className={styles.galleryGrid}>
+              {artGallery
+                .slice()
+                .reverse()
+                .slice(0, galleryVisibleCount)
+                .map((g, i) => {
+                  const media = getMedia(g.image)
+                  if (!media) return null
+                  const title = g.title || media?.alt || 'Untitled'
+
+                  return (
+                    <div
+                      key={`art-thumb-${g.id || i}-${media.id || 'no-media'}`}
+                      className={styles.thumb}
+                    >
+                      <LightBox media={g}>
+                        <div className={styles.thumbMedia}>
+                          <Media media={media} thumbnail />
+                        </div>
+                        <div className={styles.thumbCaption}>{title}</div>
+                      </LightBox>
+                    </div>
+                  )
+                })}
             </div>
-          </div>
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          isOpen={open.dev}
-          onToggle={() => toggle('dev')}
-          onToggleRef={(el) => {
-            toggleRefs.current['toggle-dev'] = el
-          }}
-        >
-          <div
-            className={`${styles.content} ${styles.contentNarrow}`}
-            dangerouslySetInnerHTML={{ __html: dev.content_html || '' }}
-          />
-
-          <div>
-            <div className={`${styles.muted} ${styles.devSubSectionLabel}`}>Projects</div>
-            <div className={styles.list}>
-              {devProjects.length === 0 ? (
-                <div className={styles.muted}>No projects yet.</div>
-              ) : null}
-              {devProjects.map((p, i) => {
-                const image = getMedia(p?.image)
-                return (
-                  <ProjectItem
-                    key={`proj-${p?.id || i}-${image?.id || 'no-image'}`}
-                    title={p?.title || ''}
-                    description={p?.description}
-                    url={p?.link?.url}
-                    image={image}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          isOpen={open.art}
-          onToggle={() => toggle('art')}
-          onToggleRef={(el) => {
-            toggleRefs.current['toggle-art'] = el
-          }}
-        >
-          <div
-            className={`${styles.content} ${styles.contentNarrow}`}
-            dangerouslySetInnerHTML={{ __html: art.content_html || '' }}
-          />
-          {artGallery.length === 0 ? (
-            <div className={styles.muted}>No gallery items yet.</div>
-          ) : null}
-          <div className={styles.galleryGrid}>
-            {artGallery
-              .slice()
-              .reverse()
-              .slice(0, galleryVisibleCount)
-              .map((g, i) => {
-                const media = getMedia(g.image)
-                if (!media) return null
-                const title = g.title || media?.alt || 'Untitled'
-
-                return (
-                  <div
-                    key={`art-thumb-${g.id || i}-${media.id || 'no-media'}`}
-                    className={styles.thumb}
-                  >
-                    <LightBox media={g}>
-                      <div className={styles.thumbMedia}>
-                        <Media media={media} thumbnail />
-                      </div>
-                      <div className={styles.thumbCaption}>{title}</div>
-                    </LightBox>
-                  </div>
-                )
-              })}
-          </div>
-          {artGallery.length > galleryVisibleCount ? (
-            <button
-              type="button"
-              className={styles.loadMoreButton}
-              onClick={() =>
-                setGalleryVisibleCount((prev) =>
-                  Math.min(prev + GALLERY_LOAD_MORE, artGallery.length),
-                )
-              }
-            >
-              Load more
-            </button>
-          ) : null}
-        </CollapsibleSection>
+            {artGallery.length > galleryVisibleCount ? (
+              <button
+                type="button"
+                className={styles.loadMoreButton}
+                onClick={() =>
+                  setGalleryVisibleCount((prev) =>
+                    Math.min(prev + GALLERY_LOAD_MORE, artGallery.length),
+                  )
+                }
+              >
+                Load more
+              </button>
+            ) : null}
+          </CollapsibleSection>
+        </div>
 
         {footer?.links && footer.links.length > 0 && (
           <div className={`${styles.section} ${styles.footerSection}`} data-reveal>
