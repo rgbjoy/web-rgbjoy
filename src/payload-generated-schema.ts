@@ -446,7 +446,6 @@ export const info_strengths = pgTable(
     _parentID: integer('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
     title: varchar('title').notNull(),
-    strengthsList: varchar('strengths_list').notNull(),
   },
   (columns) => [
     index('info_strengths_order_idx').on(columns._order),

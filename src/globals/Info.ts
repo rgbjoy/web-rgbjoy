@@ -103,32 +103,5 @@ export const Info: GlobalConfig = {
       label: 'Page Content',
       editor: lexicalEditor({}),
     },
-    {
-      name: 'strengths',
-      type: 'array',
-      label: 'Strengths Sections',
-      labels: {
-        singular: 'Strength Section',
-        plural: 'Strength Sections',
-      },
-      admin: {
-        components: {
-          RowLabel: '../components/RowLabel',
-        },
-      },
-      fields: [
-        {
-          name: 'title',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'strengthsList',
-          type: 'text',
-          label: 'Strengths',
-          required: true,
-        },
-      ],
-    },
   ],
 }

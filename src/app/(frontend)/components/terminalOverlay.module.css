@@ -20,7 +20,7 @@
   animation: mysteriousPulse 1.5s ease-in-out infinite;
 }
 
-@media screen and (max-width: 799px) {
+@media screen and (max-width: 768px) {
   .terminalButton {
     display: none;
   }

@@ -7,8 +7,7 @@ import { motion, useAnimation } from 'framer-motion'
 
 import Media from '@/app/(frontend)/components/media'
 import LightBox from '@/app/(frontend)/components/lightbox'
-import DotsBackground from '@/app/(frontend)/components/DotsBackground'
-
+import Background from '@/app/(frontend)/components/Background'
 import type { Art, Dev, Footer, Home, Info, Media as MediaType } from '@payload-types'
 
 import styles from './page.module.css'
@@ -77,6 +76,7 @@ type CollapsibleSectionProps = {
   isOpen: boolean
   onToggle: () => void
   onToggleRef: (el: HTMLElement | null) => void
+  label: string
   children: React.ReactNode
 }
 
@@ -84,6 +84,7 @@ const CollapsibleSection = memo(function CollapsibleSection({
   isOpen,
   onToggle,
   onToggleRef,
+  label,
   children,
 }: CollapsibleSectionProps) {
   return (
@@ -92,6 +93,7 @@ const CollapsibleSection = memo(function CollapsibleSection({
         <button className={styles.toggle} type="button" onClick={onToggle} ref={onToggleRef}>
           {isOpen ? '−' : '+'}
         </button>
+        <div className={styles.sectionTitle}>{label}</div>
       </div>
       <div className={`${styles.collapsible} ${!isOpen ? styles.collapsed : ''}`}>{children}</div>
     </div>
@@ -272,7 +274,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
   return (
     <div className={`${styles.home}`}>
       <div className={styles.grainOverlay} aria-hidden="true" />
-      <DotsBackground />
+      <Background />
       <div ref={rootRef} className={styles.frame}>
         <div className={styles.topbar}>
           <div className={styles.titleWrapper}>
@@ -287,9 +289,10 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             onToggleRef={(el) => {
               toggleRefs.current['toggle-home'] = el
             }}
+            label="Home"
           >
             <div className={`${styles.content} ${styles.contentNarrow}`}>
-              <div className={styles.subhead}>{safeText(home.subhead)}</div>
+              <h2 className={styles.subhead}>{safeText(home.subhead)}</h2>
               <div><p>{safeText(home.intro)}</p></div>
             </div>
           </CollapsibleSection>
@@ -300,6 +303,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             onToggleRef={(el) => {
               toggleRefs.current['toggle-info'] = el
             }}
+            label="Info"
           >
             <div className={styles.selfieSection}>
               <Selfie key={`selfie-${selfieImage?.id || 'none'}`} image={selfieImage} />
@@ -333,14 +337,6 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                 </div>
               </div>
 
-              <div className={styles.content}>
-                {info.strengths?.map((s, i) => (
-                  <div key={`strength-${i}`} className={styles.strengthItem}>
-                    <div className={styles.strengthTitle}>{s.title}</div>
-                    <div className={styles.strengthList}>{s.strengthsList}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           </CollapsibleSection>
 
@@ -350,6 +346,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             onToggleRef={(el) => {
               toggleRefs.current['toggle-dev'] = el
             }}
+            label="Dev"
           >
             <div
               className={`${styles.content} ${styles.contentNarrow}`}
@@ -384,6 +381,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             onToggleRef={(el) => {
               toggleRefs.current['toggle-art'] = el
             }}
+            label="Art"
           >
             <div
               className={`${styles.content} ${styles.contentNarrow}`}

@@ -5,17 +5,13 @@ import { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 
 import { IBM_Plex_Mono } from 'next/font/google'
-import localFont from 'next/font/local'
 
 import TerminalOverlay from '@/components/TerminalOverlay'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ThemeToggle from './components/ThemeToggle'
 
 const montserrat = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
-const myFont = localFont({
-  src: '../../../public/fonts/Rhode-Regular.woff2',
-  variable: '--rhode-font',
-})
+
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://rgbjoy.com'),
@@ -79,7 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${montserrat.className} ${myFont.variable}`}>
+      <body className={`${montserrat.className}`}>
         <ThemeProvider>
           {children}
           <ThemeToggle />

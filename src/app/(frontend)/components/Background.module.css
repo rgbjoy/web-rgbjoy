@@ -1,0 +1,60 @@
+.wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  top: 25vh;
+  bottom: -25vh;
+
+  opacity: 0;
+  transition: opacity 800ms ease-out;
+
+  &.visible {
+    opacity: 1;
+  }
+
+  @media screen and (max-width: 768px) {
+    display: none;
+  }
+}
+
+/* @media screen and (max-width: 768px) {
+  .wrapper {
+    display: none;
+  }
+} */
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Let wheel/scroll pass through to the ScrollControls container underneath */
+  pointer-events: none;
+}
+
+.scrollLayer {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.char {
+  color: currentColor;
+  position: absolute;
+  font-size: 18vw;
+  font-weight: 800;
+  padding: 0;
+  margin: 0;
+  line-height: 0.8em;
+}
+
+.charTopLeft {
+  top: 80px;
+  left: 80px;
+}
+
+.charMidLeft {
+  top: calc(80px + 15vw);
+  left: calc(80px + 15vw);
+}

@@ -12,7 +12,7 @@
 }
 
 .post .date {
-  margin: calc(var(--gutter) / 2) 0 var(--gutter);
+  margin: calc(--gutter / 2) 0 --gutter;
   font-size: 0.8rem;
   color: var(--accent-yellow);
   padding-top: 10px;

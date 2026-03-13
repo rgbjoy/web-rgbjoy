@@ -1,10 +1,10 @@
 import { defineConfig, globalIgnores } from 'eslint/config'
 import nextVitals from 'eslint-config-next/core-web-vitals'
-import nextTs from 'eslint-config-next/typescript'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
 
 const eslintConfig = defineConfig([
   ...nextVitals,
-  ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -12,14 +12,24 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    'src/migrations/**',
   ]),
-  // Custom rules
   {
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
     rules: {
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-empty-object-type': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/triple-slash-reference': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -33,10 +43,9 @@ const eslintConfig = defineConfig([
         },
       ],
     },
-  },
-  // Additional ignores
-  {
-    ignores: ['.next/', 'src/migrations/'],
+    settings: {
+      react: { version: '19' }, // Avoids auto-detection crash
+    },
   },
 ])
 
