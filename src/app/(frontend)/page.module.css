@@ -105,20 +105,32 @@
 }
 
 .sectionHeader {
+  position: sticky;
+  top: 10px;
+  z-index: 10;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-end;
   gap: 4px;
   height: 0;
 }
 
 .sectionTitle {
-  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-text-muted-2);
   min-width: 30px;
   text-align: right;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px; /* after font: inherit so it isn’t overwritten by the shorthand */
+}
+
+.sectionTitle:hover {
+  color: var(--color-text);
 }
 
 .toggle {
@@ -148,14 +160,9 @@
 }
 
 .content {
+  max-width: 750px;
   font-size: 16px;
-  padding-right: 34px;
-}
-
-@media screen and (max-width: 768px) {
-  .content {
-    padding-right: 72px; /* compensate for toggle + 50px label on small screens */
-  }
+  padding-right: 72px;
 }
 
 .content p a {
@@ -349,18 +356,6 @@
 .collapsible .content > div + div {
   opacity: 0.85;
   margin-top: 8px;
-}
-
-.twoCol {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-}
-
-@media screen and (max-width: 768px) {
-  .twoCol {
-    grid-template-columns: 1fr;
-  }
 }
 
 .devSubSection {

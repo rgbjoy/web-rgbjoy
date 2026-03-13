@@ -26,6 +26,8 @@ const themes: { value: Theme; label: string; icon: React.ReactNode }[] = [
   { value: 'blue', label: 'Blue', icon: <Circle size={16} style={{ color: '#6666ff' }} /> },
 ]
 
+const SCROLL_THRESHOLD = 100 // show theme toggle only when scroll is this many px or less from top
+
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const mounted = useIsMounted()
@@ -34,9 +36,10 @@ export default function ThemeToggle() {
   const isVisible = useRef(true)
   const [open, setOpen] = useState(false)
 
-  // Initial fade in
+  // Initial fade in (only when near top)
   useEffect(() => {
-    if (mounted && buttonRef.current) {
+    if (mounted && buttonRef.current && window.scrollY <= SCROLL_THRESHOLD) {
+      isVisible.current = true
       gsap.fromTo(
         buttonRef.current,
         { opacity: 0, y: -20 },
@@ -45,29 +48,15 @@ export default function ThemeToggle() {
     }
   }, [mounted])
 
-  // Hide on scroll down, show on scroll up
+  // Only show when scroll is 100px or less from top
   useEffect(() => {
     if (!mounted) return
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      const scrollingDown = currentScrollY > lastScrollY.current
-      const scrollThreshold = 50 // Minimum scroll before hiding
+      const shouldShow = currentScrollY <= SCROLL_THRESHOLD
 
-      // Only toggle visibility if we've scrolled enough
-      if (Math.abs(currentScrollY - lastScrollY.current) < 10) return
-
-      if (scrollingDown && currentScrollY > scrollThreshold && isVisible.current) {
-        // Hide
-        isVisible.current = false
-        gsap.to(buttonRef.current, {
-          opacity: 0,
-          y: -20,
-          duration: 0.3,
-          ease: 'power2.in',
-        })
-      } else if (!scrollingDown && !isVisible.current) {
-        // Show
+      if (shouldShow && !isVisible.current) {
         isVisible.current = true
         gsap.to(buttonRef.current, {
           opacity: 1,
@@ -75,11 +64,20 @@ export default function ThemeToggle() {
           duration: 0.3,
           ease: 'power2.out',
         })
+      } else if (!shouldShow && isVisible.current) {
+        isVisible.current = false
+        gsap.to(buttonRef.current, {
+          opacity: 0,
+          y: -20,
+          duration: 0.3,
+          ease: 'power2.in',
+        })
       }
 
       lastScrollY.current = currentScrollY
     }
 
+    handleScroll() // set initial visibility from current scroll
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [mounted])

@@ -93,7 +93,11 @@ const CollapsibleSection = memo(function CollapsibleSection({
         <button className={styles.toggle} type="button" onClick={onToggle} ref={onToggleRef}>
           {isOpen ? '−' : '+'}
         </button>
-        <div className={styles.sectionTitle}>{label}</div>
+        {label !== 'Home' ? (
+          <button type="button" className={styles.sectionTitle} onClick={onToggle}>
+            {label}
+          </button>
+        ) : null}
       </div>
       <div className={`${styles.collapsible} ${!isOpen ? styles.collapsed : ''}`}>{children}</div>
     </div>
@@ -305,38 +309,36 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             }}
             label="Info"
           >
-            <div className={styles.selfieSection}>
-              <Selfie key={`selfie-${selfieImage?.id || 'none'}`} image={selfieImage} />
-            </div>
-
-            <div className={styles.twoCol}>
-              <div className={styles.content}>
-                <div dangerouslySetInnerHTML={{ __html: info.content_html || '' }} />
-                <div className={styles.linksRow}>
-                  {infoResumeUrl ? (
-                    <a className={styles.pill} href={infoResumeUrl} target="_blank" rel="noreferrer">
-                      Resume
-                    </a>
-                  ) : null}
-                  {info.links?.map((v, i) => {
-                    const title = v?.link?.title || ''
-                    const url = v?.link?.url || ''
-                    if (!title || !url) return null
-                    return (
-                      <a
-                        key={`info-link-${i}`}
-                        className={styles.pill}
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {title}
-                      </a>
-                    )
-                  })}
+            <div className={styles.content}>
+              {selfieImage ? (
+                <div className={styles.selfieSection}>
+                  <Selfie key={`selfie-${selfieImage.id}`} image={selfieImage} />
                 </div>
+              ) : null}
+              <div dangerouslySetInnerHTML={{ __html: info.content_html || '' }} />
+              <div className={styles.linksRow}>
+                {infoResumeUrl ? (
+                  <a className={styles.pill} href={infoResumeUrl} target="_blank" rel="noreferrer">
+                    Resume
+                  </a>
+                ) : null}
+                {info.links?.map((v, i) => {
+                  const title = v?.link?.title || ''
+                  const url = v?.link?.url || ''
+                  if (!title || !url) return null
+                  return (
+                    <a
+                      key={`info-link-${i}`}
+                      className={styles.pill}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {title}
+                    </a>
+                  )
+                })}
               </div>
-
             </div>
           </CollapsibleSection>
 
