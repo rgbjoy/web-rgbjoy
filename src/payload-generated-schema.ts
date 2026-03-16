@@ -439,25 +439,6 @@ export const info_links = pgTable(
   ],
 )
 
-export const info_strengths = pgTable(
-  'info_strengths',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    title: varchar('title').notNull(),
-  },
-  (columns) => [
-    index('info_strengths_order_idx').on(columns._order),
-    index('info_strengths_parent_id_idx').on(columns._parentID),
-    foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [info.id],
-      name: 'info_strengths_parent_id_fk',
-    }).onDelete('cascade'),
-  ],
-)
-
 export const info = pgTable(
   'info',
   {
@@ -689,13 +670,6 @@ export const relations_info_links = relations(info_links, ({ one }) => ({
     relationName: 'links',
   }),
 }))
-export const relations_info_strengths = relations(info_strengths, ({ one }) => ({
-  _parentID: one(info, {
-    fields: [info_strengths._parentID],
-    references: [info.id],
-    relationName: 'strengths',
-  }),
-}))
 export const relations_info = relations(info, ({ one, many }) => ({
   profileImage: one(media, {
     fields: [info.profileImage],
@@ -709,9 +683,6 @@ export const relations_info = relations(info, ({ one, many }) => ({
   }),
   links: many(info_links, {
     relationName: 'links',
-  }),
-  strengths: many(info_strengths, {
-    relationName: 'strengths',
   }),
 }))
 export const relations_dev_past_projects = relations(dev_past_projects, ({ one }) => ({
@@ -781,7 +752,6 @@ type DatabaseSchema = {
   payload_migrations: typeof payload_migrations
   home: typeof home
   info_links: typeof info_links
-  info_strengths: typeof info_strengths
   info: typeof info
   dev_past_projects: typeof dev_past_projects
   dev: typeof dev
@@ -804,7 +774,6 @@ type DatabaseSchema = {
   relations_payload_migrations: typeof relations_payload_migrations
   relations_home: typeof relations_home
   relations_info_links: typeof relations_info_links
-  relations_info_strengths: typeof relations_info_strengths
   relations_info: typeof relations_info
   relations_dev_past_projects: typeof relations_dev_past_projects
   relations_dev: typeof relations_dev
