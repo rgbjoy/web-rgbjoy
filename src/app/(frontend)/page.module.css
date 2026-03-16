@@ -177,25 +177,16 @@
   margin-top: 0;
 }
 
-.contentNarrow {
-  max-width: calc((100% - 14px) / 2);
-}
-
 .subhead {
   font-size: 23px;
   margin: 0 0 12px 0;
   line-height: 1.2;
+  max-width: 500px;
 }
 
 @media screen and (max-width: 768px) {
   .subhead {
     font-size: 18px;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .contentNarrow {
-    max-width: 100%;
   }
 }
 

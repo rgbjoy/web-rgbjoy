@@ -46,7 +46,7 @@ function BackgroundContent() {
         rotationIntensity={0.7}
         floatIntensity={0.2}
       >
-        <Monstera position={[2, -4, 10]} rotation={[0, 0, 0]} scale={1.3} />
+        <Monstera position={[2, -4, 10]} rotation={[0, 0, 0.2]} scale={1.3} />
       </Float>
 
       <ShadowPlane />

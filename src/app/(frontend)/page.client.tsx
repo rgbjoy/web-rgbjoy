@@ -295,7 +295,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             }}
             label="Home"
           >
-            <div className={`${styles.content} ${styles.contentNarrow}`}>
+            <div className={`${styles.content}`}>
               <h2 className={styles.subhead}>{safeText(home.subhead)}</h2>
               <div><p>{safeText(home.intro)}</p></div>
             </div>
@@ -351,7 +351,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             label="Dev"
           >
             <div
-              className={`${styles.content} ${styles.contentNarrow}`}
+              className={`${styles.content}`}
               dangerouslySetInnerHTML={{ __html: dev.content_html || '' }}
             />
 
@@ -386,7 +386,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             label="Art"
           >
             <div
-              className={`${styles.content} ${styles.contentNarrow}`}
+              className={`${styles.content}`}
               dangerouslySetInnerHTML={{ __html: art.content_html || '' }}
             />
             {artGallery.length === 0 ? (
