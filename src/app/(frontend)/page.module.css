@@ -48,12 +48,6 @@
   transform: translateY(10px);
 }
 
-.topbar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
 .titleWrapper {
   overflow: hidden;
   line-height: 1.2;
@@ -68,7 +62,7 @@
   letter-spacing: 1px;
   font-weight: 800;
   margin: 0;
-  margin-left: -4px;
+  margin-left: -6px;
 }
 @media screen and (max-width: 768px) {
   .title {
@@ -89,12 +83,13 @@
 }
 
 .title :global(.rgb-g:hover) {
-  color: #4fd16a !important;
+  color: #44ff44 !important;
 }
 
 .title :global(.rgb-b:hover) {
   color: #4aa3ff !important;
 }
+
 .section {
   margin-top: 60px;
   height: 100%;
@@ -226,6 +221,11 @@
   display: grid;
   gap: 10px;
   margin-top: 12px;
+}
+
+.list > .projectHeader {
+  width: fit-content;
+  justify-self: start;
 }
 
 .galleryGrid {
@@ -366,43 +366,27 @@
 }
 
 .projectHeader {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  padding: 4px 0;
+  padding: 4px 10px 4px 0;
   position: relative;
+  border: 2px solid transparent;
+  transition:
+    padding-left 0.25s ease,
+    border-color 0.3s ease;
 }
 
 @media (hover: hover) {
+  .projectHeader:hover {
+    padding-left: 12px;
+    border-color: var(--color-text);
+  }
+
   .projectHeader:hover .projectTitle {
     opacity: 1;
   }
-
-  .projectHeader:hover .projectHoverImage {
-    opacity: 0.5;
-    transform: translate(40px, -15%);
-  }
-}
-
-.projectHoverImage {
-  position: absolute;
-  left: 100px;
-  top: 50%;
-  width: 140px;
-  pointer-events: none;
-  opacity: 0;
-  z-index: -1;
-  transform: translate(20px, -15%);
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s ease;
-}
-
-.projectHoverImage img {
-  width: 100%;
-  height: auto;
-  display: block;
 }
 
 .projectPlus {
@@ -420,7 +404,6 @@
 }
 
 .projectContent {
-  margin-top: 12px;
   margin-left: 26px;
   display: flex;
   flex-direction: column;
@@ -459,7 +442,7 @@
 }
 
 .footerSection {
-  margin-top: 48px;
+  margin-top: 120px;
   border-top: 1px solid var(--color-border);
   padding-top: 18px;
 }

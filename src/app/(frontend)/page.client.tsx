@@ -109,7 +109,7 @@ const Selfie = memo(function Selfie({ image }: { image: MediaType | null }) {
   const animationControls = useAnimation()
   const animationVariants = {
     visible: { opacity: 1, filter: 'none' },
-    hidden: { opacity: 0, filter: 'sepia(1) saturate(6) hue-rotate(-20deg)' },
+    hidden: { opacity: 0, filter: 'grayscale(1)' },
   }
 
   useEffect(() => {
@@ -145,54 +145,78 @@ const Selfie = memo(function Selfie({ image }: { image: MediaType | null }) {
   )
 })
 
+const projectRevealVariants = {
+  visible: { opacity: 1, filter: 'none' },
+  hidden: { opacity: 0, filter: 'grayscale(1)' },
+}
+
+const ProjectImageWithReveal = memo(function ProjectImageWithReveal({
+  image,
+  title,
+}: {
+  image: MediaType
+  title: string
+}) {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const imageControls = useAnimation()
+
+  useEffect(() => {
+    if (imageLoaded) {
+      imageControls.start('visible')
+    } else {
+      imageControls.start('hidden')
+    }
+  }, [imageLoaded, imageControls])
+
+  return (
+    <div className={styles.projectImageWrapper}>
+      <motion.div
+        initial="hidden"
+        animate={imageControls}
+        variants={projectRevealVariants}
+        transition={{ ease: 'easeOut', duration: 1, delay: 0.3 }}
+      >
+        <NextImage
+          key={`project-image-${image.id || image.url}`}
+          src={image.url ?? ''}
+          alt={title}
+          width={image.width || 600}
+          height={image.height || 400}
+          className={styles.projectImage}
+          unoptimized
+          onLoad={() => setImageLoaded(true)}
+        />
+      </motion.div>
+    </div>
+  )
+})
+
 const ProjectItem = memo(function ProjectItem({
   title,
   description,
   url,
   image,
+  isOpen,
+  onToggle,
 }: {
   title: string
   description?: string | null
   url?: string | null
   image?: MediaType | null
+  isOpen: boolean
+  onToggle: () => void
 }) {
-  const [isOpen, setIsOpen] = useState(false)
-
   if (!title) return null
 
   return (
     <>
-      <div className={styles.projectHeader} onClick={() => setIsOpen(!isOpen)}>
+      <div className={styles.projectHeader} onClick={onToggle}>
         <span className={styles.projectPlus}>{isOpen ? '−' : '+'}</span>
         <span className={styles.projectTitle}>{title}</span>
-        {!isOpen && image?.url && (
-          <div className={styles.projectHoverImage}>
-            <NextImage
-              key={`project-hover-${image.id || image.url}`}
-              src={image.url}
-              alt=""
-              width={140}
-              height={100}
-              unoptimized
-            />
-          </div>
-        )}
       </div>
       {isOpen && (
         <div className={styles.projectContent}>
-          {image?.url && (
-            <div className={styles.projectImageWrapper}>
-              <NextImage
-                key={`project-image-${image.id || image.url}`}
-                src={image.url}
-                alt={title}
-                width={image.width || 600}
-                height={image.height || 400}
-                className={styles.projectImage}
-                unoptimized
-              />
-            </div>
-          )}
+          {image?.url && <ProjectImageWithReveal image={image} title={title} />}
           {description && <div className={styles.projectDescription}>{description}</div>}
           {url && (
             <a href={url} target="_blank" rel="noreferrer" className={styles.pill}>
@@ -216,6 +240,7 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
     dev: true,
     art: true,
   })
+  const [openProjectIndex, setOpenProjectIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const root = rootRef.current
@@ -280,10 +305,8 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
       <div className={styles.grainOverlay} aria-hidden="true" />
       <Background />
       <div ref={rootRef} className={styles.frame}>
-        <div className={styles.topbar}>
-          <div className={styles.titleWrapper}>
-            <SplitTextTitle text={safeText(home.header) || 'RGBJOY'} />
-          </div>
+        <div className={styles.titleWrapper}>
+          <SplitTextTitle text={safeText(home.header) || 'RGBJOY'} />
         </div>
 
         <div className={styles.sections}>
@@ -370,6 +393,8 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
                       description={p?.description}
                       url={p?.link?.url}
                       image={image}
+                      isOpen={openProjectIndex === i}
+                      onToggle={() => setOpenProjectIndex((prev) => (prev === i ? null : i))}
                     />
                   )
                 })}
