@@ -23,6 +23,8 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "isolatedModules": true,
+    "noUncheckedSideEffectImports": false,
+    "ignoreDeprecations": "6.0",
     "plugins": [
       {
         "name": "next"
