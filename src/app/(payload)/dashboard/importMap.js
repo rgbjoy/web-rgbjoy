@@ -33,6 +33,7 @@ import { ViewSite as ViewSite_095e704cebc2747089ae13285c38fcc4 } from 'src/compo
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
+/** @type import('payload').ImportMap */
 export const importMap = {
   "src/components/RegenerateMediaButton#RegenerateAllMediaButton": RegenerateAllMediaButton_9df4db7fdd08a56c80ab8c638d0f2d07,
   "src/components/RegenerateMediaButton#RegenerateMediaButton": RegenerateMediaButton_9df4db7fdd08a56c80ab8c638d0f2d07,
