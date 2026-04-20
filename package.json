@@ -30,7 +30,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@payloadcms/db-vercel-postgres": "^3.83.0",
+    "@payloadcms/db-postgres": "3.83.0",
     "@payloadcms/next": "^3.83.0",
     "@payloadcms/plugin-redirects": "^3.83.0",
     "@payloadcms/richtext-lexical": "^3.83.0",
