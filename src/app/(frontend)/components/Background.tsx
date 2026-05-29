@@ -21,6 +21,7 @@ function ShadowPlane() {
   const geometry = useMemo(() => {
     const wavyPlane = new PlaneGeometry(1, 1, 140, 140)
     const positions = wavyPlane.attributes.position
+    if (!positions) return wavyPlane
 
     for (let i = 0; i < positions.count; i += 1) {
       const x = positions.getX(i)
