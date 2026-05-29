@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Canvas } from "@react-three/fiber"
 import {
@@ -8,6 +8,7 @@ import {
   Float,
   useProgress
 } from "@react-three/drei"
+import { PlaneGeometry } from "three"
 
 import { useTheme } from "@/app/(frontend)/contexts/ThemeContext"
 import styles from './Background.module.css'
@@ -17,9 +18,31 @@ import { Monstera } from "@/app/(frontend)/components/Monstera"
 function ShadowPlane() {
   const { theme } = useTheme()
   const shadowColor = theme === 'dark' ? '#ffffff' : '#000000'
+  const geometry = useMemo(() => {
+    const wavyPlane = new PlaneGeometry(1, 1, 140, 140)
+    const positions = wavyPlane.attributes.position
+
+    for (let i = 0; i < positions.count; i += 1) {
+      const x = positions.getX(i)
+      const y = positions.getY(i)
+      const eggCrateWave = Math.sin(x * Math.PI * 7) * Math.sin(y * Math.PI * 7)
+
+      positions.setZ(i, eggCrateWave * 0.06)
+    }
+
+    positions.needsUpdate = true
+    wavyPlane.computeVertexNormals()
+    return wavyPlane
+  }, [])
+
   return (
-    <mesh receiveShadow scale={50} position={[0, 0, 0]} rotation={[0, 0.1, 0]}>
-      <planeGeometry />
+    <mesh
+      receiveShadow
+      geometry={geometry}
+      scale={50}
+      position={[0, 0, 0]}
+      rotation={[0, 0.1, 0]}
+    >
       <shadowMaterial transparent opacity={0.3} color={shadowColor} />
     </mesh>
   )
