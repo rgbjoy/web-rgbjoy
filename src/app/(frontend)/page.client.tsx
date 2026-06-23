@@ -419,8 +419,6 @@ export default function PageClient({ home, info, dev, art, footer }: Props) {
             ) : null}
             <div className={styles.galleryGrid}>
               {artGallery
-                .slice()
-                .reverse()
                 .slice(0, galleryVisibleCount)
                 .map((g, i) => {
                   const media = getMedia(g.image)
