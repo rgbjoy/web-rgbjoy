@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import Media from '@/app/(frontend)/components/media'
+import { getLenis } from '@/app/(frontend)/components/SmoothScroll'
 import styles from './lightbox.module.css'
 
 const LightBox = ({ children, media }) => {
@@ -9,12 +10,14 @@ const LightBox = ({ children, media }) => {
   const toggleIsOpen = () => {
     setIsOpen(!isOpen)
     if (!isOpen) {
+      getLenis()?.stop()
       document.querySelector('body')?.classList.add('noscroll')
       const header = document.querySelector('#header')
       const footer = document.querySelector('#footer')
       if (header) header.classList.add('hidden')
       if (footer) footer.classList.add('hidden')
     } else {
+      getLenis()?.start()
       document.querySelector('body')?.classList.remove('noscroll')
       const header = document.querySelector('#header')
       const footer = document.querySelector('#footer')

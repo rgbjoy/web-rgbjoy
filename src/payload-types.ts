@@ -596,7 +596,7 @@ export interface Art {
     [k: string]: unknown;
   } | null;
   /**
-   * Drag and drop multiple images to create a gallery
+   * Drag files to upload. Drag the ⋮⋮ handle to reorder items in the grid.
    */
   gallery?:
     | {

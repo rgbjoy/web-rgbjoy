@@ -37,6 +37,10 @@ export const Art: GlobalConfig = {
       type: 'array',
       label: 'Gallery',
       minRows: 0,
+      labels: {
+        singular: 'Gallery item',
+        plural: 'Gallery items',
+      },
       fields: [
         {
           name: 'image',
@@ -57,9 +61,11 @@ export const Art: GlobalConfig = {
       ],
       admin: {
         components: {
-          Field: '@/fields/gallery/GalleryField#GalleryField',
+          Field: {
+            path: 'src/fields/gallery/GalleryField#GalleryField',
+          },
         },
-        description: 'Drag and drop multiple images to create a gallery',
+        description: 'Drag files to upload. Drag the ⋮⋮ handle to reorder items in the grid.',
       },
     },
   ],

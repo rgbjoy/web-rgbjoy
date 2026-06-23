@@ -26,7 +26,7 @@ import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { default as default_935144eaa686c50486233e3bebb61469 } from 'src/collections/Posts/components/PreviewButton'
 import { default as default_f6fa31600589c439dc5bdb3e586c17dd } from '../../../components/RowLabel'
-import { GalleryField as GalleryField_9b1f91fab7cc643d9301b465dac53fe2 } from '@/fields/gallery/GalleryField'
+import { GalleryField as GalleryField_3462d5497e6a138da29624d7f76ef61e } from 'src/fields/gallery/GalleryField'
 import { default as default_4400d51e7a2660b65c4eaf67863f2820 } from 'src/components/Icon'
 import { default as default_2d5f9b7497b6eba504e72a63092c1c30 } from 'src/components/Logo'
 import { ViewSite as ViewSite_095e704cebc2747089ae13285c38fcc4 } from 'src/components/Admin'
@@ -63,7 +63,7 @@ export const importMap = {
   "@payloadcms/next/client#SlugField": SlugField_2b8867833a34864a02ddf429b0728a40,
   "src/collections/Posts/components/PreviewButton#default": default_935144eaa686c50486233e3bebb61469,
   "../components/RowLabel#default": default_f6fa31600589c439dc5bdb3e586c17dd,
-  "@/fields/gallery/GalleryField#GalleryField": GalleryField_9b1f91fab7cc643d9301b465dac53fe2,
+  "src/fields/gallery/GalleryField#GalleryField": GalleryField_3462d5497e6a138da29624d7f76ef61e,
   "src/components/Icon#default": default_4400d51e7a2660b65c4eaf67863f2820,
   "src/components/Logo#default": default_2d5f9b7497b6eba504e72a63092c1c30,
   "src/components/Admin#ViewSite": ViewSite_095e704cebc2747089ae13285c38fcc4,

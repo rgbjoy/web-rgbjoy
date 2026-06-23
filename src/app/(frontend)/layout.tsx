@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { IBM_Plex_Mono } from 'next/font/google'
 
 import TerminalOverlay from '@/components/TerminalOverlay'
+import SmoothScroll from './components/SmoothScroll'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ThemeToggle from './components/ThemeToggle'
 
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${montserrat.className}`}>
         <ThemeProvider>
+          <SmoothScroll />
           {children}
           <ThemeToggle />
           <TerminalOverlay />

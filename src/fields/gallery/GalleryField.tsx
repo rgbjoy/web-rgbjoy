@@ -1,12 +1,27 @@
 'use client'
 
-import React, { useCallback, useState, useRef } from 'react'
+import React, { useCallback, useState, useRef, useSyncExternalStore } from 'react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   useField,
   FieldLabel,
   Button,
   useForm,
-  useFormFields,
   TextInput,
   TextareaInput,
   useListDrawer,
@@ -17,50 +32,71 @@ import NextImage from 'next/image'
 import './gallery.css'
 import Image from 'next/image'
 
+type GalleryItem = {
+  image: Media | number
+  title?: string
+  description?: string
+}
+
 type GalleryFieldProps = ArrayFieldClientProps
 
-export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
+const subscribeToClientMount = () => () => {}
+const getClientMounted = () => true
+const getServerMounted = () => false
+
+export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path, schemaPath: schemaPathFromProps }) => {
   const fieldPath = path || field.name
-  const { dispatchFields, getDataByPath } = useForm()
+  const schemaPath = schemaPathFromProps ?? field.name
+  const { getDataByPath, addFieldRow, removeFieldRow, moveFieldRow } = useForm()
 
-  const { value, setValue } = useField<
-    Array<{
-      image: Media | number
-      title?: string
-      description?: string
-    }>
-  >({
+  const { rows } = useField({
+    hasRows: true,
     path: fieldPath,
+    potentiallyStalePath: path,
   })
 
-  // Get the actual value from the form using useFormFields - this will be reactive
-  const formValue = useFormFields(([fields]) => {
-    const fieldData = fields[fieldPath]
-    return fieldData?.value
-  })
-
-  // Also try getDataByPath as a fallback - make it reactive
-  const actualValue = React.useMemo(() => {
+  const getGalleryData = useCallback((): GalleryItem[] => {
     try {
       const data = getDataByPath(fieldPath)
-      return data
+      return Array.isArray(data) ? (data as GalleryItem[]) : []
     } catch (_error) {
-      return undefined
+      return []
     }
   }, [getDataByPath, fieldPath])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [openDrawerIndex, setOpenDrawerIndex] = useState<number | null>(null)
+  const [openDrawerRowId, setOpenDrawerRowId] = useState<string | null>(null)
+  const isSortableReady = useSyncExternalStore(
+    subscribeToClientMount,
+    getClientMounted,
+    getServerMounted,
+  )
 
-  // Keep track of the last known good gallery value to prevent disappearing after save
-  const lastKnownGalleryValueRef = useRef<
-    Array<{ image: Media | number; title?: string; description?: string }>
-  >([])
+  const galleryItems = React.useMemo(() => {
+    const data = getGalleryData()
+    if (!rows?.length) {
+      return data.map((item, index) => ({
+        rowId: String(index),
+        item,
+        index,
+      }))
+    }
 
-  const handleOpenMoreDrawer = useCallback((index: number) => {
-    setOpenDrawerIndex(index)
+    return rows.map((row, index) => ({
+      rowId: row.id,
+      item: data[index],
+      index,
+    }))
+  }, [getGalleryData, rows])
+
+  const handleOpenMoreDrawer = useCallback((rowId: string) => {
+    setOpenDrawerRowId(rowId)
+  }, [])
+
+  const handleCloseMoreDrawer = useCallback(() => {
+    setOpenDrawerRowId(null)
   }, [])
 
   // Set up ListDrawer for selecting existing media
@@ -77,13 +113,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
       const mediaId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id
 
       // Get current value
-      const currentValue = Array.isArray(formValue)
-        ? formValue
-        : Array.isArray(value)
-          ? value
-          : Array.isArray(actualValue)
-            ? actualValue
-            : []
+      const currentValue = getGalleryData()
 
       // Check if this media is already in the gallery
       const alreadyExists = currentValue.some((item) => {
@@ -96,85 +126,21 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
       }
 
       // Add the selected media to the gallery
-      const newValue = [...currentValue, { image: mediaId, title: '', description: '' }]
-
-      // Update the ref FIRST to ensure memo uses the latest value
-      lastKnownGalleryValueRef.current = newValue
-
-      // Update gallery
-      dispatchFields({
-        type: 'UPDATE',
+      addFieldRow({
         path: fieldPath,
-        value: newValue,
+        schemaPath,
+        rowIndex: currentValue.length,
+        subFieldState: {
+          image: { initialValue: mediaId, valid: true, value: mediaId },
+          title: { initialValue: '', valid: true, value: '' },
+          description: { initialValue: '', valid: true, value: '' },
+        },
       })
-      setValue(newValue)
 
-      // Close the drawer after selection
       closeDrawer()
     },
-    [dispatchFields, fieldPath, formValue, value, actualValue, setValue, closeDrawer],
+    [addFieldRow, fieldPath, schemaPath, getGalleryData, closeDrawer],
   )
-
-  // Prioritize value (from useField) over formValue since value updates immediately via setValue
-  // formValue can be stale or delayed, so value is more reliable for our custom component
-  // actualValue (from getDataByPath) can be stale, so use it as fallback only
-  // IMPORTANT: If we have a more recent value in the ref (from a delete operation), prioritize it
-  const galleryValue = React.useMemo(() => {
-    // Always ensure we return an array, even if the value is undefined or not an array
-    // Prioritize value first since it updates immediately via setValue
-    // After save, Payload might temporarily return the document ID (number) instead of the array
-    // So we need to check if the value is a number and ignore it
-    let result: Array<{ image: Media | number; title?: string; description?: string }> | null = null
-    let source = 'none'
-
-    // Prioritize value over formValue - value updates immediately via setValue
-    if (Array.isArray(value)) {
-      result = value
-      source = 'value'
-    } else if (Array.isArray(formValue)) {
-      result = formValue
-      source = 'formValue'
-    } else if (Array.isArray(actualValue)) {
-      // Only use actualValue if it matches our ref
-      // If ref differs (more or fewer items), prefer the ref as it's more recent
-      if (
-        lastKnownGalleryValueRef.current.length > 0 &&
-        actualValue.length !== lastKnownGalleryValueRef.current.length
-      ) {
-        // actualValue differs from ref - ref is more recent (from add/delete operation)
-        result = lastKnownGalleryValueRef.current
-        source = 'ref (prevent stale actualValue)'
-      } else {
-        result = actualValue
-        source = 'actualValue'
-      }
-    }
-
-    // If we found a valid array, check if we should use it or prefer the ref
-    if (result) {
-      // If the ref was recently updated (different length or content), prefer it over stale sources
-      // This prevents stale actualValue/formValue from overriding recent changes
-      if (
-        lastKnownGalleryValueRef.current.length > 0 &&
-        (source === 'actualValue' || source === 'formValue') &&
-        (result.length !== lastKnownGalleryValueRef.current.length ||
-          JSON.stringify(result) !== JSON.stringify(lastKnownGalleryValueRef.current))
-      ) {
-        // Source is stale, use ref instead
-        return lastKnownGalleryValueRef.current
-      }
-
-      // Update ref if result is different
-      if (JSON.stringify(result) !== JSON.stringify(lastKnownGalleryValueRef.current)) {
-        lastKnownGalleryValueRef.current = result
-      }
-      return result
-    }
-
-    // If none are arrays, return the last known good value to prevent disappearing after save
-    // This handles the case where after save, the value might temporarily be undefined or a number
-    return lastKnownGalleryValueRef.current
-  }, [value, formValue, actualValue])
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
@@ -197,8 +163,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
           if (Array.isArray(currentFormValue)) {
             return [...currentFormValue]
           }
-          // Fallback to galleryValue if getDataByPath doesn't work
-          return Array.isArray(galleryValue) ? [...galleryValue] : []
+          return []
         }
 
         let currentGalleryValue = getCurrentGalleryValue()
@@ -280,24 +245,22 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
               }
 
               // Add the new media to our accumulator
-              const newGalleryValue = [
+              const rowIndex = currentGalleryValue.length
+              currentGalleryValue = [
                 ...currentGalleryValue,
                 { image: mediaId, title: '', description: '' },
               ]
 
-              // Update the accumulator for the next iteration
-              currentGalleryValue = newGalleryValue
-
-              // Update the ref FIRST to ensure memo uses the latest value
-              lastKnownGalleryValueRef.current = newGalleryValue
-
-              // Update gallery immediately after each successful upload
-              dispatchFields({
-                type: 'UPDATE',
+              addFieldRow({
                 path: fieldPath,
-                value: newGalleryValue,
+                schemaPath,
+                rowIndex,
+                subFieldState: {
+                  image: { initialValue: mediaId, valid: true, value: mediaId },
+                  title: { initialValue: '', valid: true, value: '' },
+                  description: { initialValue: '', valid: true, value: '' },
+                },
               })
-              setValue(newGalleryValue)
 
               // Update the media document with the alt field if needed
               // Payload with S3 storage may require fields to be set after upload
@@ -335,7 +298,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
         setUploading(false)
       }
     },
-    [dispatchFields, fieldPath, getDataByPath, galleryValue, setValue],
+    [addFieldRow, fieldPath, schemaPath, getDataByPath],
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -368,8 +331,7 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
           if (Array.isArray(currentFormValue)) {
             return [...currentFormValue]
           }
-          // Fallback to galleryValue if getDataByPath doesn't work
-          return Array.isArray(galleryValue) ? [...galleryValue] : []
+          return []
         }
 
         let currentGalleryValue = getCurrentGalleryValue()
@@ -451,24 +413,22 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
               }
 
               // Add the new media to our accumulator
-              const newGalleryValue = [
+              const rowIndex = currentGalleryValue.length
+              currentGalleryValue = [
                 ...currentGalleryValue,
                 { image: mediaId, title: '', description: '' },
               ]
 
-              // Update the accumulator for the next iteration
-              currentGalleryValue = newGalleryValue
-
-              // Update the ref FIRST to ensure memo uses the latest value
-              lastKnownGalleryValueRef.current = newGalleryValue
-
-              // Update gallery immediately after each successful upload
-              dispatchFields({
-                type: 'UPDATE',
+              addFieldRow({
                 path: fieldPath,
-                value: newGalleryValue,
+                schemaPath,
+                rowIndex,
+                subFieldState: {
+                  image: { initialValue: mediaId, valid: true, value: mediaId },
+                  title: { initialValue: '', valid: true, value: '' },
+                  description: { initialValue: '', valid: true, value: '' },
+                },
               })
-              setValue(newGalleryValue)
 
               // Update the media document with the alt field if needed
               // Payload with S3 storage may require fields to be set after upload
@@ -509,67 +469,56 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
         }
       }
     },
-    [dispatchFields, fieldPath, getDataByPath, galleryValue, setValue],
+    [addFieldRow, fieldPath, schemaPath, getDataByPath],
   )
 
   const handleRemove = useCallback(
     (index: number) => {
-      // Use the reactive galleryValue which should be up-to-date
-      const currentValue = Array.isArray(galleryValue) ? [...galleryValue] : []
-
-      if (index < 0 || index >= currentValue.length) {
-        return
-      }
-
-      // Calculate new value
-      const newValue = currentValue.filter((_, i) => i !== index)
-
-      // Update the ref FIRST to prevent stale values from being used in memo recalculation
-      lastKnownGalleryValueRef.current = newValue
-
-      // Use REMOVE_ROW - this is the proper way to remove items from array fields
-      // This should update the form state correctly without reading stale values
-      dispatchFields({
-        type: 'REMOVE_ROW',
+      removeFieldRow({
         path: fieldPath,
         rowIndex: index,
       })
-
-      // Update via setValue to ensure immediate UI update
-      // This should work now that REMOVE_ROW has updated the form state
-      setValue(newValue)
     },
-    [dispatchFields, fieldPath, galleryValue, setValue],
+    [removeFieldRow, fieldPath],
   )
 
-  const handleMove = useCallback(
+  const handleReorder = useCallback(
     (fromIndex: number, toIndex: number) => {
-      // Use the reactive galleryValue which is always up-to-date
-      const currentValue = Array.isArray(galleryValue) ? [...galleryValue] : []
+      if (fromIndex === toIndex) return
 
-      // Calculate new value by moving the item
-      const newValue = [...currentValue]
-      const [movedItem] = newValue.splice(fromIndex, 1)
-      if (movedItem) {
-        newValue.splice(toIndex, 0, movedItem)
-      }
-
-      // Update the ref FIRST to ensure memo uses the latest value
-      lastKnownGalleryValueRef.current = newValue
-
-      // Use MOVE_ROW to sync with form state
-      dispatchFields({
-        type: 'MOVE_ROW',
+      moveFieldRow({
         path: fieldPath,
         moveFromIndex: fromIndex,
         moveToIndex: toIndex,
       })
-
-      // Then update via setValue to ensure immediate UI update
-      setValue(newValue)
     },
-    [dispatchFields, fieldPath, galleryValue, setValue],
+    [moveFieldRow, fieldPath],
   )
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
+      if (!over || active.id === over.id) return
+
+      const oldIndex = rows?.findIndex((row) => row.id === active.id) ?? -1
+      const newIndex = rows?.findIndex((row) => row.id === over.id) ?? -1
+      if (oldIndex === -1 || newIndex === -1) return
+
+      handleReorder(oldIndex, newIndex)
+    },
+    [rows, handleReorder],
+  )
+
+  const sortableItemIds = rows?.map((row) => row.id) ?? []
 
   const handleDropZoneClick = useCallback(() => {
     fileInputRef.current?.click()
@@ -644,113 +593,186 @@ export const GalleryField: React.FC<GalleryFieldProps> = ({ field, path }) => {
         </div>
       </div>
 
-      {/* Gallery Grid */}
-      {galleryValue.length > 0 && (
-        <div className="gallery-grid">
-          {[...galleryValue].reverse().map((item, reversedIndex) => {
-            // Calculate the original index (from the end)
-            const originalIndex = galleryValue.length - 1 - reversedIndex
-
-            // Handle both cases: image can be an ID (number) or a populated Media object
-            const imageId = typeof item.image === 'number' ? item.image : item.image?.id
-            const image =
-              typeof item.image === 'object' && item.image !== null && 'url' in item.image
-                ? item.image
-                : null
-
-            const itemPath = `${fieldPath}.${originalIndex}`
-            const titlePath = `${itemPath}.title`
-            const descriptionPath = `${itemPath}.description`
-
-            // Check if this is a video (mp4)
-            const isVideo = image?.mimeType?.startsWith('video/') || image?.mimeType === 'video/mp4'
-
-            return (
-              <div key={originalIndex} className="gallery-item-wrapper">
-                <div className="gallery-item">
-                  {isVideo && image?.url ? (
-                    <video
-                      src={image.url}
-                      muted
-                      autoPlay
-                      loop
-                      playsInline
-                      className="gallery-video"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      {/* Gallery Grid — dnd-kit IDs differ between SSR and client, so sortable mounts after hydration */}
+      {galleryItems.length > 0 &&
+        (isSortableReady ? (
+          <DndContext
+            id="art-gallery-field"
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={sortableItemIds} strategy={rectSortingStrategy}>
+              <div className="gallery-grid">
+                {galleryItems.map(({ rowId, item, index }) =>
+                  item ? (
+                    <SortableGalleryItem
+                      key={rowId}
+                      id={rowId}
+                      item={item}
+                      index={index}
+                      fieldPath={fieldPath}
+                      openDrawerRowId={openDrawerRowId}
+                      onOpenMoreDrawer={handleOpenMoreDrawer}
+                      onCloseMoreDrawer={handleCloseMoreDrawer}
+                      onRemove={handleRemove}
                     />
-                  ) : image?.url ? (
-                    <NextImage
-                      src={image.url}
-                      alt={image.alt || ''}
-                      unoptimized
-                      width={image.width || 0}
-                      height={image.height || 0}
-                    />
-                  ) : imageId ? (
-                    <GalleryImageLoader id={imageId} />
-                  ) : (
-                    <div className="gallery-item-loading">Loading...</div>
-                  )}
-                  <div className="gallery-item-actions">
-                    {originalIndex < galleryValue.length - 1 && (
-                      <Button
-                        buttonStyle="none"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleMove(originalIndex, originalIndex + 1)
-                        }}
-                        className="move-button"
-                      >
-                        ←
-                      </Button>
-                    )}
-                    {originalIndex > 0 && (
-                      <Button
-                        buttonStyle="none"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleMove(originalIndex, originalIndex - 1)
-                        }}
-                        className="move-button"
-                      >
-                        →
-                      </Button>
-                    )}
-                    <Button
-                      buttonStyle="none"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleRemove(originalIndex)
-                      }}
-                      className="remove-button"
-                    >
-                      ×
-                    </Button>
-                    <Button
-                      buttonStyle="none"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleOpenMoreDrawer(originalIndex)
-                      }}
-                      className="more-button"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-                {openDrawerIndex === originalIndex && (
-                  <GalleryItemDrawer
-                    titlePath={titlePath}
-                    descriptionPath={descriptionPath}
-                    onClose={() => setOpenDrawerIndex(null)}
-                  />
+                  ) : null,
                 )}
               </div>
-            )
-          })}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className="gallery-grid">
+            {galleryItems.map(({ rowId, item, index }) =>
+              item ? (
+                <GalleryGridItem
+                  key={rowId}
+                  id={rowId}
+                  item={item}
+                  index={index}
+                  fieldPath={fieldPath}
+                  openDrawerRowId={openDrawerRowId}
+                  onOpenMoreDrawer={handleOpenMoreDrawer}
+                  onCloseMoreDrawer={handleCloseMoreDrawer}
+                  onRemove={handleRemove}
+                />
+              ) : null,
+            )}
+          </div>
+        ))}
+    </div>
+  )
+}
+
+type GalleryGridItemProps = {
+  id: string
+  index: number
+  item: GalleryItem
+  fieldPath: string
+  openDrawerRowId: string | null
+  onOpenMoreDrawer: (rowId: string) => void
+  onCloseMoreDrawer: () => void
+  onRemove: (index: number) => void
+  dragHandleProps?: React.ButtonHTMLAttributes<HTMLButtonElement>
+  wrapperRef?: (node: HTMLElement | null) => void
+  wrapperStyle?: React.CSSProperties
+  isDragging?: boolean
+}
+
+const GalleryGridItem: React.FC<GalleryGridItemProps> = ({
+  id,
+  index,
+  item,
+  fieldPath,
+  openDrawerRowId,
+  onOpenMoreDrawer,
+  onCloseMoreDrawer,
+  onRemove,
+  dragHandleProps,
+  wrapperRef,
+  wrapperStyle,
+  isDragging = false,
+}) => {
+  const imageId = typeof item.image === 'number' ? item.image : item.image?.id
+  const image =
+    typeof item.image === 'object' && item.image !== null && 'url' in item.image ? item.image : null
+
+  const itemPath = `${fieldPath}.${index}`
+  const titlePath = `${itemPath}.title`
+  const descriptionPath = `${itemPath}.description`
+  const isVideo = image?.mimeType?.startsWith('video/') || image?.mimeType === 'video/mp4'
+
+  return (
+    <div ref={wrapperRef} style={wrapperStyle} className="gallery-item-wrapper">
+      <div className={`gallery-item ${isDragging ? 'is-dragging' : ''}`}>
+        <button
+          type="button"
+          className="gallery-drag-handle"
+          aria-label="Drag to reorder"
+          {...dragHandleProps}
+        >
+          ⋮⋮
+        </button>
+        {isVideo && image?.url ? (
+          <video
+            key={`media-video-${imageId}-${image.url}`}
+            src={image.url}
+            muted
+            autoPlay
+            loop
+            playsInline
+            className="gallery-video"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : image?.url ? (
+          <NextImage
+            key={`media-${imageId}-${image.url}`}
+            src={image.url}
+            alt={image.alt || ''}
+            unoptimized
+            width={image.width || 0}
+            height={image.height || 0}
+          />
+        ) : imageId ? (
+          <GalleryImageLoader key={`media-${imageId}`} id={imageId} />
+        ) : (
+          <div className="gallery-item-loading">Loading...</div>
+        )}
+        <div className="gallery-item-actions">
+          <Button
+            buttonStyle="none"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove(index)
+            }}
+            className="remove-button"
+          >
+            ×
+          </Button>
+          <Button
+            buttonStyle="none"
+            onClick={(e) => {
+              e.stopPropagation()
+              onOpenMoreDrawer(id)
+            }}
+            className="more-button"
+          >
+            +
+          </Button>
         </div>
+      </div>
+      {openDrawerRowId === id && (
+        <GalleryItemDrawer
+          titlePath={titlePath}
+          descriptionPath={descriptionPath}
+          onClose={onCloseMoreDrawer}
+        />
       )}
     </div>
+  )
+}
+
+const SortableGalleryItem: React.FC<Omit<GalleryGridItemProps, 'dragHandleProps' | 'wrapperRef' | 'wrapperStyle' | 'isDragging'>> = (
+  props,
+) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.id,
+  })
+
+  return (
+    <GalleryGridItem
+      {...props}
+      wrapperRef={setNodeRef}
+      wrapperStyle={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 1 : undefined,
+      }}
+      isDragging={isDragging}
+      dragHandleProps={{ ...attributes, ...listeners }}
+    />
   )
 }
 
@@ -796,6 +818,8 @@ const GalleryImageLoader: React.FC<{ id: number }> = ({ id }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   React.useEffect(() => {
+    let cancelled = false
+
     fetch(`/api/media/${id}`, {
       credentials: 'include',
     })
@@ -806,14 +830,21 @@ const GalleryImageLoader: React.FC<{ id: number }> = ({ id }) => {
         return res.json()
       })
       .then((data) => {
+        if (cancelled) return
         if (data) {
           setMedia(data)
         }
         setIsLoading(false)
       })
       .catch(() => {
-        setIsLoading(false)
+        if (!cancelled) {
+          setIsLoading(false)
+        }
       })
+
+    return () => {
+      cancelled = true
+    }
   }, [id])
 
   if (isLoading) return <div className="gallery-item-loading">Loading...</div>
@@ -825,6 +856,7 @@ const GalleryImageLoader: React.FC<{ id: number }> = ({ id }) => {
   if (isVideo) {
     return (
       <video
+        key={`media-video-${id}-${media.url}`}
         src={media.url}
         muted
         autoPlay
@@ -838,6 +870,7 @@ const GalleryImageLoader: React.FC<{ id: number }> = ({ id }) => {
 
   return (
     <Image
+      key={`media-image-${id}-${media.url}`}
       src={media.url}
       alt={media.alt || ''}
       width={media.width || 0}

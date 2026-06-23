@@ -17,10 +17,10 @@ export const galleryField = (overrides?: Partial<ArrayField>): ArrayField => {
     admin: {
       components: {
         Field: {
-          path: '@/fields/gallery/GalleryField#GalleryField',
+          path: 'src/fields/gallery/GalleryField#GalleryField',
         },
       },
-      description: 'Drag and drop multiple images to create a gallery',
+      description: 'Drag files to upload. Drag the ⋮⋮ handle to reorder items in the grid.',
       ...overrides?.admin,
     },
     ...overrides,
