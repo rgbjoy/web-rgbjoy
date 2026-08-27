@@ -23,6 +23,16 @@ const MAX_VELOCITY = 30;
 const VELOCITY_DAMPING = 0.985;
 const VELOCITY_SLEEP = 0.015;
 const TICK_COLOR = 0.35;
+/** Velocity magnitude that reaches full chroma saturation. */
+const CHROMA_FULL_VELOCITY = 6;
+/** How much of the hue wheel the flow heading sweeps through. */
+const CHROMA_HEADING_SPREAD = 1;
+/** Hue cycles per second, so a still field still shimmers. */
+const CHROMA_DRIFT_RATE = 0.06;
+/** Extra hue offset applied by fast-moving ticks. */
+const CHROMA_ENERGY_SHIFT = 0.25;
+/** Brightness multiplier on the saturated end of the ramp. */
+const CHROMA_GAIN = 1.25;
 const PULSE_MIN_MS = 1680;
 const PULSE_MAX_MS = 3920;
 const ARC_LENGTH_MIN = 56;
@@ -41,6 +51,7 @@ type SimulationPrograms = {
   gradientSubtraction: GPUProgram;
   damping: GPUProgram;
   touch: GPUProgram;
+  chroma: GPUProgram;
 };
 
 function stepSimulation(
@@ -84,11 +95,13 @@ function stepSimulation(
     output: velocityState,
   });
 
+  programs.chroma.setUniform("u_time", performance.now() / 1000);
+
   composer.drawLayerAsVectorField({
     layer: velocityState,
     vectorSpacing: 10,
     vectorScale: 2.5,
-    color: [TICK_COLOR, TICK_COLOR, TICK_COLOR],
+    program: programs.chroma,
   });
 }
 
@@ -318,6 +331,50 @@ export function FluidVelocityBackground() {
       ],
     });
 
+    // Colors each velocity tick instead of drawing it flat grey: hue follows the
+    // flow heading, saturation ramps with speed, so still areas stay neutral.
+    const chroma = new GPUProgram(composer, {
+      name: "chroma",
+      fragmentShader: `
+        in vec2 v_uv;
+
+        uniform sampler2D u_velocity;
+        uniform float u_time;
+
+        out vec4 out_color;
+
+        // Inigo Quilez cosine palette — https://iquilezles.org/articles/palettes/
+        vec3 cosinePalette(float t) {
+          return clamp(
+            vec3(0.56) + vec3(0.44) * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67))),
+            0.0,
+            1.0
+          );
+        }
+
+        void main() {
+          vec2 velocity = texture(u_velocity, v_uv).xy;
+          float energy = clamp(length(velocity) / ${CHROMA_FULL_VELOCITY.toFixed(1)}, 0.0, 1.0);
+          float heading = atan(velocity.y, velocity.x) / 6.28318;
+
+          float t = heading * ${CHROMA_HEADING_SPREAD.toFixed(2)}
+            + u_time * ${CHROMA_DRIFT_RATE.toFixed(2)}
+            + energy * ${CHROMA_ENERGY_SHIFT.toFixed(2)};
+
+          vec3 color = mix(
+            vec3(${TICK_COLOR.toFixed(2)}),
+            cosinePalette(t) * ${CHROMA_GAIN.toFixed(2)},
+            smoothstep(0.0, 1.0, energy)
+          );
+
+          out_color = vec4(color, 1.0);
+        }`,
+      uniforms: [
+        { name: "u_velocity", value: 0, type: INT },
+        { name: "u_time", value: 0, type: FLOAT },
+      ],
+    });
+
     programsRef.current = {
       advection,
       divergence2D,
@@ -325,6 +382,7 @@ export function FluidVelocityBackground() {
       gradientSubtraction,
       damping,
       touch,
+      chroma,
     };
 
     composer.clearValue = [0, 0, 0, 1];
@@ -587,6 +645,7 @@ export function FluidVelocityBackground() {
       programsRef.current?.gradientSubtraction.dispose();
       programsRef.current?.damping.dispose();
       programsRef.current?.touch.dispose();
+      programsRef.current?.chroma.dispose();
       composerRef.current?.dispose();
 
       velocityStateRef.current = null;
