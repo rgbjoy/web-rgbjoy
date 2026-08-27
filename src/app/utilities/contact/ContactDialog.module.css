@@ -56,11 +56,17 @@
   background: none;
   cursor: pointer;
   color: var(--faint);
-  transition: color var(--transition);
+  transition: color var(--rollover-fade);
 }
 
-.close:hover {
-  color: var(--fg);
+@media (hover: hover) {
+  .close:hover {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.close:active {
+  color: var(--rollover-seed, var(--fg));
 }
 
 .close:focus-visible,
@@ -149,11 +155,21 @@
   letter-spacing: 0.04em;
   text-transform: lowercase;
   color: var(--fg);
-  transition: background var(--transition), color var(--transition);
+  transition: border-color var(--rollover-fade),
+    background var(--rollover-fade), color var(--transition);
 }
 
-.submit:hover:not(:disabled) {
-  background: var(--fg);
+@media (hover: hover) {
+  .submit:hover:not(:disabled) {
+    border-color: var(--rollover-seed, var(--fg));
+    background: var(--rollover-seed, var(--fg));
+    color: var(--bg);
+  }
+}
+
+.submit:active:not(:disabled) {
+  border-color: var(--rollover-seed, var(--fg));
+  background: var(--rollover-seed, var(--fg));
   color: var(--bg);
 }
 

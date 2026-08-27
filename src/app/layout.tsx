@@ -2,8 +2,9 @@ import type { Metadata } from "next"
 import { Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
 
 import { SITE } from "./data/site"
+import { RolloverChroma } from "./utilities/RolloverChroma"
 import { SETTINGS_BOOT_SCRIPT } from "./utilities/settings/constants"
-import ShaderPalette from "./utilities/ShaderPalette"
+import SearchPalette from "./utilities/SearchPalette/SearchPalette"
 import "./globals.css"
 
 const geistMono = Geist_Mono({
@@ -11,7 +12,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
-// Kept for ShaderPalette, which still references these CSS variables.
+// Kept for SearchPalette, which still references these CSS variables.
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
   subsets: ["latin"],
@@ -62,7 +63,8 @@ export default function RootLayout({
       <body
         className={`${geistMono.variable} ${geistMono.className} ${plexSans.variable} ${plexMono.variable}`}
       >
-        <ShaderPalette />
+        <SearchPalette />
+        <RolloverChroma />
         {children}
       </body>
     </html>

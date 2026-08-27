@@ -14,7 +14,7 @@ export type Experiment = {
 
 /** Group display order on the index. */
 export const EXPERIMENT_GROUPS = [
-  "Games",
+  "Play",
   "Generative & Visual",
   "Glass & Refraction",
   "3D & Spatial",
@@ -45,7 +45,7 @@ export const EXPERIMENTS: Experiment[] = [
     title: "Frog Ace",
     description:
       "Read the wind, pull back, and spring a tiny frog across a branching lily-pad course.",
-    group: "Games",
+    group: "Play",
     date: "2026-08",
     status: "wip",
     keywords: ["frog", "game", "lily pad", "three", "aim", "jump", "wind", "golf"],

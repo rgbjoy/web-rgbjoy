@@ -3,20 +3,26 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  /* Touch target, while the gear itself stays 16px. */
+  /* Touch target; the bars themselves stay 18px wide. */
   width: 34px;
   height: 34px;
   margin-right: -8px;
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--faint);
-  transition: color var(--transition);
+  color: var(--fg);
+  transition: color var(--rollover-fade);
 }
 
-.trigger:hover,
+@media (hover: hover) {
+  .trigger:hover {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.trigger:active,
 .trigger[data-state="open"] {
-  color: var(--fg);
+  color: var(--rollover-seed, var(--fg));
 }
 
 .trigger:focus-visible {
@@ -26,37 +32,44 @@
 
 .bars {
   --bar-width: 18px;
-  --bar-gap: 6px;
+  /* Centre-to-centre, so the open state is exactly half of it in each
+     direction. Measuring edges instead left the two strokes 1px short of
+     meeting, which is what made the X look off. */
+  --bar-gap: 7px;
+  --bar-thickness: 1px;
   position: relative;
   display: block;
   width: var(--bar-width);
-  height: calc(var(--bar-gap) + 2px);
+  height: calc(var(--bar-gap) + var(--bar-thickness));
 }
 
+/* Both bars sit dead centre and are offset from there, so closing the gap is
+   simply dropping the offset — no arithmetic that can drift out of step. */
 .bar {
   position: absolute;
+  top: 50%;
   left: 0;
   width: 100%;
-  height: 1px;
+  height: var(--bar-thickness);
   background: currentColor;
   transition: transform var(--transition);
 }
 
 .bar:first-child {
-  top: 0;
+  transform: translateY(-50%) translateY(calc(var(--bar-gap) / -2));
 }
 
 .bar:last-child {
-  bottom: 0;
+  transform: translateY(-50%) translateY(calc(var(--bar-gap) / 2));
 }
 
-/* Open reads as close: both bars slide to the middle and cross. */
+/* Open reads as close: the offsets drop away and the bars cross at centre. */
 .trigger[data-state="open"] .bar:first-child {
-  transform: translateY(calc(var(--bar-gap) / 2)) rotate(45deg);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .trigger[data-state="open"] .bar:last-child {
-  transform: translateY(calc(var(--bar-gap) / -2)) rotate(-45deg);
+  transform: translateY(-50%) rotate(-45deg);
 }
 
 /* Portalled to the body, so it carries the page font explicitly. */
@@ -70,7 +83,7 @@
   font-size: 16px;
   letter-spacing: 0.04em;
   text-transform: lowercase;
-  color: var(--muted);
+  color: var(--fg);
 }
 
 .item {
@@ -81,25 +94,45 @@
   cursor: pointer;
   outline: none;
   user-select: none;
-  transition: background var(--transition), color var(--transition);
+  transition: background var(--transition), color var(--rollover-fade);
 }
 
 .item[data-highlighted] {
   background: var(--hover);
+  color: var(--bg);
 }
 
-.item[data-state="checked"] {
-  color: var(--fg);
+.item[data-highlighted] .mark {
+  color: var(--bg);
 }
 
 .mark {
   width: 14px;
   flex-shrink: 0;
-  color: var(--faint);
+  color: var(--fg);
 }
 
 .separator {
   height: 1px;
   margin: 4px 12px;
   background: var(--hairline);
+}
+
+/* Keyboard hint, pushed to the trailing edge of the row. Hidden where there is
+   no keyboard to press it on — a coarse pointer has nothing to do with ⌘F. */
+.hint {
+  margin-left: auto;
+  padding-left: var(--gap);
+  font-size: 13px;
+  color: var(--faint);
+}
+
+@media (pointer: coarse) {
+  .hint {
+    display: none;
+  }
+}
+
+.item[data-highlighted] .hint {
+  color: var(--bg);
 }

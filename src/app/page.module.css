@@ -42,26 +42,56 @@
 }
 
 .container {
+  /* Height of the pinned title row. The controls bar parks directly beneath it,
+     so the two must agree — hence one number rather than two. */
+  --lockup-h: 68px;
   width: 100%;
-  padding: 0 var(--gutter);
+  /* Breathing room above the lockup that scrolls away, leaving it flush to the
+     top edge once pinned. */
+  padding: 40px var(--gutter) 0;
 }
 
 /* Masthead */
 
-.masthead {
+/* rgbjoy.com and the menu, pinned together for the whole page. */
+.lockup {
+  position: sticky;
+  top: 0;
+  /* Over the controls bar (5) and the background, under the menu and dialogs. */
+  z-index: 7;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--gap);
-  padding: 56px 0 28px;
+  height: var(--lockup-h);
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid transparent;
+  isolation: isolate;
 }
 
-.mastheadLead {
+.lockupStuck {
+  border-bottom-color: var(--hairline);
+}
+
+.lockupStuck::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.masthead {
   max-width: 560px;
+  padding: 4px 0 28px;
 }
 
 .title {
-  margin: 0 0 12px;
+  margin: 0;
   min-height: 1.3em;
   font-size: 28px;
   line-height: 1.3;
@@ -76,6 +106,22 @@
   font-size: 16px;
   line-height: 1.55;
   color: var(--muted);
+}
+
+/* Each character lands on a red, green, or blue seed and resolves to whatever
+   colour it inherits. Deliberately no `forwards` and no explicit `to`: a filled
+   animation outranks normal declarations, so it froze every character's colour
+   and hover could never reach the letters inside a link. Without the fill, the
+   implicit end value is the inherited colour and hover works normally once the
+   fade is done. Under reduced motion the global reset collapses it to a swap. */
+.typedChar {
+  animation: typed-char-in 620ms ease-out;
+}
+
+@keyframes typed-char-in {
+  from {
+    color: var(--char-seed);
+  }
 }
 
 /* Invisible full copy holds layout so typing does not shift the page. */
@@ -99,11 +145,19 @@
   color: var(--fg);
   text-decoration: underline;
   text-underline-offset: 3px;
-  transition: color var(--transition);
+  transition: color var(--rollover-fade);
 }
 
-.subtitleLink:hover {
-  color: var(--muted);
+@media (hover: hover) {
+  .subtitleLink:hover {
+    color: var(--rollover-seed, var(--muted));
+  }
+}
+
+@media (hover: hover) {
+  .subtitleLink:active {
+    color: var(--rollover-seed, var(--muted));
+  }
 }
 
 .subtitleLink:focus-visible {
@@ -117,14 +171,15 @@
   --control-pad-y: 8px;
   --control-line: 1.25;
   position: sticky;
-  top: 0;
+  top: var(--lockup-h);
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: var(--gap);
+  justify-content: flex-start;
+  gap: 2px;
   flex-wrap: nowrap;
   margin: 0 calc(var(--gutter) * -1);
-  padding: 14px var(--gutter);
+  padding: 8px var(--gutter);
   background: transparent;
   border-bottom: 1px solid transparent;
   isolation: isolate;
@@ -139,6 +194,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   pointer-events: none;
@@ -148,173 +204,73 @@
   padding-bottom: 48px;
 }
 
-.search {
+/* Every control in the bar shares one size: 28px tall, icon or text. */
+.controlButton,
+.sortButton {
   display: flex;
-  align-items: center;
-  gap: var(--gap-tight);
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: calc(var(--control-line) * 1em + var(--control-pad-y) * 2);
-  padding: var(--control-pad-y) 0;
-  border-bottom: 1px solid var(--hairline);
-  box-sizing: border-box;
-}
-
-.searchSlash {
-  color: var(--muted);
-  font-size: 16px;
-  line-height: var(--control-line);
-}
-
-.searchInput {
-  width: 100%;
-  min-height: calc(var(--control-line) * 1em);
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 16px;
-  line-height: var(--control-line);
-  color: var(--fg);
-}
-
-.searchInput::placeholder {
-  color: var(--faint);
-}
-
-.searchInput:focus {
-  outline: none;
-}
-
-.searchClear {
-  display: flex;
-  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  height: 28px;
+  padding: 0 8px;
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--faint);
-  transition: color var(--transition);
-}
-
-.searchClear:hover {
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
   color: var(--fg);
+  transition: color var(--rollover-fade);
 }
 
-.searchClear:focus-visible {
+/* Pulls the first icon, not its touch padding, into line with the gutter. */
+.controls .controlButton:first-child {
+  margin-left: -8px;
+}
+
+.controlsRule {
+  width: 1px;
+  height: 14px;
+  margin: 0 8px;
+  background: var(--hairline);
+}
+
+/* Pulls the icon, not the touch padding, into line with the toggle column. */
+/* Dimmed once its action would do nothing — everything already open, or already
+   closed. The one place dimming is right: it marks unavailable, not secondary. */
+.controlButton:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .controlButton:hover:not(:disabled) {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+@media (hover: hover) {
+  .controlButton:active:not(:disabled) {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.controlButton:focus-visible, .sortButton:focus-visible {
   outline: 1px solid var(--fg);
   outline-offset: 2px;
 }
 
-.sort {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: var(--gap);
-  font-size: 16px;
-  line-height: var(--control-line);
-  text-transform: lowercase;
-  letter-spacing: 0.04em;
-}
-
-.sortButton {
-  min-height: calc(var(--control-line) * 1em + var(--control-pad-y) * 2);
-  padding: var(--control-pad-y) 0;
-  border: none;
-  border-bottom: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  line-height: var(--control-line);
-  letter-spacing: inherit;
-  text-transform: inherit;
+.sortButton:not(.sortButtonActive) {
   color: var(--faint);
-  box-sizing: border-box;
-  transition: color var(--transition), border-color var(--transition);
 }
 
 .sortButtonActive {
   color: var(--fg);
-  border-bottom-color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 /* Sort dropdown (narrow screens) */
-
-.sortTrigger {
-  display: none;
-  flex-shrink: 0;
-  align-items: center;
-  gap: var(--gap-tight);
-  min-height: calc(var(--control-line) * 1em + var(--control-pad-y) * 2);
-  padding: var(--control-pad-y) 0;
-  border: none;
-  border-bottom: 1px solid var(--hairline);
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  font-size: 16px;
-  line-height: var(--control-line);
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: var(--fg);
-  box-sizing: border-box;
-}
-
-.sortTrigger:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-.sortCaret {
-  flex-shrink: 0;
-  color: var(--faint);
-  transition: transform var(--transition), color var(--transition);
-}
-
-.sortTrigger[data-state="open"] .sortCaret {
-  transform: rotate(180deg);
-}
-
-/* Portalled to the body, so it carries the page font explicitly. */
-.sortContent {
-  z-index: 20;
-  min-width: 148px;
-  padding: 4px;
-  border: 1px solid var(--hairline);
-  background: var(--bg);
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 16px;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: var(--muted);
-}
-
-.sortItem {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-tight);
-  padding: 12px;
-  cursor: pointer;
-  outline: none;
-  user-select: none;
-  transition: background var(--transition), color var(--transition);
-}
-
-.sortItem[data-highlighted] {
-  background: var(--hover);
-}
-
-.sortItem[data-state="checked"] {
-  color: var(--fg);
-}
-
-.sortMark {
-  width: 14px;
-  flex-shrink: 0;
-  color: var(--faint);
-}
 
 /* Parent category */
 
@@ -348,6 +304,7 @@
   letter-spacing: 0.04em;
   text-transform: lowercase;
   color: var(--fg);
+  transition: color var(--rollover-fade);
 }
 
 .categoryRule {
@@ -367,11 +324,21 @@
   flex-shrink: 0;
   align-self: center;
   color: var(--faint);
-  transition: color var(--transition);
+  transition: color var(--rollover-fade);
 }
 
-.categoryHeader:hover .categoryToggle {
-  color: var(--fg);
+@media (hover: hover) {
+  .categoryHeader:hover .categoryName,
+  .categoryHeader:hover .categoryToggle {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+@media (hover: hover) {
+  .categoryHeader:active .categoryName,
+  .categoryHeader:active .categoryToggle {
+    color: var(--rollover-seed, var(--fg));
+  }
 }
 
 .categoryHeader:focus-visible {
@@ -407,12 +374,14 @@
 
 .groupName {
   margin: 0;
+  /* Smaller and indented relative to a parent category, but not dimmer — the
+     nesting is the hierarchy. */
   font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: lowercase;
-  color: var(--muted);
-  transition: color var(--transition);
+  color: var(--fg);
+  transition: color var(--rollover-fade);
 }
 
 .groupRule {
@@ -431,12 +400,21 @@
   flex-shrink: 0;
   align-self: center;
   color: var(--faint);
-  transition: color var(--transition);
+  transition: color var(--rollover-fade);
 }
 
-.groupHeader:hover .groupName,
-.groupHeader:hover .groupToggle {
-  color: var(--fg);
+@media (hover: hover) {
+  .groupHeader:hover .groupName,
+  .groupHeader:hover .groupToggle {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+@media (hover: hover) {
+  .groupHeader:active .groupName,
+  .groupHeader:active .groupToggle {
+    color: var(--rollover-seed, var(--fg));
+  }
 }
 
 .groupHeader:focus-visible {
@@ -458,9 +436,26 @@
   transition: background var(--transition);
 }
 
-.item:hover,
+/* A solid fill, so every descendant flips with it — the title, description,
+   date and arrow each carry their own colour and would otherwise sit at their
+   normal value on an inverted ground. */
+@media (hover: hover) {
+  .item:hover {
+    background: var(--hover);
+    color: var(--bg);
+  }
+}
+
+@media (hover: hover) {
+  .item:active {
+    background: var(--hover);
+    color: var(--bg);
+  }
+}
+
 .item:focus-visible {
   background: var(--hover);
+  color: var(--bg);
   outline: none;
 }
 
@@ -490,17 +485,53 @@
   letter-spacing: -0.01em;
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: color var(--rollover-fade);
 }
 
 .itemExternal {
   flex-shrink: 0;
   color: var(--faint);
-  transition: color var(--transition);
+  transition: color var(--rollover-fade);
 }
 
-.item:hover .itemExternal,
-.item:focus-visible .itemExternal {
-  color: var(--fg);
+@media (hover: hover) {
+  .item:hover .itemExternal,
+  .item:hover .itemDesc,
+  .item:hover .itemDate {
+    color: var(--bg);
+  }
+}
+
+@media (hover: hover) {
+  .item:active .itemExternal,
+  .item:active .itemDesc,
+  .item:active .itemDate {
+    color: var(--bg);
+  }
+}
+
+.item:focus-visible .itemExternal,
+.item:focus-visible .itemDesc,
+.item:focus-visible .itemDate {
+  color: var(--bg);
+}
+
+/* No chroma seed here: on an inverted row the fill is the whole signal, and a
+   bright seed on white reads as an accident. */
+@media (hover: hover) {
+  .item:hover .itemTitle {
+    color: var(--bg);
+  }
+}
+
+@media (hover: hover) {
+  .item:active .itemTitle {
+    color: var(--bg);
+  }
+}
+
+.item:focus-visible .itemTitle {
+  color: var(--bg);
 }
 
 .itemDesc {
@@ -521,30 +552,6 @@
 
 /* Empty state */
 
-.empty {
-  padding: 80px 0;
-  text-align: center;
-  font-size: 16px;
-  letter-spacing: 0.02em;
-  color: var(--faint);
-}
-
-.emptyHeading {
-  margin-bottom: 8px;
-  font-size: 16px;
-  color: var(--muted);
-}
-
-.emptyReset {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  color: var(--fg);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 @media (pointer: coarse), (hover: none) {
   .page {
     touch-action: pan-y;
@@ -552,22 +559,13 @@
 }
 
 @media (max-width: 640px) {
-  /* Rule runs to the left edge; the slash and input stay on the gutter. */
-  .search {
-    margin-left: calc(var(--gutter) * -1);
-    padding-left: var(--gutter);
+  .container {
+    --lockup-h: 56px;
+    padding-top: 28px;
   }
 
-  .sort {
-    display: none;
-  }
-
-  .sortTrigger {
-    display: flex;
-  }
-
-  .masthead {
-    padding: 36px 0 20px;
+      .masthead {
+    padding: 4px 0 20px;
   }
 
   .title {

@@ -7,7 +7,13 @@
   --muted: #a6a6a6;
   --faint: #9a9a9a;
   --hairline: #333333;
-  --hover: rgba(255, 255, 255, 0.06);
+  /* Hover fill is the foreground extreme, not a tint: pure white on the dark
+     theme, pure black on the light one. Resolves per theme via --fg. */
+  --hover: var(--fg);
+  /* Chroma seeds: typed characters fade in from these, and rollovers pick one. */
+  --seed-r: #ff4d4d;
+  --seed-g: #4dff88;
+  --seed-b: #4d8bff;
   --background: var(--bg);
   --foreground: var(--fg);
 
@@ -19,8 +25,11 @@
   /* Width of the toggle column; also the amount a subcategory nests by. */
   --toggle: 14px;
 
-  /* Every rollover eases on this. */
-  --transition: 0.12s ease;
+  /* Every rollover eases on these. The curve leaves immediately and settles
+     hard, so short durations still read as motion rather than a cut. */
+  --transition: 0.09s cubic-bezier(0.2, 0, 0, 1);
+  /* Rollover colour specifically, given slightly longer to travel. */
+  --rollover-fade: 0.16s cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* Opt-in only: dark is the site's look, not a fallback, so the system's colour
@@ -31,7 +40,10 @@
   --muted: #4a4a4a;
   --faint: #565656;
   --hairline: #d6d6d6;
-  --hover: rgba(0, 0, 0, 0.05);
+  /* Darkened so the seeds read on paper — #4dff88 on white is invisible. */
+  --seed-r: #d81b1b;
+  --seed-g: #10883a;
+  --seed-b: #2450c8;
 }
 
 /* Follows the OS until the gear overrides it. Zeroing --transition catches every
@@ -117,4 +129,11 @@ a {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* Suppresses the grey box iOS paints over a tapped element, which fires on
+   touch-down and so also flashes during a drag that turns into a scroll. */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
 }

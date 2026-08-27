@@ -68,9 +68,13 @@ export function ContactDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.content} aria-describedby={undefined}>
+        <Dialog.Content
+          className={styles.content}
+          aria-describedby={undefined}
+          data-lenis-prevent
+        >
           <div className={styles.header}>
-            <Dialog.Title className={styles.title}>say hello</Dialog.Title>
+            <Dialog.Title className={styles.title}>say hello to tom</Dialog.Title>
             <Dialog.Close className={styles.close} aria-label="Close">
               <X size={14} strokeWidth={1.75} aria-hidden />
             </Dialog.Close>

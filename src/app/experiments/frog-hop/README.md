@@ -14,7 +14,7 @@ lily pad. Everything past the dock is generated.
 
 Route: [`/frog-hop`](../frog-hop/page.tsx) → thin wrapper that renders
 `FrogHopPage`. Registered in [`experiments.ts`](../experiments.ts) under
-**Games**, status `wip`.
+**Play**, status `wip`.
 
 Built on plain React Three Fiber + Three.js primitives — no drei, no
 postprocessing, no physics engine. Everything (frog, dock, pads, lilies, logs,

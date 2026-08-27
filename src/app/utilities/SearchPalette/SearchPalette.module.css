@@ -1,0 +1,253 @@
+/* Deliberately mirrors ContactDialog: same shell, same header, same rhythm. The
+   two are siblings and should not look like they came from different sites. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/*
+ * Centred and capped. The panel is a flex column whose results pane is the only
+ * thing allowed to grow, so a long list scrolls inside a panel that stays put
+ * rather than growing past the viewport.
+ */
+.panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  width: min(600px, calc(100vw - var(--gutter) * 2));
+  max-height: min(560px, calc(100dvh - var(--gutter) * 2));
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 16px;
+  color: var(--fg);
+}
+
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: -6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--faint);
+  transition: color var(--rollover-fade);
+}
+
+@media (hover: hover) {
+  .close:hover {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.close:active {
+  color: var(--rollover-seed, var(--fg));
+}
+
+.close:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.field {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--gap-tight);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.slash {
+  flex-shrink: 0;
+  color: var(--faint);
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--fg);
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--faint);
+}
+
+/* The only growing child, and the only scrolling one. Negative margins let rows
+   run to the panel edge while the pane keeps the panel's padding. */
+/* Full-bleed happens here and only here. The pane widens to the panel's border,
+   and rows carry the 20px inset as padding — so a selected row's fill reaches
+   the border exactly, and its text still lines up with the header above. */
+.results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -20px;
+  padding: 4px 0;
+}
+
+.empty {
+  margin: 0;
+  padding: 16px 20px;
+  color: var(--muted);
+}
+
+.result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--gap);
+  align-items: baseline;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  transition: background var(--transition), color var(--transition);
+}
+
+/*
+ * Selection and hover are the same state here: the pointer sets the index, so
+ * there is never a second highlight competing with the keyboard's.
+ *
+ * Gated on having a pointer at all. A touch device has no hover and no arrow
+ * keys, so the index just sits at 0 and paints a permanent highlight on the
+ * first row — which reads as "this is chosen" when nothing is.
+ */
+@media (hover: hover) {
+  .resultSelected {
+    background: var(--hover);
+    color: var(--bg);
+  }
+
+  .resultSelected .resultDesc,
+  .resultSelected .resultMeta {
+    color: var(--bg);
+  }
+
+  .resultSelected .badge {
+    border-color: var(--bg);
+    color: var(--bg);
+  }
+}
+
+/* Touch gets feedback from the press instead, which ends with the finger. */
+.result:active {
+  background: var(--hover);
+  color: var(--bg);
+}
+
+.result:active .resultDesc,
+.result:active .resultMeta {
+  color: var(--bg);
+}
+
+.result:active .badge {
+  border-color: var(--bg);
+  color: var(--bg);
+}
+
+.result:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: -1px;
+}
+
+.resultBody {
+  display: block;
+  min-width: 0;
+}
+
+.resultTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-tight);
+  font-weight: 500;
+}
+
+.badge {
+  padding: 1px 5px;
+  border: 1px solid var(--faint);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--faint);
+}
+
+.resultDesc {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.resultMeta {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--faint);
+}
+
+.hint {
+  flex-shrink: 0;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--faint);
+}
+
+@media (max-width: 640px) {
+  .result {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resultMeta {
+    grid-column: 1;
+  }
+}
+
+/* Arrows, enter and esc need a keyboard; a coarse pointer has none. */
+@media (pointer: coarse) {
+  .hint {
+    display: none;
+  }
+}

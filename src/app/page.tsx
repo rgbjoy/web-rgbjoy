@@ -1,34 +1,45 @@
 "use client"
 
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import gsap from "gsap"
-import { ArrowUpRight, ChevronDown, Minus, Plus, X } from "lucide-react"
+import {
+  ArrowUpRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Minus,
+  Plus,
+} from "lucide-react"
 import Link from "next/link"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 
 import {
   EXPERIMENT_GROUPS,
   EXPERIMENTS,
-  experimentSearchText,
   type Experiment,
 } from "./data/experiments"
-import { LINKS, linkSearchText, type SiteLink } from "./data/links"
-import { PROJECTS, projectSearchText, type Project } from "./data/projects"
+import { LINKS, type SiteLink } from "./data/links"
+import { PROJECTS, type Project } from "./data/projects"
 import { SITE } from "./data/site"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
+import {
+  collapseAll,
+  expandAll,
+  seedCollapsed,
+  setSort,
+  toggleCollapsed,
+  useIndexState,
+} from "./utilities/useIndexState"
 import { FluidVelocityBackground } from "./utilities/FluidVelocityBackground"
+import { openPalette } from "./utilities/SearchPalette/paletteState"
 import { SettingsMenu } from "./utilities/settings/SettingsMenu"
+import { SmoothScroll } from "./utilities/SmoothScroll"
 import { useReducedMotion, useTheme } from "./utilities/settings/useSettings"
 import styles from "./page.module.css"
 
-type SortMode = "date" | "name"
+/** Every section that can be opened or closed, parents and groups alike. */
+const COLLAPSIBLE = ["projects", "experiments", "links", ...EXPERIMENT_GROUPS]
 
-const SORT_MODES: SortMode[] = ["date", "name"]
-
-const SORT_LABELS: Record<SortMode, string> = {
-  date: "Date",
-  name: "A–Z",
-}
+// Everything starts closed on a first visit; a restored session overrides this.
+seedCollapsed(COLLAPSIBLE)
 
 const MONTHS = [
   "Jan",
@@ -71,6 +82,79 @@ const INTRO_TIME_SCALE = 3
 /** Beat of stillness before the intro starts typing. Real seconds — a timeline's
  *  own delay sits on the parent timeline, so INTRO_TIME_SCALE does not shrink it. */
 const INTRO_DELAY_S = 0.35
+/**
+ * The intro is a greeting, not a page transition: arriving should play it,
+ * coming back should not. Back-navigation remounts this component, which
+ * replayed the whole timeline — and until it finished the controls were hidden
+ * and the title empty, so the page read as frozen.
+ *
+ * Two signals, because a return trip can arrive two different ways. A
+ * client-side route change keeps this module loaded, so the flag survives it. A
+ * real document-level back/forward re-executes everything, and only the
+ * navigation type can tell that apart from a fresh load.
+ *
+ * Deliberately NOT sessionStorage: that also suppressed the intro on reload,
+ * which is both surprising and impossible to demo.
+ */
+let introPlayedThisLoad = false
+
+function shouldSkipIntro(): boolean {
+  if (introPlayedThisLoad) return true
+
+  try {
+    const [entry] = performance.getEntriesByType(
+      "navigation",
+    ) as PerformanceNavigationTiming[]
+    return entry?.type === "back_forward"
+  } catch {
+    return false
+  }
+}
+
+function markIntroPlayed() {
+  introPlayedThisLoad = true
+}
+/** One per character, picked once per mount. */
+const CHAR_SEEDS = ["var(--seed-r)", "var(--seed-g)", "var(--seed-b)"]
+
+function makeSeeds(count: number): string[] {
+  return Array.from(
+    { length: count },
+    () => CHAR_SEEDS[Math.floor(Math.random() * CHAR_SEEDS.length)],
+  )
+}
+
+/**
+ * Renders text one span per character so each can fade in from its own seed.
+ *
+ * Keys are absolute positions in the whole string, not per-call indices, so a
+ * character keeps its DOM node as the text grows — otherwise React would rebuild
+ * the spans every frame and restart every animation mid-fade. `offset` is where
+ * this fragment starts within the full run, since the intro arrives in pieces.
+ */
+function TypedText({
+  text,
+  seeds,
+  offset = 0,
+}: {
+  text: string
+  seeds: string[]
+  offset?: number
+}) {
+  return (
+    <>
+      {Array.from(text, (character, index) => (
+        <span
+          key={offset + index}
+          className={styles.typedChar}
+          style={{ "--char-seed": seeds[offset + index] } as React.CSSProperties}
+        >
+          {character}
+        </span>
+      ))}
+    </>
+  )
+}
 
 function sliceIntro(count: number) {
   const lead = INTRO_LEAD.slice(0, Math.min(count, INTRO_LEAD.length))
@@ -102,17 +186,42 @@ function Masthead({
   titleCount,
   introCount,
   onContact,
+  onSearch,
+  lockupRef,
+  lockupStuck,
 }: {
   titleCount: number
   introCount: number
   onContact: () => void
+  onSearch: () => void
+  lockupRef: React.RefObject<HTMLDivElement | null>
+  lockupStuck: boolean
 }) {
   const intro = sliceIntro(introCount)
+  // Held in state so a re-render never reshuffles a character mid-fade. The
+  // server renders no characters (counts start at 0), so the randomness here
+  // cannot desync hydration.
+  const [titleSeeds] = useState(() => makeSeeds(TITLE_TEXT.length))
+  const [introSeeds] = useState(() => makeSeeds(INTRO_TOTAL))
 
   return (
-    <header className={styles.masthead}>
-      <div className={styles.mastheadLead}>
-        <h1 className={styles.title}>{TITLE_TEXT.slice(0, titleCount)}</h1>
+    <>
+      {/* A sibling of the list, not a child of the header — a sticky element
+          only stays pinned while its own parent is in view, and the header
+          scrolls away with the subtitle. */}
+      <div
+        ref={lockupRef}
+        className={`${styles.lockup} ${lockupStuck ? styles.lockupStuck : ""}`}
+      >
+        <h1 className={styles.title}>
+          <TypedText text={TITLE_TEXT.slice(0, titleCount)} seeds={titleSeeds} />
+        </h1>
+        {/* Deliberately outside the intro timeline: someone who needs reduced
+            motion should not have to sit through an animation to reach it. */}
+        <SettingsMenu onContact={onContact} onSearch={onSearch} />
+      </div>
+
+      <header className={styles.masthead}>
         <p className={styles.subtitle}>
           <span className={styles.subtitleMeasure} aria-hidden="true">
             {INTRO_LEAD}
@@ -123,25 +232,36 @@ function Masthead({
             {INTRO_END}
           </span>
           <span className={styles.subtitleLive}>
-            {intro.lead}
-            {intro.invite}
+            <TypedText text={intro.lead} seeds={introSeeds} />
+            <TypedText
+              text={intro.invite}
+              seeds={introSeeds}
+              offset={INTRO_LEAD.length}
+            />
             {intro.link.length > 0 ? (
               <button
                 type="button"
                 className={styles.subtitleLink}
                 onClick={onContact}
               >
-                {intro.link}
+                <TypedText
+                  text={intro.link}
+                  seeds={introSeeds}
+                  offset={INTRO_LEAD.length + INTRO_INVITE.length}
+                />
               </button>
             ) : null}
-            {intro.end}
+            <TypedText
+              text={intro.end}
+              seeds={introSeeds}
+              offset={
+                INTRO_LEAD.length + INTRO_INVITE.length + INTRO_LINK.length
+              }
+            />
           </span>
         </p>
-      </div>
-      {/* Deliberately outside the intro timeline: someone who needs reduced
-          motion should not have to sit through an animation to reach it. */}
-      <SettingsMenu onContact={onContact} />
-    </header>
+      </header>
+    </>
   )
 }
 
@@ -197,25 +317,17 @@ function CategoryHeader({
 export default function Home() {
   const controlsRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
+  const lockupRef = useRef<HTMLDivElement>(null)
+  const [lockupStuck, setLockupStuck] = useState(false)
   const introPlayedRef = useRef(false)
   const [contactOpen, setContactOpen] = useState(false)
   const reducedMotion = useReducedMotion()
   const theme = useTheme()
   const [controlsStuck, setControlsStuck] = useState(false)
-  const [query, setQuery] = useState("")
-  const [sort, setSort] = useState<SortMode>("date")
+  const { collapsed, sort } = useIndexState()
   const [titleCount, setTitleCount] = useState(0)
   const [introCount, setIntroCount] = useState(0)
   const [introPending, setIntroPending] = useState(true)
-  const [collapsed, setCollapsed] = useState<Set<string>>(
-    () =>
-      new Set([
-        "client projects",
-        "experiments",
-        "links",
-        ...EXPERIMENT_GROUPS,
-      ]),
-  )
 
   // Load choreography: headline → desc → search → each category (+ name, line, count).
   useLayoutEffect(() => {
@@ -227,10 +339,12 @@ export default function Home() {
       main.querySelectorAll<HTMLElement>("[data-category]"),
     )
 
-    // Toggling the setting re-runs this. Snap to the finished state rather than
-    // replaying the intro at someone who has already read it.
-    if (reducedMotion || introPlayedRef.current) {
+    // Toggling the setting re-runs this, and back-navigation remounts it. Either
+    // way, snap to the finished state rather than replaying the intro at someone
+    // who has already read it.
+    if (reducedMotion || introPlayedRef.current || shouldSkipIntro()) {
       introPlayedRef.current = true
+      markIntroPlayed()
       setTitleCount(TITLE_TEXT.length)
       setIntroCount(INTRO_TOTAL)
       setIntroPending(false)
@@ -261,6 +375,7 @@ export default function Home() {
       defaults: { ease: "power2.out" },
       onComplete: () => {
         introPlayedRef.current = true
+        markIntroPlayed()
         setIntroPending(false)
       },
     })
@@ -326,7 +441,12 @@ export default function Home() {
 
     const measure = () => {
       frame = 0
-      setControlsStuck(controls.getBoundingClientRect().top <= 0)
+      const lockup = lockupRef.current
+      // The controls park below the lockup rather than at the viewport edge, so
+      // "pinned" is measured against the lockup's height, not against zero.
+      const offset = lockup?.offsetHeight ?? 0
+      setControlsStuck(controls.getBoundingClientRect().top <= offset + 1)
+      if (lockup) setLockupStuck(lockup.getBoundingClientRect().top <= 0)
     }
 
     const schedule = () => {
@@ -345,62 +465,42 @@ export default function Home() {
     }
   }, [])
 
-  const toggleGroup = (name: string) =>
-    setCollapsed((current) => {
-      const next = new Set(current)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
-      return next
-    })
+  const toggleGroup = toggleCollapsed
 
-  // Searching reveals every match, so ignore collapsed state while filtering.
-  const searching = query.trim().length > 0
+  // Counted against the known list rather than the set's size, so a stale name
+  // restored from a previous session cannot make "all collapsed" unreachable.
+  const collapsedCount = COLLAPSIBLE.filter((name) => collapsed.has(name)).length
+  const allExpanded = collapsedCount === 0
+  const allCollapsed = collapsedCount === COLLAPSIBLE.length
 
-  const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
-    const matches = normalized
-      ? EXPERIMENTS.filter((experiment) =>
-          experimentSearchText(experiment).includes(normalized),
-        )
-      : EXPERIMENTS
-
-    return matches
-      .slice()
-      .sort((a, b) =>
+  const filtered = useMemo(
+    () =>
+      EXPERIMENTS.slice().sort((a, b) =>
         sort === "date"
           ? b.date.localeCompare(a.date)
           : a.title.localeCompare(b.title),
-      )
-  }, [query, sort])
+      ),
+    [sort],
+  )
 
-  const filteredProjects = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
-    const matches = normalized
-      ? PROJECTS.filter((project) =>
-          projectSearchText(project).includes(normalized),
-        )
-      : PROJECTS
-
-    return matches
-      .slice()
-      .sort((a, b) =>
+  const filteredProjects = useMemo(
+    () =>
+      PROJECTS.slice().sort((a, b) =>
         sort === "date"
           ? b.year.localeCompare(a.year)
           : a.title.localeCompare(b.title),
-      )
-  }, [query, sort])
+      ),
+    [sort],
+  )
 
-  const filteredLinks = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
-    const matches = normalized
-      ? LINKS.filter((link) => linkSearchText(link).includes(normalized))
-      : LINKS
-
-    // No dates to sort on, so date order is the order they are authored in.
-    return sort === "name"
-      ? matches.slice().sort((a, b) => a.title.localeCompare(b.title))
-      : matches
-  }, [query, sort])
+  // No dates to sort on, so date order is the order they are authored in.
+  const filteredLinks = useMemo(
+    () =>
+      sort === "name"
+        ? LINKS.slice().sort((a, b) => a.title.localeCompare(b.title))
+        : LINKS,
+    [sort],
+  )
 
   const groups = useMemo(
     () =>
@@ -411,16 +511,12 @@ export default function Home() {
     [filtered],
   )
 
-  const showEmpty =
-    filtered.length === 0 &&
-    filteredProjects.length === 0 &&
-    filteredLinks.length === 0
-  const experimentsOpen = searching || !collapsed.has("experiments")
-  const projectsOpen = searching || !collapsed.has("client projects")
-  const linksOpen = searching || !collapsed.has("links")
+  const experimentsOpen = !collapsed.has("experiments")
+  const projectsOpen = !collapsed.has("projects")
+  const linksOpen = !collapsed.has("links")
 
   const renderGroup = (group: { name: string; items: Experiment[] }) => {
-    const isOpen = searching || !collapsed.has(group.name)
+    const isOpen = !collapsed.has(group.name)
 
     return (
       <section key={group.name} className={styles.group}>
@@ -464,6 +560,8 @@ export default function Home() {
 
   return (
     <>
+      {/* Index only. Experiments own their own scrolling. */}
+      <SmoothScroll paused={contactOpen} />
       {/* Unmounting is the teardown: the effect cleanup disposes the GPU state. */}
       {!reducedMotion && <FluidVelocityBackground theme={theme} />}
       <div
@@ -474,102 +572,64 @@ export default function Home() {
             titleCount={titleCount}
             introCount={introCount}
             onContact={() => setContactOpen(true)}
+            onSearch={openPalette}
+            lockupRef={lockupRef}
+            lockupStuck={lockupStuck}
           />
 
           <div
             ref={controlsRef}
             className={`${styles.controls} ${controlsStuck ? styles.controlsStuck : ""}`}
           >
-            <div className={styles.search}>
-              <span className={styles.searchSlash}>/</span>
-              <input
-                className={styles.searchInput}
-                type="text"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="search the description"
-                aria-label="Search the description"
-              />
-              {query.length > 0 && (
-                <button
-                  type="button"
-                  className={styles.searchClear}
-                  onClick={() => setQuery("")}
-                  aria-label="Clear search"
-                >
-                  <X size={14} strokeWidth={1.75} aria-hidden />
-                </button>
-              )}
-            </div>
-            <div className={styles.sort}>
-              <button
-                type="button"
-                className={`${styles.sortButton} ${sort === "date" ? styles.sortButtonActive : ""}`}
-                onClick={() => setSort("date")}
-              >
-                Date
-              </button>
-              <button
-                type="button"
-                className={`${styles.sortButton} ${sort === "name" ? styles.sortButtonActive : ""}`}
-                onClick={() => setSort("name")}
-              >
-                A–Z
-              </button>
-            </div>
+            <button
+              type="button"
+              className={styles.controlButton}
+              onClick={expandAll}
+              disabled={allExpanded}
+              aria-label="Expand all"
+              title="Expand all"
+            >
+              <ChevronsUpDown size={14} strokeWidth={1.75} aria-hidden />
+            </button>
+            <button
+              type="button"
+              className={styles.controlButton}
+              onClick={collapseAll}
+              disabled={allCollapsed}
+              aria-label="Collapse all"
+              title="Collapse all"
+            >
+              <ChevronsDownUp size={14} strokeWidth={1.75} aria-hidden />
+            </button>
 
-            {/* Same choice as the buttons above, collapsed for narrow screens. */}
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger
-                className={styles.sortTrigger}
-                aria-label={`Sort by ${SORT_LABELS[sort]}`}
-              >
-                {SORT_LABELS[sort]}
-                <ChevronDown
-                  className={styles.sortCaret}
-                  size={14}
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  className={styles.sortContent}
-                  align="end"
-                  sideOffset={10}
-                >
-                  <DropdownMenu.RadioGroup
-                    value={sort}
-                    onValueChange={(value) => setSort(value as SortMode)}
-                  >
-                    {SORT_MODES.map((mode) => (
-                      <DropdownMenu.RadioItem
-                        key={mode}
-                        className={styles.sortItem}
-                        value={mode}
-                      >
-                        <span className={styles.sortMark} aria-hidden="true">
-                          <DropdownMenu.ItemIndicator>
-                            —
-                          </DropdownMenu.ItemIndicator>
-                        </span>
-                        {SORT_LABELS[mode]}
-                      </DropdownMenu.RadioItem>
-                    ))}
-                  </DropdownMenu.RadioGroup>
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
+            <span className={styles.controlsRule} aria-hidden="true" />
+
+            {/* Search moved to a dialog, so sort fits inline at every width and
+                no longer needs a narrow-screen dropdown. */}
+            <button
+              type="button"
+              className={`${styles.sortButton} ${sort === "date" ? styles.sortButtonActive : ""}`}
+              onClick={() => setSort("date")}
+            >
+              date
+            </button>
+            <button
+              type="button"
+              className={`${styles.sortButton} ${sort === "name" ? styles.sortButtonActive : ""}`}
+              onClick={() => setSort("name")}
+            >
+              a–z
+            </button>
           </div>
 
           <main ref={mainRef} className={styles.main}>
             {filteredProjects.length > 0 && (
               <section className={styles.category}>
                 <CategoryHeader
-                  name="client projects"
+                  name="projects"
                   count={filteredProjects.length}
                   open={projectsOpen}
-                  onToggle={() => toggleGroup("client projects")}
+                  onToggle={() => toggleGroup("projects")}
                 />
 
                 {projectsOpen &&
@@ -608,18 +668,6 @@ export default function Home() {
               </section>
             )}
 
-            {showEmpty && (
-              <div className={styles.empty}>
-                <div className={styles.emptyHeading}>no matches.</div>
-                <button
-                  type="button"
-                  className={styles.emptyReset}
-                  onClick={() => setQuery("")}
-                >
-                  reset
-                </button>
-              </div>
-            )}
           </main>
         </div>
       </div>
