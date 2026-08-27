@@ -65,6 +65,9 @@ const TITLE_CHAR_MS = 28
 const INTRO_CHAR_MS = 16
 /** Whole intro timeline runs at this multiple of real time. */
 const INTRO_TIME_SCALE = 3
+/** Beat of stillness before the intro starts typing. Real seconds — a timeline's
+ *  own delay sits on the parent timeline, so INTRO_TIME_SCALE does not shrink it. */
+const INTRO_DELAY_S = 0.35
 
 function sliceIntro(count: number) {
   const lead = INTRO_LEAD.slice(0, Math.min(count, INTRO_LEAD.length))
@@ -236,6 +239,7 @@ export default function Home() {
     const title = { i: 0 }
     const intro = { i: 0 }
     const timeline = gsap.timeline({
+      delay: INTRO_DELAY_S,
       defaults: { ease: "power2.out" },
       onComplete: () => setIntroPending(false),
     })

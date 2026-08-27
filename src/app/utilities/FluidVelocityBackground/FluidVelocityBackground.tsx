@@ -43,6 +43,19 @@ const ARC_SEGMENTS_MIN = 4;
 const ARC_SEGMENTS_MAX = 7;
 const ARC_THICKNESS_MIN = 26;
 const ARC_THICKNESS_MAX = 38;
+/** One-shot bloom fired when the field first comes up, so the page never opens on
+ *  a dead grid. Sized in fractions of the viewport's short edge. */
+const LOAD_PULSE_DELAY_MS = 120;
+const LOAD_PULSE_ARMS = 5;
+const LOAD_PULSE_RADIUS = 0.05;
+const LOAD_PULSE_LENGTH = 0.24;
+/** Radians off pure radial. Straight-out flow is pure divergence, which the
+ *  pressure projection deletes — angling the arms keeps the curl the solver holds. */
+const LOAD_PULSE_SPIRAL = 0.9;
+const LOAD_PULSE_SWEEP = 0.9;
+const LOAD_PULSE_SEGMENTS = 8;
+const LOAD_PULSE_THICKNESS = 34;
+const LOAD_PULSE_STRENGTH = 1.4;
 
 type SimulationPrograms = {
   advection: GPUProgram;
@@ -53,6 +66,54 @@ type SimulationPrograms = {
   touch: GPUProgram;
   chroma: GPUProgram;
 };
+
+type Arc = {
+  x: number;
+  y: number;
+  heading: number;
+  length: number;
+  sweep: number;
+  segments: number;
+  thickness: number;
+  /** Multiplier on the injected velocity, before TOUCH_FORCE_SCALE and the clamp. */
+  strength: number;
+};
+
+/** Walks a curved stroke through the velocity field, injecting flow as it goes. */
+function emitArc(
+  composer: GPUComposer,
+  programs: SimulationPrograms,
+  velocityState: GPULayer,
+  height: number,
+  arc: Arc,
+) {
+  const stepLength = arc.length / arc.segments;
+  let { x, y, heading } = arc;
+
+  for (let i = 0; i < arc.segments; i += 1) {
+    heading += arc.sweep / arc.segments + (Math.random() - 0.5) * 0.18;
+    const nextX = x + Math.cos(heading) * stepLength;
+    const nextY = y + Math.sin(heading) * stepLength;
+
+    programs.touch.setUniform("u_vector", [
+      (nextX - x) * arc.strength,
+      -(nextY - y) * arc.strength,
+    ]);
+
+    composer.stepSegment({
+      program: programs.touch,
+      input: velocityState,
+      output: velocityState,
+      position1: [nextX, height - nextY],
+      position2: [x, height - y],
+      thickness: arc.thickness,
+      endCaps: true,
+    });
+
+    x = nextX;
+    y = nextY;
+  }
+}
 
 function stepSimulation(
   composer: GPUComposer,
@@ -418,6 +479,38 @@ export function FluidVelocityBackground() {
     loop();
   }, []);
 
+  /** Pinwheel of arms thrown from the centre — one bloom that spreads and settles. */
+  const emitLoadPulse = useCallback(() => {
+    const programs = programsRef.current;
+    const velocityState = velocityStateRef.current;
+    const composer = composerRef.current;
+    const container = containerRef.current;
+
+    if (!programs || !velocityState || !composer || !container) return;
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (width === 0 || height === 0) return;
+
+    const span = Math.min(width, height);
+    const spin = Math.random() < 0.5 ? -1 : 1;
+
+    for (let i = 0; i < LOAD_PULSE_ARMS; i += 1) {
+      const angle = (i / LOAD_PULSE_ARMS) * Math.PI * 2;
+
+      emitArc(composer, programs, velocityState, height, {
+        x: width / 2 + Math.cos(angle) * span * LOAD_PULSE_RADIUS,
+        y: height / 2 + Math.sin(angle) * span * LOAD_PULSE_RADIUS,
+        heading: angle + LOAD_PULSE_SPIRAL * spin,
+        length: span * LOAD_PULSE_LENGTH,
+        sweep: LOAD_PULSE_SWEEP * spin,
+        segments: LOAD_PULSE_SEGMENTS,
+        thickness: LOAD_PULSE_THICKNESS,
+        strength: LOAD_PULSE_STRENGTH,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const applyPointerMove = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
@@ -487,42 +580,22 @@ export function FluidVelocityBackground() {
       const height = container.clientHeight;
       if (width === 0 || height === 0) return;
 
-      const segments =
-        ARC_SEGMENTS_MIN +
-        Math.floor(Math.random() * (ARC_SEGMENTS_MAX - ARC_SEGMENTS_MIN + 1));
-      const arcLength =
-        ARC_LENGTH_MIN + Math.random() * (ARC_LENGTH_MAX - ARC_LENGTH_MIN);
-      const sweep =
-        (Math.random() < 0.5 ? -1 : 1) *
-        (ARC_SWEEP_MIN + Math.random() * (ARC_SWEEP_MAX - ARC_SWEEP_MIN));
-      const stepLength = arcLength / segments;
-
-      let x = Math.random() * width;
-      let y = Math.random() * height;
-      let heading = Math.random() * Math.PI * 2;
-
-      for (let i = 0; i < segments; i += 1) {
-        heading += sweep / segments + (Math.random() - 0.5) * 0.18;
-        const nextX = x + Math.cos(heading) * stepLength;
-        const nextY = y + Math.sin(heading) * stepLength;
-
-        programs.touch.setUniform("u_vector", [nextX - x, -(nextY - y)]);
-
-        composer.stepSegment({
-          program: programs.touch,
-          input: velocityState,
-          output: velocityState,
-          position1: [nextX, height - nextY],
-          position2: [x, height - y],
-          thickness:
-            ARC_THICKNESS_MIN +
-            Math.random() * (ARC_THICKNESS_MAX - ARC_THICKNESS_MIN),
-          endCaps: true,
-        });
-
-        x = nextX;
-        y = nextY;
-      }
+      emitArc(composer, programs, velocityState, height, {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        heading: Math.random() * Math.PI * 2,
+        length: ARC_LENGTH_MIN + Math.random() * (ARC_LENGTH_MAX - ARC_LENGTH_MIN),
+        sweep:
+          (Math.random() < 0.5 ? -1 : 1) *
+          (ARC_SWEEP_MIN + Math.random() * (ARC_SWEEP_MAX - ARC_SWEEP_MIN)),
+        segments:
+          ARC_SEGMENTS_MIN +
+          Math.floor(Math.random() * (ARC_SEGMENTS_MAX - ARC_SEGMENTS_MIN + 1)),
+        thickness:
+          ARC_THICKNESS_MIN +
+          Math.random() * (ARC_THICKNESS_MAX - ARC_THICKNESS_MIN),
+        strength: 1,
+      });
     };
 
     const scheduleArc = () => {
@@ -551,6 +624,8 @@ export function FluidVelocityBackground() {
   useEffect(() => {
     const container = containerRef.current;
     initSimulation();
+
+    const pulseId = window.setTimeout(emitLoadPulse, LOAD_PULSE_DELAY_MS);
 
     const handleResize = () => {
       const container = containerRef.current;
@@ -629,6 +704,7 @@ export function FluidVelocityBackground() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.clearTimeout(pulseId);
       cancelAnimationFrame(animationRef.current);
 
       if (container) {
@@ -654,7 +730,7 @@ export function FluidVelocityBackground() {
       programsRef.current = null;
       composerRef.current = null;
     };
-  }, [initSimulation]);
+  }, [initSimulation, emitLoadPulse]);
 
   return (
     <div ref={containerRef} className={styles.container} aria-hidden="true" />
