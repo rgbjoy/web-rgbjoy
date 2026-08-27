@@ -1,9 +1,10 @@
 "use client"
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
-import { ArrowUpRight, ChevronDown, Minus, Plus } from "lucide-react"
+import gsap from "gsap"
+import { ArrowUpRight, ChevronDown, Minus, Plus, X } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 
 import {
   EXPERIMENT_GROUPS,
@@ -51,12 +52,243 @@ function pad2(n: number): string {
   return String(n).padStart(2, "0")
 }
 
+const TITLE_TEXT = SITE.name
+const INTRO_LEAD = `${SITE.intro.lead} `
+const INTRO_INVITE = `${SITE.intro.invite} `
+const INTRO_LINK = SITE.intro.linkLabel
+const INTRO_END = "."
+const INTRO_TOTAL =
+  INTRO_LEAD.length + INTRO_INVITE.length + INTRO_LINK.length + INTRO_END.length
+
+/** ~ms per character; title runs a touch faster than the body. */
+const TITLE_CHAR_MS = 28
+const INTRO_CHAR_MS = 16
+/** Whole intro timeline runs at this multiple of real time. */
+const INTRO_TIME_SCALE = 3
+
+function sliceIntro(count: number) {
+  const lead = INTRO_LEAD.slice(0, Math.min(count, INTRO_LEAD.length))
+  const invite = INTRO_INVITE.slice(
+    0,
+    Math.max(0, Math.min(count - INTRO_LEAD.length, INTRO_INVITE.length)),
+  )
+  const link = INTRO_LINK.slice(
+    0,
+    Math.max(
+      0,
+      Math.min(
+        count - INTRO_LEAD.length - INTRO_INVITE.length,
+        INTRO_LINK.length,
+      ),
+    ),
+  )
+  const end = INTRO_END.slice(
+    0,
+    Math.max(
+      0,
+      count - INTRO_LEAD.length - INTRO_INVITE.length - INTRO_LINK.length,
+    ),
+  )
+  return { lead, invite, link, end }
+}
+
+function Masthead({
+  titleCount,
+  introCount,
+}: {
+  titleCount: number
+  introCount: number
+}) {
+  const intro = sliceIntro(introCount)
+
+  return (
+    <header className={styles.masthead}>
+      <div className={styles.mastheadLead}>
+        <h1 className={styles.title}>{TITLE_TEXT.slice(0, titleCount)}</h1>
+        <p className={styles.subtitle}>
+          <span className={styles.subtitleMeasure} aria-hidden="true">
+            {INTRO_LEAD}
+            {INTRO_INVITE}
+            <a className={styles.subtitleLink} href={`mailto:${SITE.email}`}>
+              {INTRO_LINK}
+            </a>
+            {INTRO_END}
+          </span>
+          <span className={styles.subtitleLive}>
+            {intro.lead}
+            {intro.invite}
+            {intro.link.length > 0 ? (
+              <a className={styles.subtitleLink} href={`mailto:${SITE.email}`}>
+                {intro.link}
+              </a>
+            ) : null}
+            {intro.end}
+          </span>
+        </p>
+      </div>
+    </header>
+  )
+}
+
+function CategoryHeader({
+  name,
+  count,
+  open,
+  onToggle,
+}: {
+  name: string
+  count: number
+  open: boolean
+  onToggle: () => void
+}) {
+  return (
+    <h2 className={styles.categoryHeading}>
+      <button
+        type="button"
+        className={styles.categoryHeader}
+        data-category=""
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        {open ? (
+          <Minus
+            className={styles.categoryToggle}
+            data-intro="toggle"
+            size={14}
+            strokeWidth={1.75}
+            aria-hidden
+          />
+        ) : (
+          <Plus
+            className={styles.categoryToggle}
+            data-intro="toggle"
+            size={14}
+            strokeWidth={1.75}
+            aria-hidden
+          />
+        )}
+        <span className={styles.categoryName} data-intro="name">
+          {name}
+        </span>
+        <span className={styles.categoryRule} data-intro="rule" />
+        <span className={styles.categoryCount} data-intro="count">
+          {pad2(count)}
+        </span>
+      </button>
+    </h2>
+  )
+}
+
 export default function Home() {
   const controlsRef = useRef<HTMLDivElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
   const [controlsStuck, setControlsStuck] = useState(false)
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<SortMode>("date")
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [titleCount, setTitleCount] = useState(0)
+  const [introCount, setIntroCount] = useState(0)
+  const [introPending, setIntroPending] = useState(true)
+  const [collapsed, setCollapsed] = useState<Set<string>>(
+    () =>
+      new Set([
+        "client projects",
+        "experiments",
+        "links",
+        ...EXPERIMENT_GROUPS,
+      ]),
+  )
+
+  // Load choreography: headline → desc → search → each category (+ name, line, count).
+  useLayoutEffect(() => {
+    const controls = controlsRef.current
+    const main = mainRef.current
+    if (!controls || !main) return
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const categories = Array.from(
+      main.querySelectorAll<HTMLElement>("[data-category]"),
+    )
+
+    if (reduced) {
+      setTitleCount(TITLE_TEXT.length)
+      setIntroCount(INTRO_TOTAL)
+      setIntroPending(false)
+      return
+    }
+
+    const parts = categories.map((category) => ({
+      lead: [
+        category.querySelector('[data-intro="toggle"]'),
+        category.querySelector('[data-intro="name"]'),
+      ].filter(Boolean),
+      rule: category.querySelector('[data-intro="rule"]'),
+      count: category.querySelector('[data-intro="count"]'),
+    }))
+
+    // CSS already hides these; lock matching GSAP state before the timeline runs.
+    gsap.set(controls, { autoAlpha: 0 })
+    for (const part of parts) {
+      gsap.set(part.lead, { autoAlpha: 0 })
+      gsap.set(part.count, { autoAlpha: 0 })
+      gsap.set(part.rule, { scaleX: 0, transformOrigin: "left center" })
+    }
+
+    const title = { i: 0 }
+    const intro = { i: 0 }
+    const timeline = gsap.timeline({
+      defaults: { ease: "power2.out" },
+      onComplete: () => setIntroPending(false),
+    })
+    timeline.timeScale(INTRO_TIME_SCALE)
+
+    timeline
+      .to(title, {
+        i: TITLE_TEXT.length,
+        duration: (TITLE_TEXT.length * TITLE_CHAR_MS) / 1000,
+        onUpdate: () => setTitleCount(Math.floor(title.i)),
+        onComplete: () => setTitleCount(TITLE_TEXT.length),
+      })
+      .to(intro, {
+        i: INTRO_TOTAL,
+        duration: (INTRO_TOTAL * INTRO_CHAR_MS) / 1000,
+        onUpdate: () => setIntroCount(Math.floor(intro.i)),
+        onComplete: () => setIntroCount(INTRO_TOTAL),
+      })
+      .to(controls, {
+        autoAlpha: 1,
+        duration: 0.35,
+      })
+
+    for (const part of parts) {
+      timeline
+        .to(
+          part.lead,
+          {
+            autoAlpha: 1,
+            duration: 0.22,
+          },
+          "+=0.06",
+        )
+        .to(part.rule, {
+          scaleX: 1,
+          duration: 0.45,
+        })
+        .to(part.count, {
+          autoAlpha: 1,
+          duration: 0.2,
+        })
+    }
+
+    return () => {
+      timeline.kill()
+      gsap.set(controls, { clearProps: "opacity,visibility" })
+      for (const part of parts) {
+        gsap.set(part.lead, { clearProps: "opacity,visibility" })
+        gsap.set(part.count, { clearProps: "opacity,visibility" })
+        gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
+      }
+    }
+  }, [])
 
   // The bar is pinned exactly when its own top reaches the pin point, so read
   // that rather than watching a sentinel: IntersectionObserver never fires here
@@ -208,23 +440,11 @@ export default function Home() {
   return (
     <>
       <FluidVelocityBackground />
-      <div className={styles.page}>
+      <div
+        className={`${styles.page} ${introPending ? styles.introPending : ""}`}
+      >
         <div className={styles.container}>
-          <header className={styles.masthead}>
-            <div className={styles.mastheadLead}>
-              <h1 className={styles.title}>{SITE.name}</h1>
-              <p className={styles.subtitle}>
-                {SITE.intro.lead} {SITE.intro.invite}{" "}
-                <a
-                  className={styles.subtitleLink}
-                  href={`mailto:${SITE.email}`}
-                >
-                  {SITE.intro.linkLabel}
-                </a>
-                .
-              </p>
-            </div>
-          </header>
+          <Masthead titleCount={titleCount} introCount={introCount} />
 
           <div
             ref={controlsRef}
@@ -240,6 +460,16 @@ export default function Home() {
                 placeholder="search the description"
                 aria-label="Search the description"
               />
+              {query.length > 0 && (
+                <button
+                  type="button"
+                  className={styles.searchClear}
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                >
+                  <X size={14} strokeWidth={1.75} aria-hidden />
+                </button>
+              )}
             </div>
             <div className={styles.sort}>
               <button
@@ -302,38 +532,15 @@ export default function Home() {
             </DropdownMenu.Root>
           </div>
 
-          <main className={styles.main}>
+          <main ref={mainRef} className={styles.main}>
             {filteredProjects.length > 0 && (
               <section className={styles.category}>
-                <h2 className={styles.categoryHeading}>
-                  <button
-                    type="button"
-                    className={styles.categoryHeader}
-                    aria-expanded={projectsOpen}
-                    onClick={() => toggleGroup("client projects")}
-                  >
-                    {projectsOpen ? (
-                      <Minus
-                        className={styles.categoryToggle}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden
-                      />
-                    ) : (
-                      <Plus
-                        className={styles.categoryToggle}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden
-                      />
-                    )}
-                    <span className={styles.categoryName}>client projects</span>
-                    <span className={styles.categoryRule} />
-                    <span className={styles.categoryCount}>
-                      {pad2(filteredProjects.length)}
-                    </span>
-                  </button>
-                </h2>
+                <CategoryHeader
+                  name="client projects"
+                  count={filteredProjects.length}
+                  open={projectsOpen}
+                  onToggle={() => toggleGroup("client projects")}
+                />
 
                 {projectsOpen &&
                   filteredProjects.map((project) => (
@@ -344,35 +551,12 @@ export default function Home() {
 
             {filtered.length > 0 && (
               <section className={styles.category}>
-                <h2 className={styles.categoryHeading}>
-                  <button
-                    type="button"
-                    className={styles.categoryHeader}
-                    aria-expanded={experimentsOpen}
-                    onClick={() => toggleGroup("experiments")}
-                  >
-                    {experimentsOpen ? (
-                      <Minus
-                        className={styles.categoryToggle}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden
-                      />
-                    ) : (
-                      <Plus
-                        className={styles.categoryToggle}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden
-                      />
-                    )}
-                    <span className={styles.categoryName}>experiments</span>
-                    <span className={styles.categoryRule} />
-                    <span className={styles.categoryCount}>
-                      {pad2(filtered.length)}
-                    </span>
-                  </button>
-                </h2>
+                <CategoryHeader
+                  name="experiments"
+                  count={filtered.length}
+                  open={experimentsOpen}
+                  onToggle={() => toggleGroup("experiments")}
+                />
 
                 {experimentsOpen && groups.map(renderGroup)}
               </section>
@@ -380,35 +564,12 @@ export default function Home() {
 
             {filteredLinks.length > 0 && (
               <section className={styles.category}>
-                <h2 className={styles.categoryHeading}>
-                  <button
-                    type="button"
-                    className={styles.categoryHeader}
-                    aria-expanded={linksOpen}
-                    onClick={() => toggleGroup("links")}
-                  >
-                    {linksOpen ? (
-                      <Minus
-                        className={styles.categoryToggle}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden
-                      />
-                    ) : (
-                      <Plus
-                        className={styles.categoryToggle}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden
-                      />
-                    )}
-                    <span className={styles.categoryName}>links</span>
-                    <span className={styles.categoryRule} />
-                    <span className={styles.categoryCount}>
-                      {pad2(filteredLinks.length)}
-                    </span>
-                  </button>
-                </h2>
+                <CategoryHeader
+                  name="links"
+                  count={filteredLinks.length}
+                  open={linksOpen}
+                  onToggle={() => toggleGroup("links")}
+                />
 
                 {linksOpen &&
                   filteredLinks.map((link) => (
