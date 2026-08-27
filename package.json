@@ -6,7 +6,6 @@
     "dev": "bun --bun next dev",
     "build": "bun --bun next build",
     "start": "bun --bun next start",
-    "migrate_build": "echo 'Placeholder for future migration build script'",
     "lint": "eslint",
     "ts:check": "tsc --noEmit",
     "update": "bun update --latest -i"
