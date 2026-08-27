@@ -1,0 +1,43 @@
+.main {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #e9f3ef;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.label {
+  position: absolute;
+  left: 32px;
+  bottom: 28px;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  color: #20322d;
+  pointer-events: none;
+}
+
+.title {
+  font-size: clamp(32px, 8vw, 108px);
+  font-weight: 800;
+  line-height: 0.9;
+}
+
+.meta {
+  font-size: 13px;
+  letter-spacing: 0;
+  color: #46665c;
+}
+
+@media (max-width: 640px) {
+  .label {
+    left: 20px;
+    right: 20px;
+    bottom: 22px;
+  }
+}

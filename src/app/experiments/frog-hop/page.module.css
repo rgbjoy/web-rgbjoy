@@ -1,0 +1,487 @@
+.main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #92cfd0;
+  color: #17372d;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}
+
+.hud {
+  position: absolute;
+  z-index: 2;
+  top: 22px;
+  left: 22px;
+  right: 22px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.stats,
+.menuButton,
+.menuPanel,
+.windDisplay,
+.instructions {
+  border: 1px solid rgb(255 255 255 / 42%);
+  background: rgb(238 255 245 / 78%);
+  box-shadow: 0 16px 48px rgb(31 90 79 / 14%);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  justify-self: start;
+  padding: 6px 0;
+}
+
+.brand h1 {
+  color: #eefff5;
+  font-size: clamp(42px, 5vw, 72px);
+  font-weight: 800;
+  line-height: 0.82;
+  letter-spacing: -0.07em;
+}
+
+.hudActions {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.stats span {
+  display: block;
+  color: #4d7367;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stats {
+  display: flex;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.stats div {
+  min-width: 78px;
+  padding: 11px 15px 10px;
+  text-align: center;
+}
+
+.stats div + div {
+  border-left: 1px solid rgb(66 109 91 / 16%);
+}
+
+.stats strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.menuWrap {
+  position: fixed;
+  right: max(22px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+  pointer-events: auto;
+}
+
+.menuButton {
+  padding: 13px 17px;
+  border-radius: 999px;
+  color: #17372d;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.menuButton:hover,
+.menuPanel button:hover {
+  background: #effff2;
+}
+
+.menuPanel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  min-width: 184px;
+  padding: 7px;
+  border-radius: 14px;
+}
+
+.menuPanel button + button {
+  margin-top: 2px;
+  border-top: 1px solid rgb(66 109 91 / 12%);
+  border-radius: 0 0 9px 9px;
+}
+
+.menuPanel .toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.toggleRow i {
+  position: relative;
+  width: 30px;
+  height: 17px;
+  flex: none;
+  border-radius: 999px;
+  background: rgb(23 55 45 / 20%);
+  transition: background 140ms ease;
+}
+
+.toggleRow i::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgb(23 55 45 / 24%);
+  content: "";
+  transition: transform 140ms ease;
+}
+
+.toggleRow[aria-checked="true"] i {
+  background: #4b9e63;
+}
+
+.toggleRow[aria-checked="true"] i::after {
+  transform: translateX(13px);
+}
+
+.menuPanel button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #17372d;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+}
+
+.windDisplay {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  display: grid;
+  min-width: 108px;
+  justify-items: center;
+  gap: 5px;
+  padding: 10px 15px 12px;
+  border-radius: 20px;
+  color: #17372d;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.windDisplay > span {
+  color: rgb(23 55 45 / 62%);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.windReadout {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+}
+
+.windArrow {
+  display: block;
+  color: #de633f;
+  font-size: 48px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Number and unit share a baseline rather than being nudged with a margin. */
+.windSpeed {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.windSpeed strong {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.windSpeed small {
+  color: rgb(23 55 45 / 62%);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.instructions {
+  position: absolute;
+  z-index: 2;
+  top: 22px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: min(620px, calc(100vw - 44px));
+  padding: 11px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: center;
+  transform: translateX(-50%);
+  text-wrap: balance;
+  pointer-events: none;
+}
+
+.instructions > span:nth-child(2) {
+  flex: 1;
+}
+
+.calm {
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  opacity: 0.72;
+}
+
+.mouseIcon {
+  position: relative;
+  flex: none;
+  width: 15px;
+  height: 21px;
+  border: 2px solid currentColor;
+  border-radius: 9px;
+}
+
+.mouseIcon::after {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 2px;
+  height: 5px;
+  border-radius: 2px;
+  background: currentColor;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.power {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+
+.power i {
+  width: 11px;
+  height: 5px;
+  border-radius: 999px;
+  background: #69e36f;
+}
+
+.power i:nth-child(2) {
+  background: #ffb13b;
+}
+
+.power i:nth-child(3) {
+  background: #ff554d;
+}
+
+.intro {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(40 96 87 / 16%);
+  backdrop-filter: blur(5px);
+}
+
+.introCard {
+  width: min(470px, 100%);
+  padding: clamp(26px, 5vw, 42px);
+  border: 1px solid rgb(255 255 255 / 58%);
+  border-radius: 30px;
+  background: rgb(241 255 244 / 91%);
+  box-shadow: 0 28px 90px rgb(25 71 62 / 24%);
+  text-align: center;
+}
+
+.introKicker {
+  display: block;
+  color: #d65d3b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.introCard h2 {
+  max-width: 380px;
+  margin: 12px auto 0;
+  font-size: clamp(34px, 6vw, 52px);
+  line-height: 0.94;
+  letter-spacing: -0.06em;
+}
+
+.introCard p {
+  max-width: 390px;
+  margin: 18px auto 0;
+  color: #4d7367;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.introTips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 24px;
+  overflow: hidden;
+  border: 1px solid rgb(66 109 91 / 18%);
+  border-radius: 15px;
+}
+
+.introTips span {
+  display: grid;
+  gap: 5px;
+  padding: 12px 8px;
+  color: #315b4e;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.introTips span + span {
+  border-left: 1px solid rgb(66 109 91 / 18%);
+}
+
+.introTips b {
+  color: #83a398;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.introCard button {
+  margin-top: 24px;
+  padding: 14px 23px;
+  border: 0;
+  border-radius: 999px;
+  background: #17372d;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.introCard button:hover {
+  background: #285445;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 700px) {
+  .hud {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    gap: 9px;
+  }
+
+  .brand {
+    padding: 4px 0;
+  }
+
+  .brand h1 {
+    font-size: 34px;
+  }
+
+  .hudActions {
+    gap: 6px;
+  }
+
+  .stats div {
+    min-width: 52px;
+    padding: 8px 9px;
+  }
+
+  .menuButton {
+    padding: 11px 12px;
+  }
+
+  .menuWrap {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .windDisplay {
+    bottom: max(14px, env(safe-area-inset-bottom));
+    min-width: 94px;
+    padding: 8px 12px 10px;
+    border-radius: 17px;
+  }
+
+  .windReadout {
+    gap: 0;
+  }
+
+  .windArrow {
+    font-size: 42px;
+  }
+
+  .windSpeed strong {
+    font-size: 21px;
+  }
+
+  .instructions {
+    top: 78px;
+    width: min(520px, calc(100vw - 16px));
+    max-width: none;
+    gap: 9px;
+    padding: 10px 13px;
+    font-size: 11px;
+  }
+
+  .calm {
+    font-size: 20px;
+  }
+
+  .intro {
+    padding: 16px;
+  }
+
+  .introCard {
+    border-radius: 24px;
+  }
+}

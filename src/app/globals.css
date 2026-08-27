@@ -1,0 +1,88 @@
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --muted: #888888;
+  --faint: #555555;
+  --hairline: #222222;
+  --hover: rgba(255, 255, 255, 0.06);
+  --background: var(--bg);
+  --foreground: var(--fg);
+
+  /* Layout scale. --gap separates siblings in a row, --gap-tight pairs a mark
+     or icon with its label. Both live here so the portalled menu inherits. */
+  --gutter: 32px;
+  --gap: 16px;
+  --gap-tight: 10px;
+  /* Width of the toggle column; also the amount a subcategory nests by. */
+  --toggle: 14px;
+
+  /* Every rollover eases on this. */
+  --transition: 0.12s ease;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --gutter: 18px;
+    --gap: 12px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body,
+#__next {
+  width: 100%;
+  min-height: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+body {
+  color: var(--fg);
+  background: var(--bg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+
+body ::selection {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+canvas.fade-in {
+  pointer-events: none;
+  opacity: 0;
+  touch-action: none;
+  animation: fade-in 5s ease 1s forwards;
+}
+
+.char {
+  color: #373737;
+  position: absolute;
+  font-size: 18vw;
+  font-weight: 800;
+  padding: 0;
+  margin: 0;
+  line-height: 0.8em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

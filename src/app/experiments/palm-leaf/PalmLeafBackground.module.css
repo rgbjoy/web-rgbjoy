@@ -1,0 +1,8 @@
+.canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  background:
+    radial-gradient(circle at top, rgba(33, 58, 42, 0.9) 0%, rgba(11, 20, 14, 0.96) 45%),
+    linear-gradient(180deg, #112017 0%, #060a07 100%);
+}
