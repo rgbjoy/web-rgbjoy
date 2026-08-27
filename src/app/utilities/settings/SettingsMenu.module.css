@@ -1,0 +1,105 @@
+.trigger {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  /* Touch target, while the gear itself stays 16px. */
+  width: 34px;
+  height: 34px;
+  margin-right: -8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--faint);
+  transition: color var(--transition);
+}
+
+.trigger:hover,
+.trigger[data-state="open"] {
+  color: var(--fg);
+}
+
+.trigger:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.bars {
+  --bar-width: 18px;
+  --bar-gap: 6px;
+  position: relative;
+  display: block;
+  width: var(--bar-width);
+  height: calc(var(--bar-gap) + 2px);
+}
+
+.bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transition: transform var(--transition);
+}
+
+.bar:first-child {
+  top: 0;
+}
+
+.bar:last-child {
+  bottom: 0;
+}
+
+/* Open reads as close: both bars slide to the middle and cross. */
+.trigger[data-state="open"] .bar:first-child {
+  transform: translateY(calc(var(--bar-gap) / 2)) rotate(45deg);
+}
+
+.trigger[data-state="open"] .bar:last-child {
+  transform: translateY(calc(var(--bar-gap) / -2)) rotate(-45deg);
+}
+
+/* Portalled to the body, so it carries the page font explicitly. */
+.content {
+  z-index: 20;
+  min-width: 188px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--muted);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-tight);
+  padding: 12px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  transition: background var(--transition), color var(--transition);
+}
+
+.item[data-highlighted] {
+  background: var(--hover);
+}
+
+.item[data-state="checked"] {
+  color: var(--fg);
+}
+
+.mark {
+  width: 14px;
+  flex-shrink: 0;
+  color: var(--faint);
+}
+
+.separator {
+  height: 1px;
+  margin: 4px 12px;
+  background: var(--hairline);
+}

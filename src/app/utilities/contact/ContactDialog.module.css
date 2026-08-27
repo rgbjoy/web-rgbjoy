@@ -1,0 +1,179 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.content {
+  position: fixed;
+  z-index: 31;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - var(--gutter) * 2));
+  max-height: calc(100dvh - var(--gutter) * 2);
+  overflow-y: auto;
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 16px;
+  color: var(--fg);
+}
+
+.content:focus-visible {
+  outline: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: -6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--faint);
+  transition: color var(--transition);
+}
+
+.close:hover {
+  color: var(--fg);
+}
+
+.close:focus-visible,
+.submit:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Full contrast. Size and tracking separate a label from its value, not dimness. */
+.label {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--fg);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  background: none;
+  font: inherit;
+  color: var(--fg);
+  transition: border-color var(--transition);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.55;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-bottom-color: var(--fg);
+}
+
+/* Off-screen rather than display:none — some bots skip undisplayed fields. */
+.trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg);
+}
+
+/* Send is the only action left, so it sits alone at the trailing edge. */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--gap);
+  padding-top: 4px;
+}
+
+.submit {
+  padding: 8px 18px;
+  border: 1px solid var(--fg);
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--fg);
+  transition: background var(--transition), color var(--transition);
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.submit:disabled {
+  border-color: var(--hairline);
+  color: var(--faint);
+  cursor: default;
+}
+
+.done {
+  padding: 28px 0 12px;
+}
+
+.doneLead {
+  margin: 0 0 6px;
+  letter-spacing: 0.02em;
+}
+
+.doneNote {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}

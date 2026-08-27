@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
 
 import { SITE } from "./data/site"
+import { SETTINGS_BOOT_SCRIPT } from "./utilities/settings/constants"
 import ShaderPalette from "./utilities/ShaderPalette"
 import "./globals.css"
 
@@ -50,7 +51,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    // The boot script stamps data-theme / data-motion before React hydrates.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          // Must run before first paint, so it cannot wait for hydration.
+          dangerouslySetInnerHTML={{ __html: SETTINGS_BOOT_SCRIPT }}
+        />
+      </head>
       <body
         className={`${geistMono.variable} ${geistMono.className} ${plexSans.variable} ${plexMono.variable}`}
       >

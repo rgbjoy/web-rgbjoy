@@ -12,6 +12,7 @@ import {
 } from "gpu-io";
 import React, { useEffect, useRef, useCallback } from "react";
 
+import type { Theme } from "../settings/constants";
 import styles from "./FluidVelocityBackground.module.css";
 
 const TOUCH_FORCE_SCALE = 2;
@@ -23,6 +24,9 @@ const MAX_VELOCITY = 30;
 const VELOCITY_DAMPING = 0.985;
 const VELOCITY_SLEEP = 0.015;
 const TICK_COLOR = 0.35;
+/** On paper the ticks have to sit darker than the ground, not brighter, and the
+ *  hues have to come down or they glare. Same contrast either way. */
+const TICK_COLOR_LIGHT = 0.68;
 /** Velocity magnitude that reaches full chroma saturation. */
 const CHROMA_FULL_VELOCITY = 6;
 /** How much of the hue wheel the flow heading sweeps through. */
@@ -33,6 +37,7 @@ const CHROMA_DRIFT_RATE = 0.06;
 const CHROMA_ENERGY_SHIFT = 0.25;
 /** Brightness multiplier on the saturated end of the ramp. */
 const CHROMA_GAIN = 1.25;
+const CHROMA_GAIN_LIGHT = 0.72;
 const PULSE_MIN_MS = 1680;
 const PULSE_MAX_MS = 3920;
 const ARC_LENGTH_MIN = 56;
@@ -115,6 +120,14 @@ function emitArc(
   }
 }
 
+/** Ground colour and tick levels are the only things the theme touches. */
+function applyTheme(composer: GPUComposer, chroma: GPUProgram, theme: Theme) {
+  const light = theme === "light";
+  composer.clearValue = light ? [1, 1, 1, 1] : [0, 0, 0, 1];
+  chroma.setUniform("u_rest", light ? TICK_COLOR_LIGHT : TICK_COLOR);
+  chroma.setUniform("u_gain", light ? CHROMA_GAIN_LIGHT : CHROMA_GAIN);
+}
+
 function stepSimulation(
   composer: GPUComposer,
   velocityState: GPULayer,
@@ -166,7 +179,7 @@ function stepSimulation(
   });
 }
 
-export function FluidVelocityBackground() {
+export function FluidVelocityBackground({ theme }: { theme: Theme }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<GPUComposer | null>(null);
   const velocityStateRef = useRef<GPULayer | null>(null);
@@ -177,6 +190,10 @@ export function FluidVelocityBackground() {
   const activeTouchesRef = useRef<
     Record<number, { current: number[]; last?: number[] }>
   >({});
+  // Only ever read at init, to pick the starting ground colour. Later changes
+  // arrive through the theme effect below, which avoids re-running init and
+  // wiping the field.
+  const themeRef = useRef(theme);
 
   const initSimulation = useCallback(() => {
     const container = containerRef.current;
@@ -401,6 +418,8 @@ export function FluidVelocityBackground() {
 
         uniform sampler2D u_velocity;
         uniform float u_time;
+        uniform float u_rest;
+        uniform float u_gain;
 
         out vec4 out_color;
 
@@ -423,8 +442,8 @@ export function FluidVelocityBackground() {
             + energy * ${CHROMA_ENERGY_SHIFT.toFixed(2)};
 
           vec3 color = mix(
-            vec3(${TICK_COLOR.toFixed(2)}),
-            cosinePalette(t) * ${CHROMA_GAIN.toFixed(2)},
+            vec3(u_rest),
+            cosinePalette(t) * u_gain,
             smoothstep(0.0, 1.0, energy)
           );
 
@@ -433,6 +452,8 @@ export function FluidVelocityBackground() {
       uniforms: [
         { name: "u_velocity", value: 0, type: INT },
         { name: "u_time", value: 0, type: FLOAT },
+        { name: "u_rest", value: TICK_COLOR, type: FLOAT },
+        { name: "u_gain", value: CHROMA_GAIN, type: FLOAT },
       ],
     });
 
@@ -446,7 +467,7 @@ export function FluidVelocityBackground() {
       chroma,
     };
 
-    composer.clearValue = [0, 0, 0, 1];
+    applyTheme(composer, chroma, themeRef.current);
     composer.clear();
 
     const loop = () => {
@@ -731,6 +752,15 @@ export function FluidVelocityBackground() {
       composerRef.current = null;
     };
   }, [initSimulation, emitLoadPulse]);
+
+  // Declared after the mount effect, so init has already run on first paint.
+  useEffect(() => {
+    const composer = composerRef.current;
+    const programs = programsRef.current;
+    if (!composer || !programs) return;
+
+    applyTheme(composer, programs.chroma, theme);
+  }, [theme]);
 
   return (
     <div ref={containerRef} className={styles.container} aria-hidden="true" />

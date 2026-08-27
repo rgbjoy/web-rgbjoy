@@ -49,6 +49,10 @@
 /* Masthead */
 
 .masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap);
   padding: 56px 0 28px;
 }
 
@@ -84,7 +88,14 @@
   inset: 0;
 }
 
+/* Also worn by a <button>: the live invite opens the contact dialog, while the
+   hidden measure copy stays an <a>. Both must render identically. */
 .subtitleLink {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
   color: var(--fg);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -93,6 +104,11 @@
 
 .subtitleLink:hover {
   color: var(--muted);
+}
+
+.subtitleLink:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
 }
 
 /* Controls */
@@ -472,6 +488,8 @@
   font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.01em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .itemExternal {

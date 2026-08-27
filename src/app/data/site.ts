@@ -13,10 +13,10 @@ export const SITE = {
   description:
     "Tom Fletcher is a fullstack engineer who architects and designs for the web — client sites, product systems, and shader experiments. Available for new work.",
 
-  /** Masthead copy. Split so the invite can end in a real mailto link. */
+  /** Masthead copy. Split so the invite can end in the contact trigger. */
   intro: {
     lead: "Hi, I'm Tom Fletcher. I love engineering, designing, and dreaming up amazing things for the web.",
     invite: "If you'd like to work together,",
-    linkLabel: "email me",
+    linkLabel: "contact me",
   },
 } as const

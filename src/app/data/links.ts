@@ -7,10 +7,6 @@ export type SiteLink = {
 /** Authored order stands in for a date, since these have none. */
 export const LINKS: SiteLink[] = [
   {
-    href: "mailto:tom@rgbjoy.com",
-    title: "Email",
-  },
-  {
     href: "https://www.linkedin.com/in/rgbjoy/",
     title: "LinkedIn",
   },

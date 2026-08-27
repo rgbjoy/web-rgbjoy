@@ -1,9 +1,12 @@
 :root {
   --bg: #000000;
   --fg: #ffffff;
-  --muted: #888888;
-  --faint: #555555;
-  --hairline: #222222;
+  /* Tertiary text, not decoration: --faint has gone #555 (2.8:1) -> #7d7d7d
+     (4.9:1) -> here, 7.5:1. It stays just under --muted so the three-step
+     hierarchy holds, but the gap is now tone rather than legibility. */
+  --muted: #a6a6a6;
+  --faint: #9a9a9a;
+  --hairline: #333333;
   --hover: rgba(255, 255, 255, 0.06);
   --background: var(--bg);
   --foreground: var(--fg);
@@ -18,6 +21,32 @@
 
   /* Every rollover eases on this. */
   --transition: 0.12s ease;
+}
+
+/* Opt-in only: dark is the site's look, not a fallback, so the system's colour
+   preference does not flip this on its own. Set by the settings gear. */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --muted: #4a4a4a;
+  --faint: #565656;
+  --hairline: #d6d6d6;
+  --hover: rgba(0, 0, 0, 0.05);
+}
+
+/* Follows the OS until the gear overrides it. Zeroing --transition catches every
+   rollover in one go, since they all ease on that token. */
+[data-motion="reduced"] {
+  --transition: 0s;
+}
+
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 @media (max-width: 640px) {
@@ -82,7 +111,10 @@ canvas.fade-in {
   line-height: 0.8em;
 }
 
+/* Links are underlined by default. Row-level anchors that wrap a whole grid
+   opt out and underline just their title instead. */
 a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

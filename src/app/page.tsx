@@ -15,7 +15,10 @@ import {
 import { LINKS, linkSearchText, type SiteLink } from "./data/links"
 import { PROJECTS, projectSearchText, type Project } from "./data/projects"
 import { SITE } from "./data/site"
+import { ContactDialog } from "./utilities/contact/ContactDialog"
 import { FluidVelocityBackground } from "./utilities/FluidVelocityBackground"
+import { SettingsMenu } from "./utilities/settings/SettingsMenu"
+import { useReducedMotion, useTheme } from "./utilities/settings/useSettings"
 import styles from "./page.module.css"
 
 type SortMode = "date" | "name"
@@ -98,9 +101,11 @@ function sliceIntro(count: number) {
 function Masthead({
   titleCount,
   introCount,
+  onContact,
 }: {
   titleCount: number
   introCount: number
+  onContact: () => void
 }) {
   const intro = sliceIntro(introCount)
 
@@ -121,14 +126,21 @@ function Masthead({
             {intro.lead}
             {intro.invite}
             {intro.link.length > 0 ? (
-              <a className={styles.subtitleLink} href={`mailto:${SITE.email}`}>
+              <button
+                type="button"
+                className={styles.subtitleLink}
+                onClick={onContact}
+              >
                 {intro.link}
-              </a>
+              </button>
             ) : null}
             {intro.end}
           </span>
         </p>
       </div>
+      {/* Deliberately outside the intro timeline: someone who needs reduced
+          motion should not have to sit through an animation to reach it. */}
+      <SettingsMenu onContact={onContact} />
     </header>
   )
 }
@@ -185,6 +197,10 @@ function CategoryHeader({
 export default function Home() {
   const controlsRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
+  const introPlayedRef = useRef(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const reducedMotion = useReducedMotion()
+  const theme = useTheme()
   const [controlsStuck, setControlsStuck] = useState(false)
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<SortMode>("date")
@@ -207,12 +223,14 @@ export default function Home() {
     const main = mainRef.current
     if (!controls || !main) return
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const categories = Array.from(
       main.querySelectorAll<HTMLElement>("[data-category]"),
     )
 
-    if (reduced) {
+    // Toggling the setting re-runs this. Snap to the finished state rather than
+    // replaying the intro at someone who has already read it.
+    if (reducedMotion || introPlayedRef.current) {
+      introPlayedRef.current = true
       setTitleCount(TITLE_TEXT.length)
       setIntroCount(INTRO_TOTAL)
       setIntroPending(false)
@@ -241,7 +259,10 @@ export default function Home() {
     const timeline = gsap.timeline({
       delay: INTRO_DELAY_S,
       defaults: { ease: "power2.out" },
-      onComplete: () => setIntroPending(false),
+      onComplete: () => {
+        introPlayedRef.current = true
+        setIntroPending(false)
+      },
     })
     timeline.timeScale(INTRO_TIME_SCALE)
 
@@ -292,7 +313,7 @@ export default function Home() {
         gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
       }
     }
-  }, [])
+  }, [reducedMotion])
 
   // The bar is pinned exactly when its own top reaches the pin point, so read
   // that rather than watching a sentinel: IntersectionObserver never fires here
@@ -443,12 +464,17 @@ export default function Home() {
 
   return (
     <>
-      <FluidVelocityBackground />
+      {/* Unmounting is the teardown: the effect cleanup disposes the GPU state. */}
+      {!reducedMotion && <FluidVelocityBackground theme={theme} />}
       <div
         className={`${styles.page} ${introPending ? styles.introPending : ""}`}
       >
         <div className={styles.container}>
-          <Masthead titleCount={titleCount} introCount={introCount} />
+          <Masthead
+            titleCount={titleCount}
+            introCount={introCount}
+            onContact={() => setContactOpen(true)}
+          />
 
           <div
             ref={controlsRef}
@@ -597,6 +623,8 @@ export default function Home() {
           </main>
         </div>
       </div>
+
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </>
   )
 }
