@@ -7,15 +7,15 @@ export const SITE = {
   handle: "@rgbjoy",
 
   /** Browser tab and search result headline. */
-  title: "Tom Fletcher — web development, consulting, and design",
+  title: "Tom Fletcher — fullstack engineering, architecture, and design",
 
   /** Search results and link previews. */
   description:
-    "Tom Fletcher builds, consults on, and designs for the web — client sites, product engineering, and shader experiments. Available for new work.",
+    "Tom Fletcher is a fullstack engineer who architects and designs for the web — client sites, product systems, and shader experiments. Available for new work.",
 
   /** Masthead copy. Split so the invite can end in a real mailto link. */
   intro: {
-    lead: "Hi, I'm Tom Fletcher. I love building, consulting, and designing for the web.",
+    lead: "Hi, I'm Tom Fletcher. I love engineering, designing, and dreaming up amazing things for the web.",
     invite: "If you'd like to work together,",
     linkLabel: "email me",
   },
