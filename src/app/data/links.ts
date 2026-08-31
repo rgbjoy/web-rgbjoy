@@ -7,20 +7,20 @@ export type SiteLink = {
 /** Authored order stands in for a date, since these have none. */
 export const LINKS: SiteLink[] = [
   {
-    href: "https://www.linkedin.com/in/rgbjoy/",
-    title: "LinkedIn",
-  },
-  {
-    href: "https://x.com/rgbjoy",
-    title: "X",
+    href: "https://github.com/rgbjoy/",
+    title: "GitHub",
   },
   {
     href: "https://www.instagram.com/rgbjoy/",
     title: "Instagram",
   },
   {
-    href: "https://github.com/rgbjoy/",
-    title: "GitHub",
+    href: "https://x.com/rgbjoy",
+    title: "X",
+  },
+  {
+    href: "https://www.linkedin.com/in/rgbjoy/",
+    title: "LinkedIn",
   },
 ]
 

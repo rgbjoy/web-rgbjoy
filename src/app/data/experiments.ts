@@ -9,6 +9,9 @@ export type Experiment = {
   /** Month the experiment first landed, as YYYY-MM (sourced from git history). */
   date: string
   status: ExperimentStatus
+  /** Libraries and languages the experiment is actually built on, shown as row
+   *  tags. Sourced from each experiment's imports, not from memory. */
+  tech: string[]
   keywords?: string[]
 }
 
@@ -29,6 +32,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-07",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
     keywords: ["aurora", "raymarch", "kishimisu", "shader", "space", "spectral"],
   },
   {
@@ -38,6 +42,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-03",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["gradient", "background", "color", "shader"],
   },
   {
@@ -48,6 +53,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Play",
     date: "2026-08",
     status: "wip",
+    tech: ["Three.js", "R3F", "GLSL", "FBX"],
     keywords: ["frog", "game", "lily pad", "three", "aim", "jump", "wind", "golf"],
   },
   {
@@ -58,6 +64,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Glass & Refraction",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["glass", "fluted", "wash", "cool drift", "refraction", "shader"],
   },
   {
@@ -68,6 +75,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Glass & Refraction",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["glass", "cross", "lines", "wave", "black and white", "refraction", "shader"],
   },
   {
@@ -77,6 +85,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Glass & Refraction",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["glass", "lines", "refraction", "samuel yan", "shader"],
   },
   {
@@ -87,6 +96,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Glass & Refraction",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["glass", "point", "gradient", "lens", "refraction", "shader"],
   },
   {
@@ -96,6 +106,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Glass & Refraction",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["glass", "lines", "gold", "palette", "refraction", "shader"],
   },
   {
@@ -106,6 +117,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Glass & Refraction",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["glass", "refraction", "aberration", "text", "scroll", "lens", "backdrop-filter", "svg"],
   },
   {
@@ -116,6 +128,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-07",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "thi.ng", "lil-gui"],
     keywords: ["gradient", "color", "palette", "oklab", "natural", "mesh", "shader", "thi.ng"],
   },
   {
@@ -125,6 +138,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-03",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
     keywords: ["moon", "waves", "water", "shader"],
   },
   {
@@ -134,6 +148,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "3D & Spatial",
     date: "2026-04",
     status: "live",
+    tech: ["Three.js", "R3F"],
     keywords: ["palm", "leaf", "frond", "procedural"],
   },
   {
@@ -144,6 +159,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "3D & Spatial",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "Postprocessing"],
     keywords: ["ps2", "playstation", "intro", "glass", "fog", "three", "lights"],
   },
   {
@@ -153,6 +169,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "3D & Spatial",
     date: "2026-04",
     status: "live",
+    tech: ["Three.js", "R3F"],
     keywords: ["rectangle", "farm", "grid", "three", "physics"],
   },
   {
@@ -162,6 +179,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-04",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
     keywords: ["sky", "atmosphere", "sun", "shader"],
   },
   {
@@ -172,6 +190,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "3D & Spatial",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "Postprocessing"],
     keywords: ["space", "road", "2001", "tunnel", "octagon", "three", "odyssey"],
   },
   {
@@ -181,6 +200,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
     keywords: ["waves", "petals", "palette", "blobs", "shader"],
   },
   {
@@ -190,6 +210,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-06",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
     keywords: ["stripes", "warp", "noise", "diagonal", "shader"],
   },
   {
@@ -199,6 +220,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Generative & Visual",
     date: "2026-03",
     status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
     keywords: ["wormhole", "tunnel", "shader", "raymarch"],
   },
 ]
@@ -209,6 +231,7 @@ export function experimentSearchText(experiment: Experiment): string {
     experiment.description,
     experiment.href,
     experiment.group,
+    ...experiment.tech,
     ...(experiment.keywords ?? []),
   ]
     .join(" ")

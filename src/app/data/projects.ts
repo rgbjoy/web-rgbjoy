@@ -5,6 +5,8 @@ export type Project = {
   /** Year the site shipped, or "Ongoing" / "Coming soon" for unshipped work. */
   year: string
   description?: string
+  /** Stack the site is built on, shown as row tags. */
+  tech?: string[]
 }
 
 /**
@@ -25,6 +27,7 @@ export const PROJECTS: Project[] = [
     year: "2026",
     description:
       "A patient-focused site for a multigenerational dental practice, built with Payload CMS and Next.js.",
+    tech: ["Next.js", "Payload CMS"],
   },
   {
     href: "https://veronightout.com",
@@ -46,6 +49,7 @@ export const PROJECTS: Project[] = [
     year: "2025",
     description:
       "A portfolio site for a New York City photographer and filmmaker, built with Payload CMS.",
+    tech: ["Payload CMS"],
   },
   {
     href: "https://thenewrepublic.com",
@@ -62,7 +66,12 @@ export const PROJECTS: Project[] = [
 ]
 
 export function projectSearchText(project: Project): string {
-  return [project.title, project.year, project.description ?? ""]
+  return [
+    project.title,
+    project.year,
+    project.description ?? "",
+    ...(project.tech ?? []),
+  ]
     .join(" ")
     .toLowerCase()
 }

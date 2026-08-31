@@ -108,9 +108,13 @@
   transition: border-color var(--transition);
 }
 
+/* The message field reads as a box — a full border shows how much room there is. */
 .textarea {
-  resize: vertical;
-  min-height: 96px;
+  padding: 8px 10px;
+  border: 1px solid var(--hairline);
+  resize: none;
+  height: 96px;
+  overflow-y: auto;
   line-height: 1.55;
 }
 
@@ -118,6 +122,10 @@
 .textarea:focus {
   outline: none;
   border-bottom-color: var(--fg);
+}
+
+.textarea:focus {
+  border-color: var(--fg);
 }
 
 /* Off-screen rather than display:none — some bots skip undisplayed fields. */

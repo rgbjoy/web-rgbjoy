@@ -351,20 +351,34 @@ export default function Home() {
       return
     }
 
-    const parts = categories.map((category) => ({
-      lead: [
-        category.querySelector('[data-intro="toggle"]'),
-        category.querySelector('[data-intro="name"]'),
-      ].filter(Boolean),
-      rule: category.querySelector('[data-intro="rule"]'),
-      count: category.querySelector('[data-intro="count"]'),
-    }))
+    const parts = categories.map((category) => {
+      // A restored session can have categories already open, so their rows are in
+      // the DOM before the heading that introduces them. Everything under the
+      // heading waits its turn with the heading rather than sitting there first.
+      const section = category.closest("section")
+      const body = section
+        ? Array.from(section.children).filter(
+            (child) => child.tagName !== "H2",
+          )
+        : []
+
+      return {
+        lead: [
+          category.querySelector('[data-intro="toggle"]'),
+          category.querySelector('[data-intro="name"]'),
+        ].filter(Boolean),
+        rule: category.querySelector('[data-intro="rule"]'),
+        count: category.querySelector('[data-intro="count"]'),
+        body,
+      }
+    })
 
     // CSS already hides these; lock matching GSAP state before the timeline runs.
     gsap.set(controls, { autoAlpha: 0 })
     for (const part of parts) {
       gsap.set(part.lead, { autoAlpha: 0 })
       gsap.set(part.count, { autoAlpha: 0 })
+      if (part.body.length > 0) gsap.set(part.body, { autoAlpha: 0 })
       gsap.set(part.rule, { scaleX: 0, transformOrigin: "left center" })
     }
 
@@ -417,6 +431,15 @@ export default function Home() {
           autoAlpha: 1,
           duration: 0.2,
         })
+
+      // A collapsed category has no rows to reveal. GSAP warns on an empty target
+      // list, and an empty tween would still hold the timeline open.
+      if (part.body.length > 0) {
+        timeline.to(part.body, {
+          autoAlpha: 1,
+          duration: 0.3,
+        })
+      }
     }
 
     return () => {
@@ -425,6 +448,9 @@ export default function Home() {
       for (const part of parts) {
         gsap.set(part.lead, { clearProps: "opacity,visibility" })
         gsap.set(part.count, { clearProps: "opacity,visibility" })
+        if (part.body.length > 0) {
+          gsap.set(part.body, { clearProps: "opacity,visibility" })
+        }
         gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
       }
     }
@@ -677,6 +703,22 @@ export default function Home() {
   )
 }
 
+/** Stack tags for a row. Sits below the description so the title row stays the
+ *  thing you scan, and the tags are what you check once something catches. */
+function TechTags({ tech }: { tech?: string[] }) {
+  if (!tech || tech.length === 0) return null
+
+  return (
+    <ul className={styles.itemTech}>
+      {tech.map((name) => (
+        <li key={name} className={styles.itemTechTag}>
+          {name}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function LinkRow({ link }: { link: SiteLink }) {
   // mailto: opens a mail client rather than a tab, so it skips target/rel.
   const external = link.href.startsWith("http")
@@ -723,6 +765,7 @@ function ProjectRow({ project }: { project: Project }) {
         {project.description ? (
           <div className={styles.itemDesc}>{project.description}</div>
         ) : null}
+        <TechTags tech={project.tech} />
       </div>
       <span className={styles.itemDate}>{project.year}</span>
     </a>
@@ -737,6 +780,7 @@ function ExperimentRow({ experiment }: { experiment: Experiment }) {
           <span className={styles.itemTitle}>{experiment.title}</span>
         </div>
         <div className={styles.itemDesc}>{experiment.description}</div>
+        <TechTags tech={experiment.tech} />
       </div>
       <span className={styles.itemDate}>{formatDate(experiment.date)}</span>
     </Link>

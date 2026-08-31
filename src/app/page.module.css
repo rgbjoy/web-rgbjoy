@@ -41,6 +41,12 @@
   transform: scaleX(0);
 }
 
+/* Rows of an already-open category, held back until their heading arrives. */
+.introPending .category > *:not(.categoryHeading) {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .container {
   /* Height of the pinned title row. The controls bar parks directly beneath it,
      so the two must agree — hence one number rather than two. */
@@ -433,30 +439,6 @@
   padding: 14px var(--gutter);
   color: inherit;
   text-decoration: none;
-  transition: background var(--transition);
-}
-
-/* A solid fill, so every descendant flips with it — the title, description,
-   date and arrow each carry their own colour and would otherwise sit at their
-   normal value on an inverted ground. */
-@media (hover: hover) {
-  .item:hover {
-    background: var(--hover);
-    color: var(--bg);
-  }
-}
-
-@media (hover: hover) {
-  .item:active {
-    background: var(--hover);
-    color: var(--bg);
-  }
-}
-
-.item:focus-visible {
-  background: var(--hover);
-  color: var(--bg);
-  outline: none;
 }
 
 .item:focus-visible {
@@ -494,44 +476,25 @@
   transition: color var(--rollover-fade);
 }
 
+/* Only the link itself answers, the same way the section headers do. The
+   description and date belong to the row, not to the thing being clicked. */
 @media (hover: hover) {
-  .item:hover .itemExternal,
-  .item:hover .itemDesc,
-  .item:hover .itemDate {
-    color: var(--bg);
+  .item:hover .itemTitle,
+  .item:hover .itemExternal {
+    color: var(--rollover-seed, var(--fg));
   }
 }
 
 @media (hover: hover) {
-  .item:active .itemExternal,
-  .item:active .itemDesc,
-  .item:active .itemDate {
-    color: var(--bg);
+  .item:active .itemTitle,
+  .item:active .itemExternal {
+    color: var(--rollover-seed, var(--fg));
   }
 }
 
-.item:focus-visible .itemExternal,
-.item:focus-visible .itemDesc,
-.item:focus-visible .itemDate {
-  color: var(--bg);
-}
-
-/* No chroma seed here: on an inverted row the fill is the whole signal, and a
-   bright seed on white reads as an accident. */
-@media (hover: hover) {
-  .item:hover .itemTitle {
-    color: var(--bg);
-  }
-}
-
-@media (hover: hover) {
-  .item:active .itemTitle {
-    color: var(--bg);
-  }
-}
-
-.item:focus-visible .itemTitle {
-  color: var(--bg);
+.item:focus-visible .itemTitle,
+.item:focus-visible .itemExternal {
+  color: var(--rollover-seed, var(--fg));
 }
 
 .itemDesc {
@@ -539,6 +502,26 @@
   font-size: 16px;
   line-height: 1.55;
   color: var(--muted);
+}
+
+/* Sits at the faint level, like the date: present when you look for it, quiet
+   when you are scanning titles. */
+.itemTech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-tight);
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itemTechTag {
+  padding: 2px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--faint);
 }
 
 .itemDate {
