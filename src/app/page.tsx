@@ -38,6 +38,7 @@ import {
 import { FluidVelocityBackground } from "./utilities/FluidVelocityBackground"
 import { openPalette } from "./utilities/SearchPalette/paletteState"
 import { SettingsMenu } from "./utilities/settings/SettingsMenu"
+import { RgbLogo } from "./utilities/RgbLogo/RgbLogo"
 import { SmoothScroll } from "./utilities/SmoothScroll"
 import { useReducedMotion, useTheme } from "./utilities/settings/useSettings"
 import styles from "./page.module.css"
@@ -220,9 +221,17 @@ function Masthead({
         ref={lockupRef}
         className={`${styles.lockup} ${lockupStuck ? styles.lockupStuck : ""}`}
       >
-        <h1 className={styles.title}>
-          <TypedText text={TITLE_TEXT.slice(0, titleCount)} seeds={titleSeeds} />
-        </h1>
+        {/* Wrapped so the lockup's space-between still has two children to
+            push apart, with the mark travelling alongside the title. */}
+        <div className={styles.brand}>
+          <RgbLogo />
+          <h1 className={styles.title}>
+            <TypedText
+              text={TITLE_TEXT.slice(0, titleCount)}
+              seeds={titleSeeds}
+            />
+          </h1>
+        </div>
         {/* Deliberately outside the intro timeline: someone who needs reduced
             motion should not have to sit through an animation to reach it. */}
         <SettingsMenu onContact={onContact} onSearch={onSearch} />

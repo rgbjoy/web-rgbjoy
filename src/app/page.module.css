@@ -50,7 +50,7 @@
 .container {
   /* Height of the pinned title row. The controls bar parks directly beneath it,
      so the two must agree — hence one number rather than two. */
-  --lockup-h: 68px;
+  --lockup-h: 112px;
   width: 100%;
   /* Breathing room above the lockup that scrolls away, leaving it flush to the
      top edge once pinned. */
@@ -96,13 +96,25 @@
   padding: 4px 0 28px;
 }
 
+/* Mark and wordmark travel together; the lockup pushes this against the menu. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .title {
   margin: 0;
   min-height: 1.3em;
-  font-size: 28px;
+  /* Redaction is wider and sits smaller on the body than the mono, so it needs
+     its own size and tracking rather than inheriting the old numbers. */
+  font-family: var(--font-redaction), var(--font-geist-mono), ui-monospace,
+    monospace;
+  font-size: 68px;
   line-height: 1.3;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .subtitle {
@@ -319,6 +331,7 @@
   height: 1px;
   background: var(--hairline);
   transform-origin: left center;
+  transition: background var(--rollover-fade);
 }
 
 .categoryCount {
@@ -338,12 +351,22 @@
   .categoryHeader:hover .categoryToggle {
     color: var(--rollover-seed, var(--fg));
   }
+
+  /* The rule is decoration, so it sits at --hairline until the row is picked
+     out; then it takes the same seed at full strength as the name beside it. */
+  .categoryHeader:hover .categoryRule {
+    background: var(--rollover-seed, var(--fg));
+  }
 }
 
 @media (hover: hover) {
   .categoryHeader:active .categoryName,
   .categoryHeader:active .categoryToggle {
     color: var(--rollover-seed, var(--fg));
+  }
+
+  .categoryHeader:active .categoryRule {
+    background: var(--rollover-seed, var(--fg));
   }
 }
 
@@ -401,6 +424,7 @@
   align-self: center;
   height: 1px;
   background: var(--hairline);
+  transition: background var(--rollover-fade);
 }
 
 .groupCount {
@@ -420,12 +444,20 @@
   .groupHeader:hover .groupToggle {
     color: var(--rollover-seed, var(--fg));
   }
+
+  .groupHeader:hover .groupRule {
+    background: var(--rollover-seed, var(--fg));
+  }
 }
 
 @media (hover: hover) {
   .groupHeader:active .groupName,
   .groupHeader:active .groupToggle {
     color: var(--rollover-seed, var(--fg));
+  }
+
+  .groupHeader:active .groupRule {
+    background: var(--rollover-seed, var(--fg));
   }
 }
 
@@ -549,7 +581,7 @@
 
 @media (max-width: 640px) {
   .container {
-    --lockup-h: 56px;
+    --lockup-h: 90px;
     padding-top: 28px;
   }
 
@@ -558,7 +590,7 @@
   }
 
   .title {
-    font-size: 22px;
+    font-size: 52px;
   }
 
   .item {

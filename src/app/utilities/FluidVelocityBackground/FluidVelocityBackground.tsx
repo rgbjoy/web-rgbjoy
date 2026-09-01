@@ -6,7 +6,7 @@ import {
   GPULayer,
   FLOAT,
   INT,
-  REPEAT,
+  CLAMP_TO_EDGE,
   NEAREST,
   LINEAR,
 } from "gpu-io";
@@ -69,6 +69,7 @@ type SimulationPrograms = {
   gradientSubtraction: GPUProgram;
   damping: GPUProgram;
   touch: GPUProgram;
+  wall: GPUProgram;
   chroma: GPUProgram;
 };
 
@@ -144,6 +145,12 @@ function stepSimulation(
   });
 
   composer.step({
+    program: programs.wall,
+    input: velocityState,
+    output: velocityState,
+  });
+
+  composer.step({
     program: programs.divergence2D,
     input: velocityState,
     output: divergenceState,
@@ -160,6 +167,14 @@ function stepSimulation(
   composer.step({
     program: programs.gradientSubtraction,
     input: [pressureState, velocityState],
+    output: velocityState,
+  });
+
+  // Again after the projection: subtracting the pressure gradient can put a
+  // normal component back at the wall that the first pass had removed.
+  composer.step({
+    program: programs.wall,
+    input: velocityState,
     output: velocityState,
   });
 
@@ -231,8 +246,8 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
       type: FLOAT,
       filter: LINEAR,
       numComponents: 2,
-      wrapX: REPEAT,
-      wrapY: REPEAT,
+      wrapX: CLAMP_TO_EDGE,
+      wrapY: CLAMP_TO_EDGE,
       numBuffers: 2,
     });
     velocityStateRef.current = velocityState;
@@ -243,8 +258,8 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
       type: FLOAT,
       filter: NEAREST,
       numComponents: 1,
-      wrapX: REPEAT,
-      wrapY: REPEAT,
+      wrapX: CLAMP_TO_EDGE,
+      wrapY: CLAMP_TO_EDGE,
     });
     divergenceStateRef.current = divergenceState;
 
@@ -254,8 +269,8 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
       type: FLOAT,
       filter: NEAREST,
       numComponents: 1,
-      wrapX: REPEAT,
-      wrapY: REPEAT,
+      wrapX: CLAMP_TO_EDGE,
+      wrapY: CLAMP_TO_EDGE,
       numBuffers: 2,
     });
     pressureStateRef.current = pressureState;
@@ -409,6 +424,46 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
       ],
     });
 
+    /**
+     * Free-slip walls. Only the component pointing through the edge is removed,
+     * so flow slides along the boundary instead of stopping dead at it — a
+     * no-slip wall would dump a wall-sized divergence source into a solver that
+     * only runs NUM_JACOBI_STEPS iterations to relieve it.
+     *
+     * Deliberately a full-screen pass rather than composer.stepBoundary, which
+     * draws a gl.LINE_LOOP whose seam vertex is the bottom-left corner: line
+     * rasterization drops a pixel there and leaves that one cell without a wall.
+     */
+    const wall = new GPUProgram(composer, {
+      name: "wall",
+      fragmentShader: `
+        in vec2 v_uv;
+
+        uniform sampler2D u_velocity;
+        uniform vec2 u_pxSize;
+
+        out vec2 out_velocity;
+
+        void main() {
+          vec2 velocity = texture(u_velocity, v_uv).xy;
+
+          // Fragment centres sit at (i + 0.5) * pxSize, so a whole-pixel
+          // threshold selects the outermost cell and nothing behind it.
+          if (v_uv.x < u_pxSize.x || v_uv.x > 1.0 - u_pxSize.x) {
+            velocity.x = 0.0;
+          }
+          if (v_uv.y < u_pxSize.y || v_uv.y > 1.0 - u_pxSize.y) {
+            velocity.y = 0.0;
+          }
+
+          out_velocity = velocity;
+        }`,
+      uniforms: [
+        { name: "u_velocity", value: 0, type: INT },
+        { name: "u_pxSize", value: velocityPxSize, type: FLOAT },
+      ],
+    });
+
     // Colors each velocity tick instead of drawing it flat grey: hue follows the
     // flow heading, saturation ramps with speed, so still areas stay neutral.
     const chroma = new GPUProgram(composer, {
@@ -464,6 +519,7 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
       gradientSubtraction,
       damping,
       touch,
+      wall,
       chroma,
     };
 
@@ -685,6 +741,7 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
           programs.divergence2D.setUniform("u_pxSize", velocityPxSize);
           programs.jacobi.setUniform("u_pxSize", velocityPxSize);
           programs.gradientSubtraction.setUniform("u_pxSize", velocityPxSize);
+          programs.wall.setUniform("u_pxSize", velocityPxSize);
         }
       }
 
@@ -742,6 +799,7 @@ export function FluidVelocityBackground({ theme }: { theme: Theme }) {
       programsRef.current?.gradientSubtraction.dispose();
       programsRef.current?.damping.dispose();
       programsRef.current?.touch.dispose();
+      programsRef.current?.wall.dispose();
       programsRef.current?.chroma.dispose();
       composerRef.current?.dispose();
 

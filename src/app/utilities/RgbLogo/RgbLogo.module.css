@@ -1,0 +1,39 @@
+/* The wrapper is the mark's real size, so layout never sees the bleed. */
+.logo {
+  --mark: 48px;
+  /* A quarter of the mark on each side, which is what puts the artwork in the
+     middle two thirds of the canvas the shader is written against. */
+  --bleed: calc(var(--mark) * 0.25);
+
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+  /* The page opts out of pointer events wholesale so the fluid background can
+     have them, and opts elements back in by tag. A span is not on that list, so
+     the mark has to claim them itself or hover never fires. */
+  pointer-events: auto;
+  width: var(--mark);
+  height: var(--mark);
+  /* The bars are inset inside the mark's box, so this closes the optical gap to
+     the wordmark rather than letting that padding read as a space. */
+  margin-right: -4px;
+}
+
+/* Overflows the wrapper on every side so the hover ripple has room to travel
+   instead of being cut off at the mark's own edge. */
+.canvas {
+  position: absolute;
+  left: calc(var(--bleed) * -1);
+  top: calc(var(--bleed) * -1);
+  width: calc(var(--mark) + var(--bleed) * 2);
+  height: calc(var(--mark) + var(--bleed) * 2);
+  /* The wrapper owns the pointer; this must not sit over the wordmark and eat
+     events meant for it. */
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .logo {
+    --mark: 38px;
+  }
+}
