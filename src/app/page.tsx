@@ -9,7 +9,14 @@ import {
   Plus,
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
 
 import {
   EXPERIMENT_GROUPS,
@@ -314,6 +321,133 @@ function CategoryHeader({
   )
 }
 
+/**
+ * Keeps a section's children mounted so opening and closing both have something
+ * to animate. The outer element owns the height reveal; its direct inner
+ * children get a small stagger so rows arrive as rows rather than one block.
+ */
+function CollapsibleContent({
+  open,
+  ready,
+  children,
+}: {
+  open: boolean
+  ready: boolean
+  children: ReactNode
+}) {
+  const shown = open && ready
+  const outerRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
+  const previousShownRef = useRef(shown)
+  const [present, setPresent] = useState(shown)
+  const reducedMotion = useReducedMotion()
+
+  useLayoutEffect(() => {
+    const outer = outerRef.current
+    const inner = innerRef.current
+    if (!outer || !inner) return
+
+    const items = Array.from(inner.children)
+    gsap.killTweensOf([outer, ...items])
+
+    // The intro keeps restored content closed until its heading has arrived.
+    // Strict Mode's second setup pass sees the same value and simply preserves
+    // that pose rather than replaying the animation.
+    if (previousShownRef.current === shown) {
+      gsap.set(outer, {
+        clearProps: "overflow",
+        display: shown ? "block" : "none",
+        height: shown ? "auto" : 0,
+      })
+      gsap.set(items, { clearProps: "opacity,visibility" })
+      return
+    }
+    previousShownRef.current = shown
+
+    if (reducedMotion) {
+      gsap.set(outer, {
+        clearProps: "overflow",
+        display: shown ? "block" : "none",
+        height: shown ? "auto" : 0,
+      })
+      gsap.set(items, { clearProps: "opacity,visibility" })
+      const visibilityUpdate = gsap.delayedCall(0, () => setPresent(shown))
+      return () => {
+        visibilityUpdate.kill()
+      }
+    }
+
+    const timeline = gsap.timeline()
+
+    if (shown) {
+      const wasHidden = window.getComputedStyle(outer).display === "none"
+      gsap.set(outer, { display: "block" })
+      const startHeight = wasHidden ? 0 : outer.offsetHeight
+      gsap.set(outer, { height: startHeight, overflow: "hidden" })
+      if (wasHidden) gsap.set(items, { autoAlpha: 0 })
+
+      timeline
+        .call(() => setPresent(true), undefined, 0)
+        .to(outer, {
+          height: "auto",
+          duration: 0.42,
+          ease: "power3.out",
+        })
+        .to(
+          items,
+          {
+            autoAlpha: 1,
+            duration: 0.3,
+            stagger: 0.045,
+            ease: "power2.out",
+          },
+          0.08,
+        )
+        .set(outer, { clearProps: "height,overflow" })
+        .set(items, { clearProps: "opacity,visibility" })
+    } else {
+      gsap.set(outer, { height: outer.offsetHeight, overflow: "hidden" })
+
+      timeline
+        .to(items, {
+          autoAlpha: 0,
+          duration: 0.2,
+          stagger: { each: 0.025, from: "end" },
+          ease: "power2.in",
+        })
+        .to(
+          outer,
+          {
+            height: 0,
+            duration: 0.32,
+            ease: "power3.inOut",
+          },
+          0,
+        )
+        .set(outer, { display: "none", clearProps: "height,overflow" })
+        .set(items, { clearProps: "opacity,visibility" })
+        .call(() => setPresent(false))
+    }
+
+    return () => {
+      timeline.kill()
+    }
+  }, [shown, reducedMotion])
+
+  return (
+    <div
+      ref={outerRef}
+      aria-hidden={!shown}
+      inert={!shown ? true : undefined}
+      style={{ display: present ? undefined : "none" }}
+    >
+      <div ref={innerRef} className={styles.collapsibleInner}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const controlsRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
@@ -351,17 +485,10 @@ export default function Home() {
       return
     }
 
+    // Headings only. The rows below them sit inside CollapsibleContent, which
+    // owns their reveal and kills tweens on its own wrapper — an autoAlpha the
+    // intro set there would be stranded hidden when that kill lands.
     const parts = categories.map((category) => {
-      // A restored session can have categories already open, so their rows are in
-      // the DOM before the heading that introduces them. Everything under the
-      // heading waits its turn with the heading rather than sitting there first.
-      const section = category.closest("section")
-      const body = section
-        ? Array.from(section.children).filter(
-            (child) => child.tagName !== "H2",
-          )
-        : []
-
       return {
         lead: [
           category.querySelector('[data-intro="toggle"]'),
@@ -369,7 +496,6 @@ export default function Home() {
         ].filter(Boolean),
         rule: category.querySelector('[data-intro="rule"]'),
         count: category.querySelector('[data-intro="count"]'),
-        body,
       }
     })
 
@@ -378,7 +504,6 @@ export default function Home() {
     for (const part of parts) {
       gsap.set(part.lead, { autoAlpha: 0 })
       gsap.set(part.count, { autoAlpha: 0 })
-      if (part.body.length > 0) gsap.set(part.body, { autoAlpha: 0 })
       gsap.set(part.rule, { scaleX: 0, transformOrigin: "left center" })
     }
 
@@ -431,15 +556,6 @@ export default function Home() {
           autoAlpha: 1,
           duration: 0.2,
         })
-
-      // A collapsed category has no rows to reveal. GSAP warns on an empty target
-      // list, and an empty tween would still hold the timeline open.
-      if (part.body.length > 0) {
-        timeline.to(part.body, {
-          autoAlpha: 1,
-          duration: 0.3,
-        })
-      }
     }
 
     return () => {
@@ -448,9 +564,6 @@ export default function Home() {
       for (const part of parts) {
         gsap.set(part.lead, { clearProps: "opacity,visibility" })
         gsap.set(part.count, { clearProps: "opacity,visibility" })
-        if (part.body.length > 0) {
-          gsap.set(part.body, { clearProps: "opacity,visibility" })
-        }
         gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
       }
     }
@@ -576,10 +689,11 @@ export default function Home() {
           </button>
         </h3>
 
-        {isOpen &&
-          group.items.map((experiment) => (
+        <CollapsibleContent open={isOpen} ready={!introPending}>
+          {group.items.map((experiment) => (
             <ExperimentRow key={experiment.href} experiment={experiment} />
           ))}
+        </CollapsibleContent>
       </section>
     )
   }
@@ -658,10 +772,14 @@ export default function Home() {
                   onToggle={() => toggleGroup("projects")}
                 />
 
-                {projectsOpen &&
-                  filteredProjects.map((project) => (
+                <CollapsibleContent
+                  open={projectsOpen}
+                  ready={!introPending}
+                >
+                  {filteredProjects.map((project) => (
                     <ProjectRow key={project.href} project={project} />
                   ))}
+                </CollapsibleContent>
               </section>
             )}
 
@@ -674,7 +792,12 @@ export default function Home() {
                   onToggle={() => toggleGroup("experiments")}
                 />
 
-                {experimentsOpen && groups.map(renderGroup)}
+                <CollapsibleContent
+                  open={experimentsOpen}
+                  ready={!introPending}
+                >
+                  {groups.map(renderGroup)}
+                </CollapsibleContent>
               </section>
             )}
 
@@ -687,10 +810,11 @@ export default function Home() {
                   onToggle={() => toggleGroup("links")}
                 />
 
-                {linksOpen &&
-                  filteredLinks.map((link) => (
+                <CollapsibleContent open={linksOpen} ready={!introPending}>
+                  {filteredLinks.map((link) => (
                     <LinkRow key={link.href} link={link} />
                   ))}
+                </CollapsibleContent>
               </section>
             )}
 

@@ -352,6 +352,12 @@
   outline-offset: 2px;
 }
 
+/* Prevent a first child's top margin from changing the measured content height
+   when the outer reveal removes its temporary overflow clipping. */
+.collapsibleInner {
+  display: flow-root;
+}
+
 /* Groups */
 
 .group {
