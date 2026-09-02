@@ -57,6 +57,17 @@ export const EXPERIMENTS: Experiment[] = [
     keywords: ["frog", "game", "lily pad", "three", "aim", "jump", "wind", "golf"],
   },
   {
+    href: "/experiments/island-generator",
+    title: "Island Generator",
+    description:
+      "Shape a low-poly island with seeded noise, elevation bands, and live terrain controls.",
+    group: "Play",
+    date: "2026-09",
+    status: "wip",
+    tech: ["Three.js", "R3F", "WebGPU"],
+    keywords: ["island", "terrain", "generator", "noise", "seed", "procedural", "low poly"],
+  },
+  {
     href: "/experiments/glass-grid",
     title: "Fluted Glass",
     description:
