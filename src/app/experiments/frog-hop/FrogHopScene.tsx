@@ -502,7 +502,7 @@ export function FrogHopScene({
     const frog = frogRef.current;
     if (!frog) return;
 
-    const elapsed = state.clock.elapsedTime;
+    const elapsed = state.elapsed;
     const phase = phaseRef.current;
 
     if (phase === "shooting" && shotRef.current) {
@@ -1146,7 +1146,7 @@ function PondFloatProvider({
   const worldPosition = useMemo(() => new Vector3(), []);
 
   useFrame((state, delta) => {
-    const time = state.clock.elapsedTime;
+    const time = state.elapsed;
 
     for (const body of bodiesRef.current) {
       const object = body.objectRef.current;
@@ -1940,7 +1940,7 @@ function TargetRing({
 
   useFrame((state) => {
     if (!ringRef.current || !target) return;
-    const pulse = 1 + Math.sin(state.clock.elapsedTime * 4) * 0.08;
+    const pulse = 1 + Math.sin(state.elapsed * 4) * 0.08;
     ringRef.current.scale.setScalar(pulse);
     ringRef.current.rotation.z += 0.004;
     ringRef.current.position.y =
@@ -2405,7 +2405,7 @@ const LandingPreview = forwardRef<
   useFrame((state) => {
     if (!groupRef.current?.visible || !ringRef.current) return;
     ringRef.current.scale.setScalar(
-      1 + Math.sin(state.clock.elapsedTime * 6) * 0.07,
+      1 + Math.sin(state.elapsed * 6) * 0.07,
     );
   });
 

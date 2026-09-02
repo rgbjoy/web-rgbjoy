@@ -250,9 +250,9 @@ export function SimpleWater({
     group.position.x = centerX;
     group.position.z = centerZ;
     waterMaterial.uniforms.uCenter.value.set(centerX, centerZ);
-    waterMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+    waterMaterial.uniforms.uTime.value = state.elapsed;
     causticsMaterial.uniforms.uCenter.value.set(centerX, centerZ);
-    causticsMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+    causticsMaterial.uniforms.uTime.value = state.elapsed;
   });
   /* eslint-enable react-hooks/immutability */
 

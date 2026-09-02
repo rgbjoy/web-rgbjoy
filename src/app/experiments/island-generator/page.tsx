@@ -2,7 +2,7 @@
 
 import { Canvas } from "@react-three/fiber/webgpu"
 import { Dices, Download, Minus, Plus, RefreshCw } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState, useSyncExternalStore } from "react"
 
 import { exportIslandGlb } from "./exportIsland"
 import { IslandScene } from "./IslandScene"
@@ -86,6 +86,10 @@ function randomRange(minimum: number, maximum: number, precision: number) {
   )
 }
 
+const subscribeWebGpu = () => () => {}
+const getWebGpuSnapshot = () => Boolean(navigator.gpu)
+const getWebGpuServerSnapshot = () => false
+
 export default function Page() {
   const [settings, setSettings] = useState<IslandSettings>(
     DEFAULT_ISLAND_SETTINGS,
@@ -94,11 +98,11 @@ export default function Page() {
   const [showWater, setShowWater] = useState(true)
   const [showBiomes, setShowBiomes] = useState(true)
   const [controlsOpen, setControlsOpen] = useState(true)
-  const [webgpu, setWebgpu] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    setWebgpu(Boolean(navigator.gpu))
-  }, [])
+  const webgpu = useSyncExternalStore(
+    subscribeWebGpu,
+    getWebGpuSnapshot,
+    getWebGpuServerSnapshot,
+  )
 
   const updateSetting = useCallback(
     (setting: NumericSetting, value: number) => {
@@ -144,12 +148,7 @@ export default function Page() {
 
   return (
     <main className={styles.main}>
-      {webgpu === false ? (
-        <p className={styles.fallback}>
-          This island needs WebGPU. Try Chrome or Edge, or enable WebGPU in
-          Safari.
-        </p>
-      ) : webgpu ? (
+      {webgpu ? (
         <Canvas
           className={styles.canvas}
           dpr={[1, 1.5]}
@@ -172,7 +171,12 @@ export default function Page() {
             showBiomes={showBiomes}
           />
         </Canvas>
-      ) : null}
+      ) : (
+        <p className={styles.fallback}>
+          This island needs WebGPU. Try Chrome or Edge, or enable WebGPU in
+          Safari.
+        </p>
+      )}
 
       <header className={styles.titleBlock}>
         <h1>Island Generator</h1>

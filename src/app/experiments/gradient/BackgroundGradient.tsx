@@ -95,9 +95,9 @@ export const ShaderGradient: FC<Config> = memo(
     const materialRef = useRef<ShaderMaterial & Partial<Uniforms>>(null)
     const { size } = useThree()
 
-    useFrame(({ clock }) => {
+    useFrame(({ elapsed }) => {
       if (!materialRef.current) return
-      materialRef.current.uTime = clock.elapsedTime * timeMultiplier
+      materialRef.current.uTime = elapsed * timeMultiplier
       materialRef.current.uAspectRatio = size.width / size.height
     })
 

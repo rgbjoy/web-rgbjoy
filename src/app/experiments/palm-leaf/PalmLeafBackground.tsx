@@ -11,7 +11,7 @@ import {
   useRef,
   useState,
 } from "react"
-import type { Material, Mesh, Object3D } from "three"
+import type { Group, Material, Mesh } from "three"
 import { PCFShadowMap, PlaneGeometry } from "three"
 
 import { PALM_STEM_BASE_LIFT_Y, PalmFrond } from "./PalmFrond"
@@ -120,7 +120,7 @@ function PalmSurfaceHiddenSync({
   palmRootRef,
 }: {
   palmsHidden: boolean
-  palmRootRef: RefObject<Object3D | null>
+  palmRootRef: RefObject<Group | null>
 }) {
   useLayoutEffect(() => {
     const root = palmRootRef.current
@@ -252,7 +252,7 @@ export const ShaderPalmLeafCanvas = memo(function ShaderPalmLeafCanvas() {
   // Opens on the shadows alone — the palm itself is revealed with H.
   const [palmsHidden, setPalmsHidden] = useState(true)
   const [wireframe, setWireframe] = useState(false)
-  const palmRootRef = useRef<Object3D>(null)
+  const palmRootRef = useRef<Group>(null)
 
   const floorGeometry = useMemo(() => createUndulatingFloorGeometry(), [])
 

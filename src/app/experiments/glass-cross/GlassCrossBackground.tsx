@@ -41,9 +41,9 @@ const ShaderGlassCross: FC = memo(() => {
   const materialRef = useRef<ShaderMaterial & Partial<Uniforms>>(null);
   const { size } = useThree();
 
-  useFrame(({ clock }) => {
+  useFrame(({ elapsed }) => {
     if (!materialRef.current) return;
-    materialRef.current.uTime = clock.elapsedTime;
+    materialRef.current.uTime = elapsed;
     materialRef.current.uAspectRatio = size.width / size.height;
 
     if (materialRef.current.uResolution instanceof Vector2) {

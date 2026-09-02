@@ -144,7 +144,7 @@ function ConcreteColumns() {
     const mesh = meshRef.current
     if (!mesh) return
 
-    const time = state.clock.elapsedTime
+    const time = state.elapsed
     dummy.rotation.set(0, 0, 0)
 
     columns.forEach((column, index) => {
@@ -266,7 +266,7 @@ function WhirlingLight({ config }: { config: LightConfig }) {
   useFrame((state) => {
     const group = ref.current
     if (!group) return
-    const t = state.clock.elapsedTime * config.speed + config.phase
+    const t = state.elapsed * config.speed + config.phase
     group.position.set(
       Math.cos(t) * config.radius + Math.sin(t * 1.7) * config.wobble,
       config.height + Math.sin(t * 2.3) * config.wobble,

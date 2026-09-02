@@ -120,9 +120,9 @@ export function RectangleField() {
     if (!group) return
 
     group.rotation.y += delta * 0.025
-    group.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.04
+    group.position.y = Math.sin(state.elapsed * 0.8) * 0.04
 
-    const elapsed = state.clock.elapsedTime
+    const elapsed = state.elapsed
 
     cells.forEach((cell, index) => {
       const rotationState = rotationStates[index]

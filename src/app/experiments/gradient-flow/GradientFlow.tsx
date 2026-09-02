@@ -214,7 +214,7 @@ export function GradientFlowScene() {
     const u = materialRef.current?.uniforms
     if (!u) return
     const p = params.current
-    u.uTime.value = state.clock.elapsedTime
+    u.uTime.value = state.elapsed
     u.uAngle.value = (p.angle * Math.PI) / 180
     u.uWarpAmp.value = p.warpAmount
     u.uWarpScale.value = p.warpScale

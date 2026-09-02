@@ -137,7 +137,7 @@ export function NoiseCloud({
   useFrame((state) => {
     const uniforms = materialRef.current?.uniforms
     if (!uniforms) return
-    uniforms.uTime.value = state.clock.elapsedTime
+    uniforms.uTime.value = state.elapsed
   })
 
   return (

@@ -743,8 +743,8 @@ export const PalmFrond = memo(function PalmFrond({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useFrame(({ clock }) => {
-    const time = clock.elapsedTime + windTimeOffset + windClockOffsetSec;
+  useFrame(({ elapsed }) => {
+    const time = elapsed + windTimeOffset + windClockOffsetSec;
 
     if (frondRef.current) {
       frondRef.current.rotation.x =
