@@ -3,7 +3,7 @@ import { Group, Mesh, MeshStandardMaterial, PlaneGeometry } from "three"
 
 import {
   createIslandGeometry,
-  createShallowWaterGeometry,
+  createIslandHeightfield,
   ISLAND_SIZE,
   normalizeIslandResolution,
   type IslandSettings,
@@ -18,16 +18,14 @@ export async function exportIslandGlb(
   settings: IslandSettings,
   options: IslandExportOptions,
 ) {
-  const terrainGeometry = createIslandGeometry(settings)
+  const heightfield = createIslandHeightfield(settings)
+  const terrainGeometry = createIslandGeometry(settings, heightfield)
   if (!options.includeBiomes) {
     // glTF has no material-level switch for vertex colors. If COLOR_0 is
     // present, importers multiply it into the material even when Three.js had
     // vertexColors disabled, so neutral exports must omit the attribute.
     terrainGeometry.deleteAttribute("color")
   }
-  const shallowWaterGeometry = options.includeWater
-    ? createShallowWaterGeometry(settings)
-    : null
   const oceanGeometry = options.includeWater
     ? new PlaneGeometry(ISLAND_SIZE * 1.08, ISLAND_SIZE * 1.08)
     : null
@@ -40,13 +38,6 @@ export async function exportIslandGlb(
     roughness: 0.94,
     metalness: 0,
   })
-  const shallowWaterMaterial = shallowWaterGeometry
-    ? new MeshStandardMaterial({
-        color: "#70cef2",
-        roughness: 0.46,
-        metalness: 0.02,
-      })
-    : null
   const oceanMaterial = oceanGeometry
     ? new MeshStandardMaterial({
         color: "#318be0",
@@ -65,15 +56,6 @@ export async function exportIslandGlb(
     const ocean = new Mesh(oceanGeometry, oceanMaterial)
     ocean.name = "ocean"
     island.add(ocean)
-  }
-
-  if (shallowWaterGeometry && shallowWaterMaterial) {
-    const shallowWater = new Mesh(
-      shallowWaterGeometry,
-      shallowWaterMaterial,
-    )
-    shallowWater.name = "shallow-water"
-    island.add(shallowWater)
   }
 
   try {
@@ -97,17 +79,16 @@ export async function exportIslandGlb(
     const resolution = normalizeIslandResolution(settings.resolution)
     link.download =
       `island-${settings.seed}-${waterLabel}-${biomeLabel}-` +
-      `${resolution}x${resolution}.glb`
+      `${resolution}x${resolution}-shore${Math.round((settings.shoreSoftness ?? 0) * 100)}-` +
+      `smooth${Math.round((settings.smoothing ?? 0) * 100)}.glb`
     document.body.append(link)
     link.click()
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0)
   } finally {
     terrainGeometry.dispose()
-    shallowWaterGeometry?.dispose()
     oceanGeometry?.dispose()
     terrainMaterial.dispose()
-    shallowWaterMaterial?.dispose()
     oceanMaterial?.dispose()
   }
 }

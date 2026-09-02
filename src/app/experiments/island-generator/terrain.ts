@@ -5,30 +5,39 @@ import {
   PlaneGeometry,
 } from "three/webgpu"
 
+import { gaussianSmoothGrid } from "./gaussian"
+import { softenShoreHeight } from "./shore"
+
 export type IslandSettings = {
   seed: number
   persistence: number
   lacunarity: number
   noiseScale: number
+  ridginess: number
   elevation: number
   islandSize: number
+  shoreSoftness: number
   offsetX: number
   offsetY: number
   waterLevel: number
   resolution: number
+  smoothing: number
 }
 
 export const DEFAULT_ISLAND_SETTINGS: IslandSettings = {
   seed: 5136,
-  persistence: 0.9,
-  lacunarity: 1.76,
-  noiseScale: 0.086,
+  persistence: 0.67,
+  lacunarity: 1.51,
+  noiseScale: 0.064,
+  ridginess: 0,
   elevation: 7.2,
   islandSize: 1,
+  shoreSoftness: 0,
   offsetX: 0,
   offsetY: 0,
   waterLevel: 0,
   resolution: 256,
+  smoothing: 0.25,
 }
 
 /** World-space footprint of the generated terrain. */
@@ -38,34 +47,61 @@ export const ISLAND_BASE_LEVEL = WATER_LEVEL - 0.12
 export const MIN_WATER_LEVEL = ISLAND_BASE_LEVEL + 0.02
 export const MAX_WATER_LEVEL = 3.5
 export const MIN_RESOLUTION = 64
-export const MAX_RESOLUTION = 384
+export const MAX_RESOLUTION = 512
 export const RESOLUTION_STEP = 64
+/* Noise ranges are centred on the defaults, so each slider opens at its own
+   midpoint and has equal room either way. Lower bounds are floors, not choices:
+   persistence must stay positive, and lacunarity below ~1.2 stops each octave
+   from adding frequency at all. */
+export const MIN_PERSISTENCE = 0.1
+export const MAX_PERSISTENCE = 1.24
+export const MIN_LACUNARITY = 1.2
+export const MAX_LACUNARITY = 1.82
+export const MIN_NOISE_SCALE = 0.02
+export const MAX_NOISE_SCALE = 0.108
 export const MIN_ELEVATION = 2.4
 export const MAX_ELEVATION = 12
 export const MIN_ISLAND_SIZE = 0.6
 export const MAX_ISLAND_SIZE = 1.4
 
-/** Keep roughly the same facet density now that the island spans more ground. */
 const OCTAVES = 5
-const SHALLOW_WATER_DEPTH = 0.72
-const SHALLOW_WATER_SHORE_OVERLAP = 0.06
-const SHALLOW_WATER_SURFACE_OFFSET = 0.035
-const BIOME_TRANSITION_HALF_WIDTH = 0.22
+/* Ridged octaves are remapped onto the plain octaves' mean and spread, measured
+   over this lattice, so ridginess sharpens relief without also changing how much
+   of the island stands above water. See the ridginess tests. */
+const RIDGE_SCALE = 1
+const RIDGE_OFFSET = -0.075
+/** How strongly a crest lets the next octave through (Musgrave weighting). */
+const RIDGE_GAIN = 1.7
+/* Only the broad octaves are ridged. Ridging the fine ones too put a crest on
+   every pebble, which shredded the coastline into an archipelago instead of
+   carving ridgelines down a solid island. */
+const RIDGE_OCTAVES = 3
+// World-space width keeps smoothing comparable when resolution changes.
+const MAX_SMOOTHING_SIGMA = 1.5
+/** Depth below the waterline at which the shore ramp reaches open-ocean colour. */
+export const SHALLOW_WATER_DEPTH = 0.72
+/** Blend width, also a fraction of the peak, so bands stay proportional. */
+const BIOME_TRANSITION_HALF_WIDTH = 0.05
 
 const BIOME_COLORS = {
   sand: new Color("#ddea9f"),
   grass: new Color("#63cf57"),
   highGrass: new Color("#2e8e43"),
-  rock: new Color("#504b46"),
-  snow: new Color("#e6eee8"),
 }
 
+/**
+ * Bands are fractions of the island's own height above water, not world units,
+ * so the palette lands the same way whether the peak is 4 units or 12. With
+ * absolute thresholds a low island came out all beach and a tall one spent most
+ * of its range in the top band.
+ */
 const BIOME_TRANSITIONS = [
-  { height: 0.42, next: BIOME_COLORS.grass },
-  { height: 1.75, next: BIOME_COLORS.highGrass },
-  { height: 2.8, next: BIOME_COLORS.rock },
-  { height: 3.5, next: BIOME_COLORS.snow },
+  { at: 0.1, next: BIOME_COLORS.grass },
+  { at: 0.4, next: BIOME_COLORS.highGrass },
 ]
+
+/** Where the high-grass band begins; trees follow the same line. */
+export const HIGH_GRASS_START = BIOME_TRANSITIONS[1].at
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
@@ -92,7 +128,7 @@ function hash2(x: number, y: number, seed: number) {
   return ((value ^ (value >>> 14)) >>> 0) / 4294967295
 }
 
-function valueNoise(x: number, y: number, seed: number) {
+export function valueNoise(x: number, y: number, seed: number) {
   const ix = Math.floor(x)
   const iy = Math.floor(y)
   const fx = x - ix
@@ -111,14 +147,31 @@ function valueNoise(x: number, y: number, seed: number) {
 }
 
 function fractalNoise(x: number, y: number, settings: IslandSettings) {
+  const ridginess = clamp(settings.ridginess ?? 0, 0, 1)
   let value = 0
   let amplitude = 1
   let frequency = 1
   let amplitudeTotal = 0
+  // Carries how much the octave above cleared the way for this one. Stays at 1
+  // throughout when ridginess is 0, which is what keeps plain fBm untouched.
+  let weight = 1
 
   for (let octave = 0; octave < OCTAVES; octave += 1) {
-    value += valueNoise(x * frequency, y * frequency, settings.seed + octave * 1013) * amplitude
-    amplitudeTotal += amplitude
+    const plain = valueNoise(x * frequency, y * frequency, settings.seed + octave * 1013)
+    // Crests form where the lattice crosses its midpoint. The fold is left
+    // unsquared: squaring drove the troughs so deep they cut the island into an
+    // archipelago, and the plain fold already shares plain noise's mean.
+    const crest = 1 - Math.abs(plain * 2 - 1)
+    const ridged = crest * RIDGE_SCALE + RIDGE_OFFSET
+    const octaveRidginess = octave < RIDGE_OCTAVES ? ridginess : 0
+    const sample = plain + (ridged - plain) * octaveRidginess
+
+    value += sample * amplitude * weight
+    amplitudeTotal += amplitude * weight
+
+    // An octave only lands where the one above it was already high, so fine
+    // detail follows the ridgelines instead of chopping across them.
+    weight = 1 + (clamp(ridged * RIDGE_GAIN, 0, 1) - 1) * octaveRidginess
     amplitude *= settings.persistence
     frequency *= settings.lacunarity
   }
@@ -153,40 +206,105 @@ function sampleIslandProfileHeight(
   return normalizedHeight * settings.elevation
 }
 
+export type IslandHeightfield = {
+  gridSegments: number
+  /** Smoothed and shore-shaped profile before the seabed clamp, shared by water. */
+  heights: Float32Array
+}
+
+export function createIslandHeightfield(settings: IslandSettings): IslandHeightfield {
+  const gridSegments = normalizeIslandResolution(settings.resolution)
+  const stride = gridSegments + 1
+  const cellSize = ISLAND_SIZE / gridSegments
+  const halfSize = ISLAND_SIZE / 2
+  const source = new Float32Array(stride * stride)
+
+  for (let row = 0; row < stride; row += 1) {
+    const worldZ = Math.fround(-halfSize + row * cellSize)
+    for (let column = 0; column < stride; column += 1) {
+      const worldX = Math.fround(-halfSize + column * cellSize)
+      source[row * stride + column] = sampleIslandProfileHeight(worldX, worldZ, settings)
+    }
+  }
+
+  const sigma = clamp(settings.smoothing ?? 0, 0, 1) * MAX_SMOOTHING_SIGMA / cellSize
+  const heights = gaussianSmoothGrid(source, stride, sigma)
+  const shoreSoftness = clamp(settings.shoreSoftness ?? 0, 0, 1)
+  if (shoreSoftness > 0) {
+    // Shape after Gaussian filtering so the beach remains gentle at any blur.
+    // Keep unclamped underwater heights so the shore ramp tracks real depth.
+    for (let index = 0; index < heights.length; index += 1) {
+      heights[index] = softenShoreHeight(heights[index], settings.waterLevel, shoreSoftness)
+    }
+  }
+  if (sigma > 0 || shoreSoftness > 0) {
+    // Filtering and shore shaping must never lift the perimeter off the seabed.
+    for (let edge = 0; edge < stride; edge += 1) {
+      for (const index of [edge, gridSegments * stride + edge, edge * stride, edge * stride + gridSegments]) {
+        heights[index] = Math.min(heights[index], ISLAND_BASE_LEVEL)
+      }
+    }
+  }
+  return { gridSegments, heights }
+}
+
+/** Supply a shared heightfield when sampling many smoothed points. */
 export function sampleIslandHeight(
   worldX: number,
   worldZ: number,
   settings: IslandSettings,
+  heightfield?: IslandHeightfield,
 ) {
-  return Math.max(
-    ISLAND_BASE_LEVEL,
-    sampleIslandProfileHeight(worldX, worldZ, settings),
-  )
+  if (!heightfield && (settings.smoothing ?? 0) === 0 && (settings.shoreSoftness ?? 0) === 0) {
+    return Math.max(ISLAND_BASE_LEVEL, sampleIslandProfileHeight(worldX, worldZ, settings))
+  }
+  const { gridSegments, heights } = heightfield ?? createIslandHeightfield(settings)
+  const stride = gridSegments + 1
+  const x = clamp((worldX / ISLAND_SIZE + 0.5) * gridSegments, 0, gridSegments)
+  const z = clamp((worldZ / ISLAND_SIZE + 0.5) * gridSegments, 0, gridSegments)
+  const column = Math.min(Math.floor(x), gridSegments - 1)
+  const row = Math.min(Math.floor(z), gridSegments - 1)
+  const tx = x - column
+  const tz = z - row
+  const bottom = heights[row * stride + column] * (1 - tx) + heights[row * stride + column + 1] * tx
+  const top = heights[(row + 1) * stride + column] * (1 - tx) + heights[(row + 1) * stride + column + 1] * tx
+  return Math.max(ISLAND_BASE_LEVEL, bottom * (1 - tz) + top * tz)
+}
+
+/** Highest point standing above the waterline; the scale the bands divide up. */
+export function peakAboveWater(heights: Float32Array, waterLevel: number) {
+  let peak = 0
+  for (let index = 0; index < heights.length; index += 1) {
+    const above = heights[index] - waterLevel
+    if (above > peak) peak = above
+  }
+  return peak
 }
 
 function biomeColor(
   height: number,
   waterLevel: number,
+  peak: number,
   target: Color,
 ) {
-  const heightAboveWater = height - waterLevel
+  // A fully drowned island has no scale to divide, so everything reads as shore.
+  const relativeHeight = peak > 0 ? (height - waterLevel) / peak : 0
   let current = BIOME_COLORS.sand
 
   for (const transition of BIOME_TRANSITIONS) {
-    const transitionStart =
-      transition.height - BIOME_TRANSITION_HALF_WIDTH
-    const transitionEnd = transition.height + BIOME_TRANSITION_HALF_WIDTH
+    const transitionStart = transition.at - BIOME_TRANSITION_HALF_WIDTH
+    const transitionEnd = transition.at + BIOME_TRANSITION_HALF_WIDTH
 
-    if (heightAboveWater < transitionStart) {
+    if (relativeHeight < transitionStart) {
       return target.copy(current)
     }
 
-    if (heightAboveWater <= transitionEnd) {
+    if (relativeHeight <= transitionEnd) {
       return target
         .copy(current)
         .lerp(
           transition.next,
-          smoothstep(transitionStart, transitionEnd, heightAboveWater),
+          smoothstep(transitionStart, transitionEnd, relativeHeight),
         )
     }
 
@@ -196,8 +314,11 @@ function biomeColor(
   return target.copy(current)
 }
 
-export function createIslandGeometry(settings: IslandSettings) {
-  const gridSegments = normalizeIslandResolution(settings.resolution)
+export function createIslandGeometry(
+  settings: IslandSettings,
+  heightfield = createIslandHeightfield(settings),
+) {
+  const { gridSegments, heights } = heightfield
   const indexed = new PlaneGeometry(
     ISLAND_SIZE,
     ISLAND_SIZE,
@@ -210,7 +331,7 @@ export function createIslandGeometry(settings: IslandSettings) {
   for (let index = 0; index < positions.count; index += 1) {
     positions.setY(
       index,
-      sampleIslandHeight(positions.getX(index), positions.getZ(index), settings),
+      Math.max(ISLAND_BASE_LEVEL, heights[index]),
     )
   }
 
@@ -220,6 +341,7 @@ export function createIslandGeometry(settings: IslandSettings) {
   const facePositions = geometry.getAttribute("position")
   const colors = new Float32Array(facePositions.count * 3)
   const color = new Color()
+  const peak = peakAboveWater(heights, settings.waterLevel)
 
   // Use height-based colors at each vertex so neighboring facets agree on the
   // biome boundary. Narrow blend zones soften the threshold without removing
@@ -228,8 +350,10 @@ export function createIslandGeometry(settings: IslandSettings) {
     biomeColor(
       facePositions.getY(vertex),
       settings.waterLevel,
+      peak,
       color,
     )
+
     const colorIndex = vertex * 3
     colors[colorIndex] = color.r
     colors[colorIndex + 1] = color.g
@@ -244,133 +368,26 @@ export function createIslandGeometry(settings: IslandSettings) {
 }
 
 /**
- * Builds a thin surface mesh over terrain cells immediately below sea level.
- * Because it samples the same height field, the light-water band follows every
- * generated inlet and beach instead of forming a generic radial ring.
+ * Bakes the shore ramp to one byte per heightfield vertex: 0 at the waterline,
+ * 255 once the seabed sits SHALLOW_WATER_DEPTH beneath it. The water material
+ * samples this bilinearly, so the shallows follow every inlet at sub-cell
+ * accuracy instead of snapping to whole grid cells.
+ *
+ * Sampled from the unclamped profile rather than the drawn seabed, so the ramp
+ * tracks the real bathymetry instead of flattening out at ISLAND_BASE_LEVEL.
  */
-export function createShallowWaterGeometry(settings: IslandSettings) {
-  const positions: number[] = []
-  const halfSize = ISLAND_SIZE / 2
-  const gridSegments = normalizeIslandResolution(settings.resolution)
-  const cellSize = ISLAND_SIZE / gridSegments
-  const vertexStride = gridSegments + 1
-  const heights = new Float32Array(vertexStride * vertexStride)
-  const shallowCells = new Uint8Array(gridSegments * gridSegments)
-  const shallowWaterMinimum = settings.waterLevel - SHALLOW_WATER_DEPTH
-  const shallowWaterMaximum =
-    settings.waterLevel + SHALLOW_WATER_SHORE_OVERLAP
-  const shallowWaterSurface =
-    settings.waterLevel + SHALLOW_WATER_SURFACE_OFFSET
+export function createShorelineDepthMap(
+  settings: IslandSettings,
+  heightfield = createIslandHeightfield(settings),
+) {
+  const { gridSegments, heights } = heightfield
+  const size = gridSegments + 1
+  const data = new Uint8Array(size * size)
 
-  for (let row = 0; row <= gridSegments; row += 1) {
-    const worldZ = -halfSize + row * cellSize
-
-    for (let column = 0; column <= gridSegments; column += 1) {
-      const worldX = -halfSize + column * cellSize
-      // Use the unclamped profile so flattening the submerged terrain into a
-      // base does not turn the entire ocean into shallow water.
-      heights[row * vertexStride + column] = sampleIslandProfileHeight(
-        worldX,
-        worldZ,
-        settings,
-      )
-    }
+  for (let index = 0; index < heights.length; index += 1) {
+    const depth = (settings.waterLevel - heights[index]) / SHALLOW_WATER_DEPTH
+    data[index] = Math.round(clamp(depth, 0, 1) * 255)
   }
 
-  for (let row = 0; row < gridSegments; row += 1) {
-    for (let column = 0; column < gridSegments; column += 1) {
-      const bottomLeft = heights[row * vertexStride + column]
-      const bottomRight = heights[row * vertexStride + column + 1]
-      const topLeft = heights[(row + 1) * vertexStride + column]
-      const topRight = heights[(row + 1) * vertexStride + column + 1]
-      const minimumHeight = Math.min(
-        bottomLeft,
-        bottomRight,
-        topLeft,
-        topRight,
-      )
-      const maximumHeight = Math.max(
-        bottomLeft,
-        bottomRight,
-        topLeft,
-        topRight,
-      )
-
-      if (
-        maximumHeight >= shallowWaterMinimum &&
-        minimumHeight <= shallowWaterMaximum
-      ) {
-        shallowCells[row * gridSegments + column] = 1
-      }
-    }
-  }
-
-  // Close isolated one-cell holes and tiny notches without expanding the broad
-  // inner or outer edge of the band.
-  let closedShallowCells = shallowCells
-  let filledGap = true
-  while (filledGap) {
-    filledGap = false
-    const nextShallowCells = closedShallowCells.slice()
-
-    for (let row = 1; row < gridSegments - 1; row += 1) {
-      for (let column = 1; column < gridSegments - 1; column += 1) {
-        const cellIndex = row * gridSegments + column
-        if (closedShallowCells[cellIndex]) continue
-
-        const adjacentCount =
-          closedShallowCells[cellIndex - 1] +
-          closedShallowCells[cellIndex + 1] +
-          closedShallowCells[cellIndex - gridSegments] +
-          closedShallowCells[cellIndex + gridSegments]
-
-        if (adjacentCount >= 3) {
-          nextShallowCells[cellIndex] = 1
-          filledGap = true
-        }
-      }
-    }
-
-    closedShallowCells = nextShallowCells
-  }
-
-  for (let row = 0; row < gridSegments; row += 1) {
-    const z0 = -halfSize + row * cellSize
-    const z1 = z0 + cellSize
-
-    for (let column = 0; column < gridSegments; column += 1) {
-      if (!closedShallowCells[row * gridSegments + column]) continue
-
-      const x0 = -halfSize + column * cellSize
-      const x1 = x0 + cellSize
-
-      positions.push(
-        x0,
-        shallowWaterSurface,
-        z0,
-        x0,
-        shallowWaterSurface,
-        z1,
-        x1,
-        shallowWaterSurface,
-        z1,
-        x0,
-        shallowWaterSurface,
-        z0,
-        x1,
-        shallowWaterSurface,
-        z1,
-        x1,
-        shallowWaterSurface,
-        z0,
-      )
-    }
-  }
-
-  const geometry = new BufferGeometry()
-  geometry.setAttribute("position", new Float32BufferAttribute(positions, 3))
-  geometry.computeVertexNormals()
-  geometry.computeBoundingSphere()
-
-  return geometry
+  return { size, data }
 }

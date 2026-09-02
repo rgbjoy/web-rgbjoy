@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: #aeb3ad;
+  background: #318be0;
   color: #173329;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -63,6 +63,9 @@
   top: max(22px, env(safe-area-inset-top));
   right: max(22px, env(safe-area-inset-right));
   width: min(320px, calc(100vw - 44px));
+  max-height: calc(100dvh - max(22px, env(safe-area-inset-top)) - max(22px, env(safe-area-inset-bottom)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 17px;
   border: 1px solid rgb(255 255 255 / 46%);
   border-radius: 19px;
@@ -118,7 +121,9 @@
 }
 
 .panelHeading button:focus-visible,
-.panel input:focus-visible {
+.panel input:focus-visible,
+.sectionTrigger:focus-visible,
+.seedReroll:focus-visible {
   outline: 2px solid #2d76c5;
   outline-offset: 2px;
 }
@@ -138,20 +143,40 @@
   background: rgb(255 255 255 / 86%);
 }
 
+/* Minimized, the buttons are the panel: the card behind them would just be a
+   slab of frosted glass tracing their outline. */
 .panelMinimized {
   width: auto;
-  padding: 8px;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .panelMinimized .panelHeading {
   justify-content: flex-end;
 }
 
+/* The card's blur went with it, so the translucent pill needs its own or it
+   reads as a flat wash over the water. */
+.panelMinimized .panelHeading button {
+  backdrop-filter: blur(12px);
+}
+
+.panelMinimized .panelToggle {
+  background: rgb(255 255 255 / 84%);
+}
+
+.panelMinimized .panelToggle:hover {
+  background: rgb(255 255 255 / 95%);
+}
+
 .seedControl {
   display: grid;
-  grid-template-columns: 1fr 1.45fr;
+  grid-template-columns: 1fr 1.45fr auto auto;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   margin-top: 17px;
   padding: 12px 0;
   border-top: 1px solid rgb(23 51 41 / 11%);
@@ -175,10 +200,117 @@
   font-variant-numeric: tabular-nums;
 }
 
+.seedReroll {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  color: #36584b;
+  background: rgb(255 255 255 / 58%);
+  border: 1px solid rgb(23 51 41 / 15%);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    color var(--transition);
+}
+
+.seedReroll:hover {
+  color: #173329;
+  background: rgb(255 255 255 / 85%);
+}
+
+.seedReroll:active {
+  transform: scale(0.94);
+}
+
+.sections {
+  display: grid;
+  margin-top: 8px;
+}
+
+.section {
+  border-top: 1px solid rgb(23 51 41 / 11%);
+}
+
+.section:first-child {
+  border-top: 0;
+}
+
+.sectionTrigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0;
+  color: #173329;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.sectionTrigger svg {
+  color: #4d6b5e;
+  transition: transform var(--transition);
+}
+
+.sectionTrigger[data-state="open"] svg {
+  transform: rotate(180deg);
+}
+
+/* Radix measures the panel and exposes the height, so the reveal can animate
+   without the content being given a fixed size. */
+.sectionContent {
+  overflow: hidden;
+}
+
+.sectionContent[data-state="open"] {
+  animation: island-section-open 0.18s ease-out;
+}
+
+.sectionContent[data-state="closed"] {
+  animation: island-section-close 0.18s ease-out;
+}
+
+@keyframes island-section-open {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes island-section-close {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+.sectionBody {
+  padding-bottom: 14px;
+}
+
 .ranges {
   display: grid;
   gap: 12px;
   margin-top: 14px;
+}
+
+/* The seed input already opens the Shape group, so the grid needs no extra
+   lead-in beneath it. */
+.sectionBody > .ranges:first-child {
+  margin-top: 2px;
 }
 
 .rangeDivider {
@@ -206,6 +338,55 @@
   font-variant-numeric: tabular-nums;
 }
 
+.rangeMeta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Held fields read quieter than live ones, so a glance down the panel shows
+   what Randomize will leave alone. */
+.rangeControl[data-locked="true"] > span,
+.seedControl[data-locked="true"] > label {
+  opacity: 0.62;
+}
+
+.lockButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: #7d968b;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    color var(--transition),
+    background var(--transition);
+}
+
+.lockButton:hover {
+  color: #173329;
+  background: rgb(23 51 41 / 8%);
+}
+
+.lockButton[aria-pressed="true"] {
+  color: #2f8753;
+}
+
+.lockButton:focus-visible {
+  outline: 2px solid #2d76c5;
+  outline-offset: 2px;
+}
+
+.seedReroll:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .rangeControl input {
   width: 100%;
   height: 16px;
@@ -218,9 +399,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 15px;
-  padding-top: 14px;
-  border-top: 1px solid rgb(23 51 41 / 11%);
+  margin-top: 12px;
 }
 
 .toggleButton {
@@ -341,7 +520,7 @@
     left: auto;
     max-height: none;
     overflow: visible;
-    padding: 8px 10px;
+    padding: 0;
   }
 
   .seedControl {

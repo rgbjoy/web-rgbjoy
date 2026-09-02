@@ -6,15 +6,18 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
 import {
   createIslandGeometry,
-  createShallowWaterGeometry,
+  createIslandHeightfield,
   ISLAND_SIZE,
   type IslandSettings,
 } from "./terrain"
+import { Trees } from "./Trees"
+import { createWaterMaterial } from "./waterMaterial"
 
 type IslandSceneProps = {
   settings: IslandSettings
   showWater: boolean
   showBiomes: boolean
+  showTrees: boolean
 }
 
 function IslandOrbitControls({
@@ -40,9 +43,15 @@ function IslandOrbitControls({
     }
   }, [controls, invalidate])
 
-  useFrame(() => {
-    controls.update()
-  }, -1)
+  // Damping runs before anything in the update phase reads the camera. Fiber 10
+  // replaced the old negative-priority form with a named phase; this is what
+  // drei's own OrbitControls moved to.
+  useFrame(
+    () => {
+      controls.update()
+    },
+    { before: "update" },
+  )
 
   return (
     <primitive
@@ -62,23 +71,28 @@ export function IslandScene({
   settings,
   showWater,
   showBiomes,
+  showTrees,
 }: IslandSceneProps) {
   const { camera, size } = useThree()
   const compact = size.width <= 720
   const lookY = compact ? 0.35 : 1.15
+  const heightfield = useMemo(() => createIslandHeightfield(settings), [settings])
   const geometry = useMemo(
-    () => createIslandGeometry(settings),
-    [settings],
+    () => createIslandGeometry(settings, heightfield),
+    [settings, heightfield],
   )
-  const shallowWaterGeometry = useMemo(
-    () => createShallowWaterGeometry(settings),
-    [settings],
+  const water = useMemo(
+    () => createWaterMaterial(settings, heightfield),
+    [settings, heightfield],
   )
 
   useEffect(() => () => geometry.dispose(), [geometry])
   useEffect(
-    () => () => shallowWaterGeometry.dispose(),
-    [shallowWaterGeometry],
+    () => () => {
+      water.material.dispose()
+      water.depthMap.dispose()
+    },
+    [water],
   )
 
   useEffect(() => {
@@ -93,8 +107,8 @@ export function IslandScene({
 
   return (
     <>
-      <color attach="background" args={["#aeb3ad"]} />
-      <fog attach="fog" args={["#aeb3ad", 70, 135]} />
+      <color attach="background" args={["#318be0"]} />
+      <fog attach="fog" args={["#318be0", 70, 135]} />
 
       <hemisphereLight args={["#f3f7ef", "#4b695a", 1.55]} />
       <directionalLight
@@ -134,27 +148,19 @@ export function IslandScene({
         )}
       </mesh>
 
+      {showTrees ? <Trees settings={settings} heightfield={heightfield} /> : null}
+
       {showWater ? (
         <>
+          {/* One plane now carries both the open ocean and the shallows; the
+              shore ramp lives in its material. */}
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, settings.waterLevel, 0]}
             receiveShadow
           >
             <planeGeometry args={[ISLAND_SIZE * 3.4, ISLAND_SIZE * 3.4]} />
-            <meshStandardMaterial
-              color="#318be0"
-              roughness={0.5}
-              metalness={0.05}
-            />
-          </mesh>
-
-          <mesh geometry={shallowWaterGeometry} receiveShadow>
-            <meshStandardMaterial
-              color="#70cef2"
-              roughness={0.46}
-              metalness={0.02}
-            />
+            <primitive object={water.material} attach="material" />
           </mesh>
         </>
       ) : null}
