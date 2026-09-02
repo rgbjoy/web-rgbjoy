@@ -14,6 +14,7 @@
         "@react-three/postprocessing": "3.1.1",
         "@thi.ng/color": "^5.8.33",
         "@thi.ng/color-palettes": "^1.5.64",
+        "box3d.js": "^0.1.1",
         "glsl-noise": "^0.0.0",
         "glslify": "^7.1.1",
         "glslify-loader": "^2.0.0",
@@ -569,6 +570,8 @@
     "bl": ["bl@2.2.1", "", { "dependencies": { "readable-stream": "^2.3.5", "safe-buffer": "^5.1.1" } }, "sha512-6Pesp1w0DEX1N550i/uGV/TqucVL4AM/pgThFSN/Qq9si1/DF9aIHs1BxD8V/QU0HoeHO6cQRTAuYnLPKq1e4g=="],
 
     "bowser": ["bowser@2.14.1", "", {}, "sha512-tzPjzCxygAKWFOJP011oxFHs57HzIhOEracIgAePE4pqB3LikALKnSzUyU4MGs9/iCEUuHlAJTjTc5M+u7YEGg=="],
+
+    "box3d.js": ["box3d.js@0.1.1", "", {}, "sha512-N3jkFuCpj5WxW3gmJDj/ai9Ticq6bIMMRk/tIJBkeOw4VZviHv6pAQEDFQczRwQQEtIo32Iy6OyhyxPxhzdF6w=="],
 
     "brace-expansion": ["brace-expansion@1.1.18", "", { "dependencies": { "balanced-match": "^1.0.0", "concat-map": "0.0.1" } }, "sha512-Edep/X9fGqVNmzKBVsDYIOtD+z1tuezV70LBjdCst9Tqu76lsnvRiZ6oTic1n+/BIwX6QDGAO94PN4N2SADvtw=="],
 

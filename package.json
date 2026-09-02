@@ -20,6 +20,7 @@
     "@react-three/postprocessing": "3.1.1",
     "@thi.ng/color": "^5.8.33",
     "@thi.ng/color-palettes": "^1.5.64",
+    "box3d.js": "^0.1.1",
     "glsl-noise": "^0.0.0",
     "glslify": "^7.1.1",
     "glslify-loader": "^2.0.0",

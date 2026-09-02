@@ -99,6 +99,28 @@ export const EXPERIMENTS: Experiment[] = [
     keywords: ["glass", "fluted", "wash", "cool drift", "refraction", "shader"],
   },
   {
+    href: "/experiments/frosted-glass",
+    title: "Frosted Glass",
+    description:
+      "Capsules and beads pile up against a pane — depth is spent as blur, so the far ones smear into the fog.",
+    group: "Glass & Refraction",
+    date: "2026-09",
+    status: "live",
+    tech: ["Three.js", "R3F", "GLSL", "box3d.js", "lil-gui"],
+    keywords: [
+      "frosted",
+      "glass",
+      "fog",
+      "blur",
+      "depth of field",
+      "physics",
+      "box3d",
+      "capsule",
+      "sdf",
+      "falloff",
+    ],
+  },
+  {
     href: "/experiments/glass-cross",
     title: "Glass Cross",
     description:
