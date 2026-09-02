@@ -57,6 +57,26 @@ export const EXPERIMENTS: Experiment[] = [
     keywords: ["frog", "game", "lily pad", "three", "aim", "jump", "wind", "golf"],
   },
   {
+    href: "/experiments/decal-pole",
+    title: "Decal Pole",
+    description:
+      "Staple images to a telephone pole — drop one anywhere and it sticks where it lands, a few degrees off true.",
+    group: "Play",
+    date: "2026-09",
+    status: "live",
+    tech: ["Three.js", "R3F", "drei"],
+    keywords: [
+      "decal",
+      "pole",
+      "flyer",
+      "poster",
+      "drag and drop",
+      "raycast",
+      "projection",
+      "telephone pole",
+    ],
+  },
+  {
     href: "/experiments/island-generator",
     title: "Island Generator",
     description:

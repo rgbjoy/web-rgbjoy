@@ -1,0 +1,202 @@
+.main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Wraps the canvas so the cursor can change without touching the canvas
+   element, which R3F owns. */
+.stage {
+  width: 100%;
+  height: 100%;
+  /* The pole fades up once its wood maps have decoded, rather than popping in
+     against an empty environment. */
+  transition: opacity 0.9s ease-out;
+}
+
+.stage canvas {
+  touch-action: none;
+}
+
+.grabbable {
+  cursor: grab;
+}
+
+.grabbable:active {
+  cursor: grabbing;
+}
+
+.dropping,
+.dropping.grabbable {
+  cursor: copy;
+}
+
+.hint {
+  position: absolute;
+  z-index: 1;
+  top: max(28px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgb(255 255 255 / 85%);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 45%);
+  pointer-events: none;
+}
+
+.addButton,
+.helpButton {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgb(255 255 255 / 15%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.addButton:hover,
+.helpButton:hover {
+  background: rgb(255 255 255 / 25%);
+}
+
+.addButton {
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  transform: translateX(-50%);
+}
+
+.addButton:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.helpButton {
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  width: 48px;
+  height: 48px;
+}
+
+.helpButton:active {
+  transform: scale(0.95);
+}
+
+.fileInput {
+  display: none;
+}
+
+.drawerBackdrop {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background: rgb(0 0 0 / 50%);
+  backdrop-filter: blur(2px);
+  animation: fade-in 0.2s ease;
+}
+
+.drawer {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  max-height: 80dvh;
+  color: var(--fg);
+  background: rgb(0 0 0 / 85%);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--hairline);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawerOpen {
+  transform: translateY(0);
+}
+
+.drawerContent {
+  position: relative;
+  max-height: 80dvh;
+  padding: var(--gutter);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.drawerContent h1 {
+  margin-bottom: var(--gap-tight);
+  padding-right: 48px;
+  font-family: var(--font-redaction), var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.drawerContent h2 {
+  margin-top: var(--gap);
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.drawerContent p {
+  max-width: 62ch;
+  color: var(--muted);
+}
+
+.drawerContent p + p {
+  margin-top: var(--gap-tight);
+}
+
+.drawerContent ul {
+  color: var(--muted);
+  list-style: none;
+}
+
+.drawerContent li::before {
+  content: "— ";
+  color: var(--faint);
+}
+
+.drawerClose {
+  position: absolute;
+  top: var(--gutter);
+  right: var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--fg);
+  background: rgb(255 255 255 / 6%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.drawerClose:hover {
+  background: rgb(255 255 255 / 14%);
+}
+
+/* The drawer is dark regardless of the site theme, since it sits over a lit 3D
+   scene rather than the page. */
+[data-theme="light"] .drawer {
+  --fg: #ffffff;
+  --muted: #b4b4b4;
+  --faint: #8c8c8c;
+  --hairline: #3a3a3a;
+}
