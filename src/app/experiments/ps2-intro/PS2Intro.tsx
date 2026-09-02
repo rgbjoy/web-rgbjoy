@@ -2,7 +2,7 @@
 
 import { Bloom, EffectComposer } from "@react-three/postprocessing"
 import { useFrame } from "@react-three/fiber"
-import { Environment, MeshTransmissionMaterial, Trail, useTexture } from "@react-three/drei"
+import { Environment, MeshTransmissionMaterial, Trail, useTexture } from "@react-three/drei/legacy"
 
 import { Suspense, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {

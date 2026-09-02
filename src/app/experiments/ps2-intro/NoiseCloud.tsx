@@ -1,6 +1,6 @@
 "use client"
 
-import { shaderMaterial } from "@react-three/drei"
+import { shaderMaterial } from "@react-three/drei/legacy"
 import { extend, useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { AdditiveBlending, DoubleSide, type ShaderMaterial } from "three"

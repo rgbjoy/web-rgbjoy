@@ -1,6 +1,6 @@
 "use client"
 
-import { ScreenQuad, shaderMaterial } from "@react-three/drei"
+import { ScreenQuad, shaderMaterial } from "@react-three/drei/legacy"
 import { Canvas, extend, useFrame, useThree } from "@react-three/fiber"
 import React, { type FC, useRef, memo } from "react"
 import { Color, ShaderMaterial, Vector3 } from "three"

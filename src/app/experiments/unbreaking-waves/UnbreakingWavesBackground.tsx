@@ -1,6 +1,6 @@
 "use client";
 
-import { ScreenQuad, shaderMaterial } from "@react-three/drei";
+import { ScreenQuad, shaderMaterial } from "@react-three/drei/legacy";
 import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
 import React, { type FC, memo, useEffect, useRef } from "react";
 import GUI from "lil-gui";
