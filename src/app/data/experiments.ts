@@ -84,7 +84,7 @@ export const EXPERIMENTS: Experiment[] = [
     group: "Play",
     date: "2026-09",
     status: "wip",
-    tech: ["Three.js", "R3F", "WebGPU"],
+    tech: ["Three.js", "R3F", "WebGL"],
     keywords: ["island", "terrain", "generator", "noise", "seed", "procedural", "low poly"],
   },
   {

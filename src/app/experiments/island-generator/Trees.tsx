@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from "react"
-import { ConeGeometry, CylinderGeometry, InstancedMesh, Object3D } from "three/webgpu"
+import { ConeGeometry, CylinderGeometry, InstancedMesh, Object3D } from "three"
 
 import { createTreePlacements } from "./treePlacement"
 import type { IslandHeightfield, IslandSettings } from "./terrain"

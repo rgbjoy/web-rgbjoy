@@ -1,17 +1,18 @@
 "use client"
 
-import { useFrame, useThree } from "@react-three/fiber/webgpu"
+import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useMemo } from "react"
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
+import { AUTO_ROTATE_SPEED, createIdleAutoRotate } from "./autoRotate"
 import {
   createIslandGeometry,
   createIslandHeightfield,
-  ISLAND_SIZE,
   type IslandSettings,
 } from "./terrain"
 import { Trees } from "./Trees"
-import { createWaterMaterial } from "./waterMaterial"
+import { useMediaQuery } from "./useMediaQuery"
+import { createWaterMaterial, PREVIEW_OCEAN_SIZE } from "./waterMaterial"
 
 type IslandSceneProps = {
   settings: IslandSettings
@@ -28,27 +29,35 @@ function IslandOrbitControls({
   const camera = useThree((state) => state.camera)
   const renderer = useThree((state) => state.renderer)
   const invalidate = useThree((state) => state.invalidate)
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)", true)
 
   const controls = useMemo(
-    () => new OrbitControls(camera, renderer.domElement),
-    [camera, renderer],
+    () => new OrbitControls(camera),
+    [camera],
   )
+  const autoRotation = useMemo(() => createIdleAutoRotate(controls), [controls])
 
   useEffect(() => {
+    // Connect in the effect so Strict Mode's cleanup/reconnect stays symmetric.
+    controls.connect(renderer.domElement)
     const onChange = () => invalidate()
     controls.addEventListener("change", onChange)
+    controls.addEventListener("start", autoRotation.start)
+    controls.addEventListener("end", autoRotation.end)
     return () => {
       controls.removeEventListener("change", onChange)
+      controls.removeEventListener("start", autoRotation.start)
+      controls.removeEventListener("end", autoRotation.end)
       controls.dispose()
     }
-  }, [controls, invalidate])
+  }, [controls, renderer, invalidate, autoRotation])
 
   // Damping runs before anything in the update phase reads the camera. Fiber 10
   // replaced the old negative-priority form with a named phase; this is what
   // drei's own OrbitControls moved to.
   useFrame(
-    () => {
-      controls.update()
+    (_, delta) => {
+      autoRotation.update(delta, reducedMotion)
     },
     { before: "update" },
   )
@@ -58,6 +67,7 @@ function IslandOrbitControls({
       object={controls}
       enablePan={false}
       enableDamping
+      autoRotateSpeed={AUTO_ROTATE_SPEED}
       minDistance={28}
       maxDistance={80}
       minPolarAngle={0.3}
@@ -90,7 +100,7 @@ export function IslandScene({
   useEffect(
     () => () => {
       water.material.dispose()
-      water.depthMap.dispose()
+      water.colorMap.dispose()
     },
     [water],
   )
@@ -159,7 +169,7 @@ export function IslandScene({
             position={[0, settings.waterLevel, 0]}
             receiveShadow
           >
-            <planeGeometry args={[ISLAND_SIZE * 3.4, ISLAND_SIZE * 3.4]} />
+            <planeGeometry args={[PREVIEW_OCEAN_SIZE, PREVIEW_OCEAN_SIZE]} />
             <primitive object={water.material} attach="material" />
           </mesh>
         </>

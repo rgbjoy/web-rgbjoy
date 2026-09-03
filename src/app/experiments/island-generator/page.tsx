@@ -1,6 +1,6 @@
 "use client"
 
-import { Canvas } from "@react-three/fiber/webgpu"
+import { Canvas } from "@react-three/fiber"
 import {
   ChevronDown,
   Dices,
@@ -12,11 +12,12 @@ import {
   RefreshCw,
 } from "lucide-react"
 import * as Accordion from "@radix-ui/react-accordion"
-import { useCallback, useState, useSyncExternalStore } from "react"
+import { useCallback, useState } from "react"
 
 import { exportIslandGlb } from "./exportIsland"
 import { IslandScene } from "./IslandScene"
 import styles from "./page.module.css"
+import { useMediaQuery } from "./useMediaQuery"
 import {
   DEFAULT_ISLAND_SETTINGS,
   MAX_ELEVATION,
@@ -147,10 +148,6 @@ function randomRange(minimum: number, maximum: number, precision: number) {
   )
 }
 
-const subscribeWebGpu = () => () => {}
-const getWebGpuSnapshot = () => Boolean(navigator.gpu)
-const getWebGpuServerSnapshot = () => false
-
 export default function Page() {
   const [settings, setSettings] = useState<IslandSettings>(
     DEFAULT_ISLAND_SETTINGS,
@@ -159,15 +156,14 @@ export default function Page() {
   const [showWater, setShowWater] = useState(true)
   const [showBiomes, setShowBiomes] = useState(true)
   const [showTrees, setShowTrees] = useState(true)
-  const [controlsOpen, setControlsOpen] = useState(true)
+  // Start collapsed during SSR/hydration so mobile never flashes an open panel.
+  // Once toggled, the user's choice wins even if they resize or rotate the phone.
+  const desktop = useMediaQuery("(min-width: 721px)")
+  const [controlsOpenOverride, setControlsOpenOverride] = useState<boolean | null>(null)
+  const controlsOpen = controlsOpenOverride ?? desktop
   // Locks only hold fields through Randomize; the sliders stay editable.
   const [locked, setLocked] = useState<ReadonlySet<LockableSetting>>(
     () => new Set(),
-  )
-  const webgpu = useSyncExternalStore(
-    subscribeWebGpu,
-    getWebGpuSnapshot,
-    getWebGpuServerSnapshot,
   )
 
   const updateSetting = useCallback(
@@ -230,36 +226,36 @@ export default function Page() {
 
   return (
     <main className={styles.main}>
-      {webgpu ? (
-        <Canvas
-          className={styles.canvas}
-          dpr={[1, 1.5]}
-          shadows
-          camera={{
-            position: [30.5, 25, 37.5],
-            fov: 43,
-            near: 0.1,
-            far: 240,
-          }}
-          renderer={{
-            antialias: true,
-            alpha: false,
-            powerPreference: "high-performance",
-          }}
-        >
-          <IslandScene
-            settings={settings}
-            showWater={showWater}
-            showBiomes={showBiomes}
-            showTrees={showTrees}
-          />
-        </Canvas>
-      ) : (
-        <p className={styles.fallback}>
-          This island needs WebGPU. Try Chrome or Edge, or enable WebGPU in
-          Safari.
-        </p>
-      )}
+      {/* Fiber 10's gl prop explicitly selects WebGLRenderer. */}
+      <Canvas
+        className={styles.canvas}
+        dpr={[1, 1.5]}
+        shadows
+        camera={{
+          position: [30.5, 25, 37.5],
+          fov: 43,
+          near: 0.1,
+          far: 240,
+        }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance",
+        }}
+        fallback={
+          <p className={styles.fallback}>
+            This island needs WebGL 2. Try enabling hardware acceleration in
+            your browser.
+          </p>
+        }
+      >
+        <IslandScene
+          settings={settings}
+          showWater={showWater}
+          showBiomes={showBiomes}
+          showTrees={showTrees}
+        />
+      </Canvas>
 
       <header className={styles.titleBlock}>
         <h1>Island Generator</h1>
@@ -277,7 +273,7 @@ export default function Page() {
             aria-expanded={controlsOpen}
             aria-controls="island-controls-body"
             aria-label={controlsOpen ? "Minimize controls" : "Show controls"}
-            onClick={() => setControlsOpen((open) => !open)}
+            onClick={() => setControlsOpenOverride(!controlsOpen)}
           >
             {controlsOpen ? (
               <Minus size={14} strokeWidth={2.2} aria-hidden="true" />

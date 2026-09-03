@@ -3,7 +3,7 @@ import {
   Color,
   Float32BufferAttribute,
   PlaneGeometry,
-} from "three/webgpu"
+} from "three"
 
 import { gaussianSmoothGrid } from "./gaussian"
 import { softenShoreHeight } from "./shore"
