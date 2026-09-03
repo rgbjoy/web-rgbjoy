@@ -122,6 +122,39 @@ function shouldSkipIntro(): boolean {
 function markIntroPlayed() {
   introPlayedThisLoad = true
 }
+
+/**
+ * Index scroll position across a trip into an experiment and back. Module state
+ * covers soft client navigations; sessionStorage covers a hard back/forward
+ * where the module reloads. Written continuously so unmount order cannot lose
+ * the value after Next has already scrolled the experiment to the top.
+ */
+const INDEX_SCROLL_KEY = "rgbjoy:index-scroll"
+let rememberedIndexScroll = 0
+
+function rememberIndexScroll() {
+  rememberedIndexScroll = window.scrollY
+  try {
+    window.sessionStorage.setItem(
+      INDEX_SCROLL_KEY,
+      String(rememberedIndexScroll),
+    )
+  } catch {
+    // Scroll restore is a nicety; storage can be unavailable.
+  }
+}
+
+function readRememberedIndexScroll(): number {
+  if (rememberedIndexScroll > 0) return rememberedIndexScroll
+  try {
+    const raw = window.sessionStorage.getItem(INDEX_SCROLL_KEY)
+    if (raw == null) return 0
+    const y = Number(raw)
+    return Number.isFinite(y) && y > 0 ? y : 0
+  } catch {
+    return 0
+  }
+}
 /** One per character, picked once per mount. */
 const CHAR_SEEDS = ["var(--seed-r)", "var(--seed-g)", "var(--seed-b)"]
 
@@ -334,14 +367,20 @@ function CategoryHeader({
  * Keeps a section's children mounted so opening and closing both have something
  * to animate. The outer element owns the height reveal; its direct inner
  * children get a small stagger so rows arrive as rows rather than one block.
+ *
+ * `instant` is for back-navigation: the intro gate flips ready without the
+ * visitor having toggled anything, and animating that open leaves the page
+ * short at the moment scroll restoration runs — so the list lands at the top.
  */
 function CollapsibleContent({
   open,
   ready,
+  instant = false,
   children,
 }: {
   open: boolean
   ready: boolean
+  instant?: boolean
   children: ReactNode
 }) {
   const shown = open && ready
@@ -359,31 +398,28 @@ function CollapsibleContent({
     const items = Array.from(inner.children)
     gsap.killTweensOf([outer, ...items])
 
+    const snap = () => {
+      gsap.set(outer, {
+        clearProps: "overflow",
+        display: shown ? "block" : "none",
+        height: shown ? "auto" : 0,
+      })
+      gsap.set(items, { clearProps: "opacity,visibility" })
+      setPresent(shown)
+    }
+
     // The intro keeps restored content closed until its heading has arrived.
     // Strict Mode's second setup pass sees the same value and simply preserves
     // that pose rather than replaying the animation.
     if (previousShownRef.current === shown) {
-      gsap.set(outer, {
-        clearProps: "overflow",
-        display: shown ? "block" : "none",
-        height: shown ? "auto" : 0,
-      })
-      gsap.set(items, { clearProps: "opacity,visibility" })
+      snap()
       return
     }
     previousShownRef.current = shown
 
-    if (reducedMotion) {
-      gsap.set(outer, {
-        clearProps: "overflow",
-        display: shown ? "block" : "none",
-        height: shown ? "auto" : 0,
-      })
-      gsap.set(items, { clearProps: "opacity,visibility" })
-      const visibilityUpdate = gsap.delayedCall(0, () => setPresent(shown))
-      return () => {
-        visibilityUpdate.kill()
-      }
+    if (reducedMotion || instant) {
+      snap()
+      return
     }
 
     const timeline = gsap.timeline()
@@ -441,7 +477,7 @@ function CollapsibleContent({
     return () => {
       timeline.kill()
     }
-  }, [shown, reducedMotion])
+  }, [shown, reducedMotion, instant])
 
   return (
     <div
@@ -463,14 +499,19 @@ export default function Home() {
   const lockupRef = useRef<HTMLDivElement>(null)
   const [lockupStuck, setLockupStuck] = useState(false)
   const introPlayedRef = useRef(false)
+  // Fixed for this mount: a return trip snaps open sections so scroll can
+  // restore against the real page height; a first visit still animates them.
+  const resumeVisit = useRef(shouldSkipIntro()).current
   const [contactOpen, setContactOpen] = useState(false)
   const reducedMotion = useReducedMotion()
   const theme = useTheme()
   const [controlsStuck, setControlsStuck] = useState(false)
   const { collapsed, sort } = useIndexState()
-  const [titleCount, setTitleCount] = useState(0)
-  const [introCount, setIntroCount] = useState(0)
-  const [introPending, setIntroPending] = useState(true)
+  const [titleCount, setTitleCount] = useState(
+    resumeVisit ? TITLE_TEXT.length : 0,
+  )
+  const [introCount, setIntroCount] = useState(resumeVisit ? INTRO_TOTAL : 0)
+  const [introPending, setIntroPending] = useState(!resumeVisit)
 
   // Load choreography: headline → desc → search → each category (+ name, line, count).
   useLayoutEffect(() => {
@@ -485,7 +526,7 @@ export default function Home() {
     // Toggling the setting re-runs this, and back-navigation remounts it. Either
     // way, snap to the finished state rather than replaying the intro at someone
     // who has already read it.
-    if (reducedMotion || introPlayedRef.current || shouldSkipIntro()) {
+    if (reducedMotion || introPlayedRef.current || resumeVisit || shouldSkipIntro()) {
       introPlayedRef.current = true
       markIntroPlayed()
       setTitleCount(TITLE_TEXT.length)
@@ -576,7 +617,40 @@ export default function Home() {
         gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
       }
     }
-  }, [reducedMotion])
+  }, [reducedMotion, resumeVisit])
+
+  // Keep a restore point while the index is up, then put it back once open
+  // sections have their real height (see CollapsibleContent's `instant`).
+  useEffect(() => {
+    const onScroll = () => {
+      rememberedIndexScroll = window.scrollY
+    }
+    const onHide = () => rememberIndexScroll()
+
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("pagehide", onHide)
+
+    return () => {
+      rememberIndexScroll()
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("pagehide", onHide)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    if (introPending) return
+    if (!resumeVisit && !shouldSkipIntro()) return
+
+    const y = readRememberedIndexScroll()
+    if (y <= 0) return
+
+    window.scrollTo(0, y)
+    // Next may also try to restore (or reset) after this layout pass; a frame
+    // later re-asserts the index position once the document height is final.
+    const frame = window.requestAnimationFrame(() => window.scrollTo(0, y))
+    return () => window.cancelAnimationFrame(frame)
+  }, [introPending, resumeVisit])
 
   // The bar is pinned exactly when its own top reaches the pin point, so read
   // that rather than watching a sentinel: IntersectionObserver never fires here
@@ -698,7 +772,7 @@ export default function Home() {
           </button>
         </h3>
 
-        <CollapsibleContent open={isOpen} ready={!introPending}>
+        <CollapsibleContent open={isOpen} ready={!introPending} instant={resumeVisit}>
           {group.items.map((experiment) => (
             <ExperimentRow key={experiment.href} experiment={experiment} />
           ))}
@@ -784,6 +858,7 @@ export default function Home() {
                 <CollapsibleContent
                   open={projectsOpen}
                   ready={!introPending}
+                  instant={resumeVisit}
                 >
                   {filteredProjects.map((project) => (
                     <ProjectRow key={project.href} project={project} />
@@ -804,6 +879,7 @@ export default function Home() {
                 <CollapsibleContent
                   open={experimentsOpen}
                   ready={!introPending}
+                  instant={resumeVisit}
                 >
                   {groups.map(renderGroup)}
                 </CollapsibleContent>
@@ -819,7 +895,11 @@ export default function Home() {
                   onToggle={() => toggleGroup("links")}
                 />
 
-                <CollapsibleContent open={linksOpen} ready={!introPending}>
+                <CollapsibleContent
+                  open={linksOpen}
+                  ready={!introPending}
+                  instant={resumeVisit}
+                >
                   {filteredLinks.map((link) => (
                     <LinkRow key={link.href} link={link} />
                   ))}
