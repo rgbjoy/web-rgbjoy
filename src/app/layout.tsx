@@ -66,6 +66,10 @@ export default function RootLayout({
     // The boot script stamps data-theme / data-motion before React hydrates.
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta
+          name="impact-site-verification"
+          {...{ value: "13d6059a-6a87-4af8-acea-99cfb14cf2ef" }}
+        />
         <script
           // Must run before first paint, so it cannot wait for hydration.
           dangerouslySetInnerHTML={{ __html: SETTINGS_BOOT_SCRIPT }}
