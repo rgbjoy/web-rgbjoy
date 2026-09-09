@@ -911,6 +911,10 @@ export default function Home() {
         </div>
       </div>
 
+      {reducedMotion && (
+        <p className={styles.motionIndicator}>reduced motion on</p>
+      )}
+
       <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </>
   )

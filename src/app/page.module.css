@@ -28,6 +28,18 @@
   color: var(--bg);
 }
 
+.motionIndicator {
+  position: fixed;
+  right: max(var(--gutter), env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 2;
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
 /* Hide search + section headers until the intro timeline reveals them. */
 .introPending .controls,
 .introPending [data-intro="toggle"],
