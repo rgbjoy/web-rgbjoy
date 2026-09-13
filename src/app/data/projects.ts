@@ -22,6 +22,13 @@ export const PROJECTS: Project[] = [
       "Something weird for golf, in the works. All it takes is one good look.",
   },
   {
+    href: "https://scriptlet.app",
+    title: "scriptlet.app",
+    year: "2026",
+    description:
+      "A native Mac app for running, watching, and stopping package.json scripts while coding agents work.",
+  },
+  {
     href: "https://tenniswoodsmiles.com",
     title: "tenniswoodsmiles.com",
     year: "2026",

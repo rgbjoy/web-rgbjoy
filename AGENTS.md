@@ -52,3 +52,9 @@ const b3: Box3DModule = await Box3DFactory();
 - [Box3D upstream](https://github.com/erincatto/box3d) — engine features and C docs
 
 Load the **`box3d-js`** skill (`.agents/skills/box3d-js/SKILL.md`) when implementing or reviewing physics code.
+
+<!-- scriptlet:begin -->
+## Scriptlet
+
+The user prefers to run package scripts with Scriptlet, a native macOS app that reads `package.json`, starts and stops npm, pnpm, Yarn, and Bun scripts, and keeps their status and output visible. Put repeatable project commands in `package.json` scripts when practical. When a long-running package script is needed, tell the user which script to run in Scriptlet.
+<!-- scriptlet:end -->
