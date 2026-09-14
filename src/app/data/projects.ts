@@ -22,6 +22,14 @@ export const PROJECTS: Project[] = [
       "Something weird for golf, in the works. All it takes is one good look.",
   },
   {
+    href: "https://futurebyday.com",
+    title: "futurebyday.com",
+    year: "2026",
+    description:
+      "An interactive savings calculator for exploring how daily contributions could grow over time, comparing risk levels, and planning toward a savings goal.",
+    tech: ["vinext", "React", "StyleX"],
+  },
+  {
     href: "https://scriptlet.app",
     title: "scriptlet.app",
     year: "2026",
