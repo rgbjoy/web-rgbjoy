@@ -1,7 +1,6 @@
 "use client"
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
-import Link from "next/link"
 import { useRef } from "react"
 
 import { setMotion, setTheme, useMotion, useTheme } from "./useSettings"
@@ -55,13 +54,6 @@ export function SettingsMenu({
           <DropdownMenu.Item className={styles.item} onSelect={onContact}>
             <span className={styles.mark} aria-hidden="true" />
             contact
-          </DropdownMenu.Item>
-
-          <DropdownMenu.Item className={styles.item} asChild>
-            <Link href="/directory">
-              <span className={styles.mark} aria-hidden="true" />
-              directory &amp; API
-            </Link>
           </DropdownMenu.Item>
 
           <DropdownMenu.Item

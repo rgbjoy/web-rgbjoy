@@ -857,6 +857,10 @@ export default function Home() {
             )}
 
           </main>
+          <footer className={styles.footer}>
+            <span>{SITE.name}</span>
+            <Link href="/directory">directory &amp; API</Link>
+          </footer>
         </div>
       </div>
 
