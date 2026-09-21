@@ -499,7 +499,7 @@ export default function Home() {
   const introPlayedRef = useRef(false)
   // Fixed for this mount: a return trip snaps open sections so scroll can
   // restore against the real page height; a first visit still animates them.
-  const resumeVisit = useRef(shouldSkipIntro()).current
+  const [resumeVisit] = useState(shouldSkipIntro)
   const [contactOpen, setContactOpen] = useState(false)
   const [promptOpen, setPromptOpen] = useState(true)
   const reducedMotion = useReducedMotion()
