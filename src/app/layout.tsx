@@ -41,6 +41,9 @@ const redaction = localFont({
   weight: "400",
 })
 
+// Keep HTML and RSC fresh; the shared content snapshot is cached separately.
+export const dynamic = 'force-dynamic'
+
 const defaultMetadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: SITE.title,

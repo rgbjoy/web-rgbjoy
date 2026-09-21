@@ -1,4 +1,4 @@
-import { getPublicCatalog, getSeo, getInfo } from "../../server/content"
+import { getSettings, getPublicCatalog, getSeo, getInfo } from "../../server/content"
 import { PUBLIC_PROFILE, searchCatalog } from '../../data/catalog'
 import { SITE } from '../../data/site'
 
@@ -16,11 +16,12 @@ export async function GET(request: Request) {
       { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
     )
   }
-  const entries = searchCatalog(params.get('q') ?? '', kind ?? undefined, await getPublicCatalog())
+  const settings = await getSettings()
+  const entries = searchCatalog(params.get('q') ?? '', kind ?? undefined, await getPublicCatalog(settings))
   return Response.json(
     {
       version: '1.0',
-      profile: { ...PUBLIC_PROFILE, name: (await getInfo()).author, description: (await getSeo()).description },
+      profile: { ...PUBLIC_PROFILE, name: (await getInfo(settings)).author, description: (await getSeo(settings)).description },
       source: `${SITE.url}/directory`,
       total: entries.length,
       entries,

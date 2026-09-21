@@ -244,3 +244,46 @@ test('Lexical can reopen the migrated and validated bio document', async () => {
   expect(infoText(validated.root)).toBe('Hello. Please contact me.')
   expect(() => editor.parseEditorState(JSON.stringify(validated))).not.toThrow()
 })
+
+test('shared cache reuses snapshots and rotates after every content table changes', async () => {
+  const { database, cacheEntries, cacheStats } = await import('../../../tests/cloudflare-env')
+  const { getSettings } = await import('../server/content')
+  cacheEntries.clear()
+  const batches = cacheStats.batches
+  await getSettings()
+  await getSettings()
+  expect(cacheStats.batches - batches).toBe(1)
+  const writes = [
+    "UPDATE site_info SET lead=lead WHERE id=1",
+    "UPDATE seo_settings SET title=title WHERE path='/'",
+    "UPDATE projects SET hidden=hidden WHERE id=(SELECT id FROM projects LIMIT 1)",
+    "INSERT INTO site_media (kind,version) VALUES ('social','test-cache-version')",
+    "DELETE FROM site_media WHERE kind='social'",
+    "INSERT INTO content_settings (id) VALUES ('cache-test')",
+    "DELETE FROM content_settings WHERE id='cache-test'",
+  ]
+  for (const sql of writes) {
+    const before = cacheStats.batches
+    database.exec(sql)
+    await getSettings()
+    await getSettings()
+    expect(cacheStats.batches - before).toBe(1)
+  }
+  // Losing the cache (expiry/eviction) only causes a fresh fill.
+  cacheEntries.clear()
+  const before = cacheStats.batches
+  await getSettings()
+  expect(cacheStats.batches - before).toBe(1)
+})
+
+test('cache failures fall back to D1 and rolled-back writes do not invalidate', async () => {
+  const { database, cacheStats } = await import('../../../tests/cloudflare-env')
+  const { getSettings } = await import('../server/content')
+  const original = await getSettings()
+  cacheStats.fail = true
+  try { expect(await getSettings()).toEqual(original) } finally { cacheStats.fail = false }
+  const before = cacheStats.batches
+  database.exec("BEGIN; UPDATE site_info SET lead='Rolled back'; ROLLBACK;")
+  expect(await getSettings()).toEqual(original)
+  expect(cacheStats.batches).toBe(before)
+})

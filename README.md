@@ -180,3 +180,20 @@ are unchanged. Originals are not retained. R2 stores versioned processed files;
 D1 switches the live version after all variants succeed. Old versions remain
 available for cached previews. `MEDIA_PUBLIC_URL` is the public origin used by
 social image metadata and currently points to the workers.dev deployment.
+
+### Content caching
+
+Content snapshots use a named Cloudflare Cache API cache with a one-hour TTL.
+Each request reads one small revision row from the D1 primary; a cache hit skips
+loading the five content tables. Migration `0005_content_cache.sql` adds triggers
+that advance this revision atomically for project, Info, SEO, media, and legacy
+content-setting writes. Old snapshots become unreachable immediately after a
+successful write, including across locations; expiry only cleans up old entries.
+Cache errors fall back to D1. This reduces database work, but still requires a
+primary-database round trip to guarantee freshness.
+
+HTML/RSC stay dynamic, discovery responses are not HTTP-cached, and dashboard
+saves refresh the current layout. Already-open visitor tabs update on their next
+server request or reload, not via live push. Versioned image URLs remain immutable.
+Deploy through the connected GitHub build, with `bun run db:migrate:remote &&
+bunx wrangler deploy` as the deploy command so schema changes land before code.

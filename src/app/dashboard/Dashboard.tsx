@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import ImageUploads from './ImageUploads'
 import type { SiteMedia } from '../data/media'
 import { useEffect, useState, type FormEvent } from 'react'
@@ -13,6 +13,7 @@ import { ProjectList, SeoEditor } from './Editors'
 
 type Data = { media: SiteMedia[]; projects: StoredProject[]; info: SiteInfo; seo: SeoSetting[] }
 export default function Dashboard() {
+  const router = useRouter()
   const [saveTarget, setSaveTarget] = useState<HTMLDivElement | null>(null)
   const [section, setSection] = useState<'Info' | 'Projects' | 'SEO'>('Info')
   const [data, setData] = useState<Data | null>(null)
@@ -21,7 +22,7 @@ export default function Dashboard() {
   const [signingIn, setSigningIn] = useState(false)
   const [refresh, setRefresh] = useState(0)
   const [notice, setNotice] = useState('')
-  const saved = () => { setNotice('Saved. Changes appear on the next page load.'); setRefresh(value => value + 1) }
+  const saved = () => { setNotice('Saved. Your changes are live.'); setRefresh(value => value + 1); router.refresh() }
   useEffect(() => {
     const controller = new AbortController()
     fetch('/dashboard/api', { signal: controller.signal }).then(async response => {
@@ -58,7 +59,9 @@ export default function Dashboard() {
   }
   return <SaveTarget.Provider value={saveTarget}><main className={styles.dashboard}>
     <nav className={styles.accountLinks} aria-label="Account links">
-      <Link href="/">View site ↗</Link>
+      {/* Full navigation fetches current public layout data after editing. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/">View site ↗</a>
       {data && <button onClick={logout}>Sign out</button>}
     </nav>
     <h1>Dashboard</h1>
