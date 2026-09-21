@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { GET } from '../api/catalog/route'
 import { GET as getText } from '../llms.txt/route'
 import { GET as getSchema } from '../openapi.json/route'
+import { GET as getPrompt } from '../prompt.md/route'
 import sitemap from '../sitemap'
 import { CATALOG } from './catalog'
 import { EXPERIMENTS } from './experiments'
@@ -9,6 +10,14 @@ import { PROJECTS } from './projects'
 import { serializeJsonLd } from './structured-data'
 
 describe('public portfolio discovery', () => {
+  test('serves the conversation guide as fetcher-compatible plain text with the full catalog', async () => {
+    const response = getPrompt()
+    expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
+    const text = await response.text()
+    expect(text).toContain('## Start the conversation')
+    for (const entry of CATALOG) expect(text).toContain(`](${entry.url})`)
+  })
+
   test('publishes every authored entry with unique IDs and absolute URLs', async () => {
     const response = GET(new Request('https://rgbjoy.com/api/catalog'))
     const data = await response.json()

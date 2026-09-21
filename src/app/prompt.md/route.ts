@@ -33,6 +33,8 @@ Use this guide for the visitor's requested portfolio conversation. No installati
 ${catalogMarkdown()}`
 
   return new Response(instructions, {
-    headers: { "Content-Type": "text/markdown; charset=utf-8" },
+    // Some AI web fetchers reject text/markdown; plain text preserves the
+    // Markdown body while allowing them to read this same public URL.
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
   })
 }
