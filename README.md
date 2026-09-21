@@ -3,64 +3,94 @@
 Personal site for Tom Fletcher — an index of client work, shader and 3D
 experiments, and links, over a live fluid-simulation background.
 
-[Next.js 16](https://nextjs.org) (App Router, React 19, React Compiler),
-TypeScript, [Bun](https://bun.sh), deployed on Vercel.
+[vinext](https://github.com/cloudflare/vinext) (Next.js App Router APIs on Vite),
+React 19, TypeScript, and Bun. Deployment uses Cloudflare Workers and Wrangler.
 
-## Content is static
+## Content and dashboard
 
-There is no CMS and no database. Every piece of content is a typed array in
-`src/app/data/`:
+The dashboard has three sections:
 
-| File             | Holds                                          |
-| ---------------- | ---------------------------------------------- |
-| `projects.ts`    | Client work (7)                                |
-| `experiments.ts` | Experiments (19) and the groups they sort into |
-| `links.ts`       | Social / external links (4)                    |
-| `site.ts`        | Name, email, SEO copy, masthead text           |
+- **Info:** one Lexical rich-text bio with paragraphs, bold, italic, and links. Use a contact link to open the contact form. Existing copy is imported when opening the editor; the stored owner name and delivery email are preserved.
+- **Projects:** add, edit, hide, and delete full project records, including their
+  URL, year/status, description, and technology list.
+- **SEO:** one title and description used across the entire site, plus a site
+  icon and social-card image.
 
-Adding an entry means editing one array. The index page, its counts, and the
-Cmd+F search palette all derive from these — nothing needs registering twice.
+D1 is the source of truth for project records, Info, shared SEO, and current
+media versions. Migration
+`0002_projects_and_info.sql` imports the original nine projects and profile,
+preserving previous project overrides. New deployments never re-seed or restore
+deleted projects. The original `projects.ts` array remains as a historical seed
+fixture for regression tests; it is not a runtime project data source.
 
-> **On Payload CMS.** This site previously ran on Payload with a Postgres
-> database and S3 media storage. That was dropped in favour of static data, and
-> may come back. Until then most of `.env.example` is dormant: the only
-> variables anything reads are `CONTACT_FROM` and the three SES credentials.
-> Dormant entries are marked as such in the file rather than deleted, so
-> restoring Payload does not mean rediscovering what it needed.
+Experiment implementations and their authored listings remain in code. Hidden
+projects disappear from the homepage, search, directory, and AI endpoints.
+Changes appear on the next page load without a deployment. The resume builder
+is not implemented yet.
+
+The dashboard uses a generated password and an eight-hour signed session in a
+Secure, HttpOnly, SameSite=Strict cookie. Login attempts are rate limited to five
+per minute per IP at each Cloudflare location. State-changing requests require
+a matching Origin. Cloudflare Access is not required.
+
+`DASHBOARD_PASSWORD_HASH` holds the SHA-256 digest of the generated high-entropy
+password; `DASHBOARD_SESSION_SECRET` signs sessions. Both are Worker secrets.
+Do not use a human-chosen password with this scheme. To rotate access, generate
+a fresh random password (at least 24 random bytes), update its hash and rotate
+the session secret to invalidate existing sessions. Sign out clears the browser
+cookie. The initial password is saved in the ignored `.dashboard-password.txt`
+file; save it in a password manager and remove that local file when finished.
+
+The Worker is deployed at https://web-rgbjoy.tom-a2d.workers.dev. SES secret
+transfer and the rgbjoy.com DNS cutover remain pending.
 
 ## Running it
 
 ```bash
 bun install
-bun dev
+bun run db:migrate:local
+bun run dev
 ```
 
-| Script             | Does                |
-| ------------------ | ------------------- |
-| `bun dev`          | Dev server on :3000 |
-| `bun run build`    | Production build    |
-| `bun start`        | Serve the build     |
-| `bun run lint`     | ESLint              |
-| `bun run ts:check` | `tsc --noEmit`      |
+Use **Scriptlet** to run the long-running `dev` or `start` scripts.
 
-## Environment
+| Script | Purpose |
+| --- | --- |
+| `dev` | Vite + local Workers/D1 development on :3000 |
+| `build` | Build the Worker and browser assets |
+| `start` | Preview the built Worker with the same local D1 storage |
+| `lint` / `ts:check` | ESLint / TypeScript |
+| `test:discovery` | Catalog, project CRUD, Info, and dashboard access regression checks |
+| `cf:types` | Regenerate Worker bindings and runtime types |
+| `db:migrate:local` | Apply migrations to local D1 |
+| `db:migrate:remote` | Apply migrations to the configured production D1 |
+| `deploy` | Build and deploy the Worker with Wrangler |
 
-Copy `.env.example` to `.env`. Only the contact form needs anything to work
-locally; the rest of the site runs with an empty `.env`.
+Local and remote D1 are separate. Apply and test migrations locally before
+running `db:migrate:remote`. Migrations preserve existing settings.
+The Cloudflare Vite plugin writes the deployment configuration into `dist/server`;
+Wrangler follows `.wrangler/deploy/config.json` when deploying from the project root.
 
-| Variable                                                                   | Used by                                                             |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` / `S3_REGION`                  | Amazon SES, via `/api/contact`                                      |
-| `CONTACT_FROM`                                                             | The `From` header on contact mail — must be an SES-verified address |
-| `SERVER_URL`, `PAYLOAD_SECRET`, `DATABASE_URL`, `S3_BUCKET`, `INSTAGRAM_*` | Nothing, currently. Payload-era leftovers                           |
+## Environment and deployment
 
-The `S3_` prefix on the SES credentials is history, not scope: one IAM user
-carries both `s3:*` and `ses:SendEmail`, and the contact route reuses that key
-rather than holding a second one. A leak costs both, so split them if that ever
-stops being an acceptable trade.
+For local email, put the following in an ignored `.dev.vars` file (or existing
+`.env`). For production, set them with `wrangler secret put NAME` or secret bulk.
+Never commit credentials or the generated `dist/server/.dev.vars` file.
 
-Production needs these set in the Vercel project settings too — without them the
-deployed contact form returns "Contact is not configured right now."
+| Secret | Purpose |
+| --- | --- |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` / `S3_REGION` | Existing Amazon SES credentials |
+| `CONTACT_FROM` | SES-verified sender address |
+
+Contact mail continues through AWS SES using the fetch HTTP transport. D1 does
+not store contact messages. The historical `S3_` credential names are retained.
+The old Payload and Instagram environment entries are unused.
+
+`wrangler.jsonc` binds the `web-rgbjoy` D1 database as `DB` and enables logs and
+traces. No custom domain is attached yet: verify the workers.dev deployment,
+verify dashboard login, and then attach the production hostnames before removing the
+Vercel deployment. The migration uses vinext beta; validate shader experiments
+and navigation after dependency updates.
 
 ## Layout
 
@@ -97,8 +127,8 @@ entry in `experiments.ts`.
   up everything a scrolling finger passes.
 - **Scrollable overlays need `data-lenis-prevent`**, or Lenis takes their wheel
   events and scrolls the page behind them instead.
-- **GLSL files** are loaded through `raw-loader` + `glslify-loader`, configured
-  for Turbopack in `next.config.ts`.
+- **GLSL files** are compiled with `glslify` and exported as strings
+  by the GLSL plugin in `vite.config.ts`.
 
 Agent-facing notes on the physics engine live in `AGENTS.md`.
 
@@ -133,3 +163,20 @@ configured MCP connection; ordinary ChatGPT search discovery relies on public
 web content. If adding MCP later, reuse `data/catalog.ts` for its search/fetch
 tools. Production search visibility also depends on the host allowing crawler
 requests and search engines indexing the deployed pages.
+
+## Site images
+
+In Dashboard → SEO, upload a square PNG/JPEG/WebP (512×512 recommended) for
+the site icon, and a social image (1200×630 recommended). Preview the crop before
+saving. The browser creates 512px and 32px icons, a 180px Apple-touch icon, and a
+1200×630 social PNG. The Worker validates dimensions and PNG integrity and
+re-encodes the pixels with `fast-png` to strip metadata before writing to R2.
+Uploads require a dashboard session and same-origin requests; request size is
+bounded. Only the known image variants can be served publicly.
+
+This uses browser Canvas and a portable Worker codec, not Sharp's native Node
+module, and needs no Cloudflare Images subscription. Existing experiment assets
+are unchanged. Originals are not retained. R2 stores versioned processed files;
+D1 switches the live version after all variants succeed. Old versions remain
+available for cached previews. `MEDIA_PUBLIC_URL` is the public origin used by
+social image metadata and currently points to the workers.dev deployment.

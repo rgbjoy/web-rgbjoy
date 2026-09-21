@@ -1,0 +1,50 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "web-rgbjoy",
+  "compatibility_date": "2026-09-21",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "vinext/server/fetch-handler",
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "account_id": "a2d77f674b4760e7a097973d7be4c815",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "web-rgbjoy",
+      "database_id": "801b9b88-b567-498e-8d2e-dba4d872322e",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "DASHBOARD_LOGIN_LIMIT",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "web-rgbjoy-media"
+    }
+  ],
+  "vars": {
+    "MEDIA_PUBLIC_URL": "https://web-rgbjoy.tom-a2d.workers.dev"
+  }
+}

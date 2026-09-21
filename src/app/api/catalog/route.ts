@@ -1,12 +1,13 @@
+import { getPublicCatalog, getSeo, getInfo } from "../../server/content"
 import { PUBLIC_PROFILE, searchCatalog } from '../../data/catalog'
 import { SITE } from '../../data/site'
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
-  'Cache-Control': 'public, max-age=300, s-maxage=3600',
+  'Cache-Control': 'no-store',
 }
 
-export function GET(request: Request) {
+export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
   const kind = params.get('kind')
   if (kind !== null && kind !== 'project' && kind !== 'experiment') {
@@ -15,11 +16,11 @@ export function GET(request: Request) {
       { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
     )
   }
-  const entries = searchCatalog(params.get('q') ?? '', kind ?? undefined)
+  const entries = searchCatalog(params.get('q') ?? '', kind ?? undefined, await getPublicCatalog())
   return Response.json(
     {
       version: '1.0',
-      profile: PUBLIC_PROFILE,
+      profile: { ...PUBLIC_PROFILE, name: (await getInfo()).author, description: (await getSeo()).description },
       source: `${SITE.url}/directory`,
       total: entries.length,
       entries,

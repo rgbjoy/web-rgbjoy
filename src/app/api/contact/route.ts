@@ -1,10 +1,11 @@
+import { getInfo } from "../../server/content"
+import { env } from "cloudflare:workers"
+import { FetchHttpHandler } from "@smithy/fetch-http-handler"
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2"
 import { NextResponse } from "next/server"
 
 import { SITE } from "../../data/site"
 
-/** Sending needs the SDK's Node runtime, not the edge one. */
-export const runtime = "nodejs"
 
 const MAX_NAME = 120
 const MAX_EMAIL = 254
@@ -48,9 +49,9 @@ function client(): SESv2Client {
   // per-service token, and this user carries ses:SendEmail alongside its S3
   // rights. The S3_ prefix is history, not scope — a leak costs both, so split
   // them if mail and media should ever stop sharing a blast radius.
-  const region = process.env.S3_REGION
-  const accessKeyId = process.env.S3_ACCESS_KEY_ID
-  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY
+  const region = env.S3_REGION
+  const accessKeyId = env.S3_ACCESS_KEY_ID
+  const secretAccessKey = env.S3_SECRET_ACCESS_KEY
 
   if (!region || !accessKeyId || !secretAccessKey) {
     throw new Error("AWS credentials are not configured")
@@ -58,6 +59,7 @@ function client(): SESv2Client {
 
   return new SESv2Client({
     region,
+    requestHandler: new FetchHttpHandler({ requestTimeout: 15000 }),
     credentials: { accessKeyId, secretAccessKey },
   })
 }
@@ -68,6 +70,10 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
+    return NextResponse.json({ error: "Malformed request." }, { status: 400 })
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Malformed request." }, { status: 400 })
   }
 
@@ -96,7 +102,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const from = process.env.CONTACT_FROM
+  const from = env.CONTACT_FROM
   if (!from) {
     console.error("CONTACT_FROM is not set")
     return NextResponse.json(
@@ -113,7 +119,7 @@ export async function POST(request: Request) {
         // identity. The visitor goes in Reply-To instead, so replying from the
         // inbox reaches them and DMARC still passes.
         FromEmailAddress: from,
-        Destination: { ToAddresses: [SITE.email] },
+        Destination: { ToAddresses: [(await getInfo()).email] },
         ReplyToAddresses: [`${name} <${email}>`],
         Content: {
           Simple: {

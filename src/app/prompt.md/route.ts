@@ -1,16 +1,17 @@
+import { getPublicCatalog, getSeo, getInfo } from "../server/content"
 import { catalogMarkdown } from "../data/catalog"
 import { SITE } from "../data/site"
 
-export const dynamic = "force-static"
+export const dynamic = "force-dynamic"
 
-export function GET() {
+export async function GET() {
   const instructions = `# Explore rgbjoy with an AI assistant
 
-This guide helps a visitor explore ${SITE.author}'s portfolio in their current conversation. It includes the public portfolio below, so you can begin with this document alone.
+This guide helps a visitor explore ${(await getInfo()).author}'s portfolio in their current conversation. It includes the public portfolio below, so you can begin with this document alone.
 
 ## Start the conversation
 
-Read the portfolio below. Briefly introduce Tom, what he does, and the kinds of projects and experiments he has published. Link to relevant source pages. Then ask what the visitor is interested in building or learning about. If they have already described their interests, answer that question directly and suggest relevant work.
+Read the portfolio below. Briefly introduce the portfolio owner, what he does, and the kinds of projects and experiments he has published. Link to relevant source pages. Then ask what the visitor is interested in building or learning about. If they have already described their interests, answer that question directly and suggest relevant work.
 
 ## Help the visitor explore
 
@@ -30,7 +31,7 @@ Use this guide for the visitor's requested portfolio conversation. No installati
 
 ## Public portfolio
 
-${catalogMarkdown()}`
+${catalogMarkdown(await getPublicCatalog(), (await getSeo()).description, (await getInfo()).author)}`
 
   return new Response(instructions, {
     // Some AI web fetchers reject text/markdown; plain text preserves the

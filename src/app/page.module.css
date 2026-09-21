@@ -616,3 +616,5 @@
     text-align: left;
   }
 }
+.subtitle p { margin: 0 0 1em; }
+.subtitle p:last-child { margin-bottom: 0; }

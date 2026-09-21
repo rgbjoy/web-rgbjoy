@@ -1,6 +1,9 @@
 "use client"
 
+import { usePortfolio, useInfo } from "./utilities/PortfolioProvider"
 import gsap from "gsap"
+import { infoDocument, infoText } from "./data/info-document"
+import { InfoBody } from "./utilities/InfoBody"
 import {
   ArrowUpRight,
   ChevronsDownUp,
@@ -20,11 +23,10 @@ import {
 
 import {
   EXPERIMENT_GROUPS,
-  EXPERIMENTS,
   type Experiment,
 } from "./data/experiments"
 import { LINKS, type SiteLink } from "./data/links"
-import { PROJECTS, type Project } from "./data/projects"
+import { type Project } from "./data/projects"
 import { SITE } from "./data/site"
 import { AskAboutWork } from "./utilities/AskAboutWork/AskAboutWork"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
@@ -76,12 +78,10 @@ function pad2(n: number): string {
 }
 
 const TITLE_TEXT = SITE.name
-const INTRO_LEAD = `${SITE.intro.lead} `
-const INTRO_INVITE = `${SITE.intro.invite} `
-const INTRO_LINK = SITE.intro.linkLabel
-const INTRO_END = "."
-const INTRO_TOTAL =
-  INTRO_LEAD.length + INTRO_INVITE.length + INTRO_LINK.length + INTRO_END.length
+function introText(info: ReturnType<typeof useInfo>) {
+  return { INTRO_TOTAL: infoText(infoDocument(info).root).length }
+
+}
 
 /** ~ms per character; title runs a touch faster than the body. */
 const TITLE_CHAR_MS = 28
@@ -198,32 +198,6 @@ function TypedText({
   )
 }
 
-function sliceIntro(count: number) {
-  const lead = INTRO_LEAD.slice(0, Math.min(count, INTRO_LEAD.length))
-  const invite = INTRO_INVITE.slice(
-    0,
-    Math.max(0, Math.min(count - INTRO_LEAD.length, INTRO_INVITE.length)),
-  )
-  const link = INTRO_LINK.slice(
-    0,
-    Math.max(
-      0,
-      Math.min(
-        count - INTRO_LEAD.length - INTRO_INVITE.length,
-        INTRO_LINK.length,
-      ),
-    ),
-  )
-  const end = INTRO_END.slice(
-    0,
-    Math.max(
-      0,
-      count - INTRO_LEAD.length - INTRO_INVITE.length - INTRO_LINK.length,
-    ),
-  )
-  return { lead, invite, link, end }
-}
-
 function Masthead({
   titleCount,
   introCount,
@@ -241,7 +215,9 @@ function Masthead({
   lockupRef: React.RefObject<HTMLDivElement | null>
   lockupStuck: boolean
 }) {
-  const intro = sliceIntro(introCount)
+  const info = useInfo()
+  const { INTRO_TOTAL } = introText(info)
+  const document = infoDocument(info)
   // Held in state so a re-render never reshuffles a character mid-fade. The
   // server renders no characters (counts start at 0), so the randomness here
   // cannot desync hydration.
@@ -274,44 +250,15 @@ function Masthead({
       </div>
 
       <header className={styles.masthead}>
-        <p className={styles.subtitle}>
-          <span className={styles.subtitleMeasure} aria-hidden="true">
-            {INTRO_LEAD}
-            {INTRO_INVITE}
-            <a className={styles.subtitleLink} href={`mailto:${SITE.email}`}>
-              {INTRO_LINK}
-            </a>
-            {INTRO_END}
-          </span>
-          <span className={styles.subtitleLive}>
-            <TypedText text={intro.lead} seeds={introSeeds} />
-            <TypedText
-              text={intro.invite}
-              seeds={introSeeds}
-              offset={INTRO_LEAD.length}
-            />
-            {intro.link.length > 0 ? (
-              <button
-                type="button"
-                className={styles.subtitleLink}
-                onClick={onContact}
-              >
-                <TypedText
-                  text={intro.link}
-                  seeds={introSeeds}
-                  offset={INTRO_LEAD.length + INTRO_INVITE.length}
-                />
-              </button>
-            ) : null}
-            <TypedText
-              text={intro.end}
-              seeds={introSeeds}
-              offset={
-                INTRO_LEAD.length + INTRO_INVITE.length + INTRO_LINK.length
-              }
-            />
-          </span>
-        </p>
+        <div className={styles.subtitle}>
+          <div className={styles.subtitleMeasure} aria-hidden="true" inert>
+            <InfoBody node={document.root} linkClass={styles.subtitleLink} />
+          </div>
+          <div className={styles.subtitleLive}>
+            <InfoBody node={document.root} count={introCount} onContact={onContact} linkClass={styles.subtitleLink}
+              renderText={(text, offset) => <TypedText text={text} seeds={introSeeds} offset={offset} />} />
+          </div>
+        </div>
       </header>
     </>
   )
@@ -492,6 +439,8 @@ function CollapsibleContent({
 }
 
 export default function Home() {
+  const { INTRO_TOTAL } = introText(useInfo())
+  const { projects, experiments } = usePortfolio()
   const controlsRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
   const lockupRef = useRef<HTMLDivElement>(null)
@@ -616,7 +565,7 @@ export default function Home() {
         gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
       }
     }
-  }, [reducedMotion, resumeVisit])
+  }, [reducedMotion, resumeVisit, INTRO_TOTAL])
 
   // Keep a restore point while the index is up, then put it back once open
   // sections have their real height (see CollapsibleContent's `instant`).
@@ -696,22 +645,22 @@ export default function Home() {
 
   const filtered = useMemo(
     () =>
-      EXPERIMENTS.slice().sort((a, b) =>
+      experiments.slice().sort((a, b) =>
         sort === "date"
           ? b.date.localeCompare(a.date)
           : a.title.localeCompare(b.title),
       ),
-    [sort],
+    [sort, experiments],
   )
 
   const filteredProjects = useMemo(
     () =>
-      PROJECTS.slice().sort((a, b) =>
+      projects.slice().sort((a, b) =>
         sort === "date"
           ? b.year.localeCompare(a.year)
           : a.title.localeCompare(b.title),
       ),
-    [sort],
+    [sort, projects],
   )
 
   // No dates to sort on, so date order is the order they are authored in.

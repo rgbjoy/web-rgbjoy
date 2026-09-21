@@ -1,13 +1,7 @@
-"use client";
+"use client"
 
-import { ShaderGlassLinesCanvas } from "./GlassLinesBackground";
+import dynamic from "next/dynamic"
 
-import styles from "./page.module.css";
-
-export default function Page() {
-  return (
-    <main className={styles.main}>
-      <ShaderGlassLinesCanvas />
-    </main>
-  );
-}
+// Three.js decoder modules require browser URLs during initialization.
+const Scene = dynamic(() => import("./Scene"), { ssr: false })
+export default function Page() { return <Scene /> }

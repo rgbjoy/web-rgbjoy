@@ -49,7 +49,7 @@ export function ContactDialog({
         }),
       })
 
-      const result = await response.json().catch(() => ({}))
+      const result = await response.json().catch(() => ({})) as { error?: string }
 
       if (!response.ok) {
         setError(result.error ?? "Something went wrong.")

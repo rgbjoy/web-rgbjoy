@@ -10,7 +10,9 @@ export type Project = {
 }
 
 /**
- * Client work. Sorting by date leans on "Ongoing" sorting above any year
+ * Historical seed fixture: live project records now come from D1.
+ * Migration 0002 imports this snapshot once; never re-seed during requests.
+ * Sorting by date leans on "Ongoing" sorting above any year
  * string, which puts continuing work at the top.
  */
 export const PROJECTS: Project[] = [

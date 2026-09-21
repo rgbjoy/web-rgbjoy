@@ -1,38 +1,32 @@
+import { getPublicCatalog, getSeo, getInfo } from "../server/content"
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { CATALOG, PUBLIC_PROFILE } from '../data/catalog'
-import { SITE } from '../data/site'
-import { DIRECTORY_STRUCTURED_DATA, serializeJsonLd } from '../data/structured-data'
+import { PUBLIC_PROFILE } from '../data/catalog'
+import { directoryStructuredData, serializeJsonLd } from '../data/structured-data'
 import styles from './page.module.css'
 
-export const metadata: Metadata = {
-  title: `rgbjoy — ${SITE.author}'s projects and experiments`,
-  description: SITE.description,
-  alternates: { canonical: '/directory' },
-  openGraph: {
-    title: `rgbjoy — ${SITE.author}'s projects and experiments`,
-    description: SITE.description,
-    url: `${SITE.url}/directory`,
-  },
-}
+export const metadata: Metadata = { alternates: { canonical: '/directory' } }
 
-export default function DirectoryPage() {
+export default async function DirectoryPage() {
+  const entries = await getPublicCatalog()
+  const info = await getInfo()
+  const seo = await getSeo()
   return (
     <main className={styles.directory}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(DIRECTORY_STRUCTURED_DATA) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(directoryStructuredData(entries)) }}
       />
       <Link href="/">← rgbjoy.com</Link>
       <header>
-        <h1>rgbjoy — {SITE.author}</h1>
-        <p>rgbjoy is the online identity and portfolio of {SITE.author}.</p>
-        <p>{SITE.description}</p>
+        <h1>rgbjoy — {info.author}</h1>
+        <p>rgbjoy is the online identity and portfolio of {info.author}.</p>
+        <p>{seo.description}</p>
       </header>
       {(['project', 'experiment'] as const).map((kind) => (
         <section key={kind}>
           <h2>{kind === 'project' ? 'Projects' : 'Experiments'}</h2>
-          {CATALOG.filter((entry) => entry.kind === kind).map((entry) => (
+          {entries.filter((entry) => entry.kind === kind).map((entry) => (
             <article key={entry.id} id={entry.id}>
               <h3>
                 <a href={entry.url}>{entry.title}</a>

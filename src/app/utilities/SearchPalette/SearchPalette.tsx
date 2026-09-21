@@ -1,16 +1,16 @@
 "use client"
 
+import { usePortfolio } from "../PortfolioProvider"
 import { X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
-  EXPERIMENTS,
   experimentSearchText,
   type Experiment,
 } from "../../data/experiments"
 import { LINKS, linkSearchText, type SiteLink } from "../../data/links"
-import { PROJECTS, projectSearchText, type Project } from "../../data/projects"
+import { projectSearchText, type Project } from "../../data/projects"
 import { closePalette, togglePalette, usePaletteOpen } from "./paletteState"
 import styles from "./SearchPalette.module.css"
 
@@ -37,7 +37,7 @@ function formatDate(date: string): string {
  * One flat index across projects, experiments and links, built once at module
  * load — the data is static, so rebuilding per keystroke would be pure waste.
  */
-const INDEX: Entry[] = [
+function makeIndex(PROJECTS: Project[], EXPERIMENTS: Experiment[]): Entry[] { return [
   ...PROJECTS.map((project: Project) => ({
     href: project.href,
     title: project.title,
@@ -63,8 +63,12 @@ const INDEX: Entry[] = [
   })),
 ]
 
+}
+
 function PalettePanel({ pathname }: { pathname: string }) {
   const router = useRouter()
+  const { projects, experiments } = usePortfolio()
+  const index = useMemo(() => makeIndex(projects, experiments), [projects, experiments])
   const isOpen = usePaletteOpen()
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -77,14 +81,14 @@ function PalettePanel({ pathname }: { pathname: string }) {
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase()
-    if (!normalized) return INDEX
+    if (!normalized) return index
 
     // Every term must match, so extra words narrow rather than widen.
     const terms = normalized.split(/\s+/)
-    return INDEX.filter((entry) =>
+    return index.filter((entry) =>
       terms.every((term) => entry.haystack.includes(term)),
     )
-  }, [query])
+  }, [query, index])
 
   const open = (entry: Entry) => {
     closePalette()

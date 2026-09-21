@@ -11,6 +11,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "dist/**",
+    ".wrangler/**",
+    "worker-configuration.d.ts",
     "next-env.d.ts",
     // Prebuilt third-party bundles copied into the project verbatim.
     "lib/threejs-sky-pro/**",

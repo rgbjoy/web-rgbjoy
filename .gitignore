@@ -35,3 +35,10 @@ public/robots.txt
 public/sitemap.xml
 
 certificates
+/dist/
+.vinext/
+.wrangler/
+.dev.vars*
+
+.dashboard-password.txt
+.dashboard-secrets.json

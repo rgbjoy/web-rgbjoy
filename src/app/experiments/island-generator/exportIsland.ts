@@ -81,7 +81,7 @@ export async function exportIslandGlb(
       `island-${settings.seed}-${waterLabel}-${biomeLabel}-` +
       `${resolution}x${resolution}-shore${Math.round((settings.shoreSoftness ?? 0) * 100)}-` +
       `smooth${Math.round((settings.smoothing ?? 0) * 100)}.glb`
-    document.body.append(link)
+    document.body.appendChild(link)
     link.click()
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0)

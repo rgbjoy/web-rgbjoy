@@ -1,4 +1,4 @@
-/** Single source for site identity, SEO, and masthead copy. */
+/** Deployment identity and seed defaults; editable Info and SEO are stored in D1. */
 export const SITE = {
   name: "rgbjoy.com",
   author: "Tom Fletcher",

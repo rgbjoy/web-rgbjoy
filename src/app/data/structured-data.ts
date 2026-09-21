@@ -24,7 +24,7 @@ export const SITE_STRUCTURED_DATA = {
   ],
 }
 
-export const DIRECTORY_STRUCTURED_DATA = {
+export function directoryStructuredData(entries = CATALOG) { return {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   url: `${SITE.url}/directory`,
@@ -33,8 +33,8 @@ export const DIRECTORY_STRUCTURED_DATA = {
   isPartOf: { '@id': `${SITE.url}/#website` },
   mainEntity: {
     '@type': 'ItemList',
-    numberOfItems: CATALOG.length,
-    itemListElement: CATALOG.map((entry, index) => ({
+    numberOfItems: entries.length,
+    itemListElement: entries.map((entry, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       item: {
@@ -47,6 +47,10 @@ export const DIRECTORY_STRUCTURED_DATA = {
     })),
   },
 }
+
+}
+
+export const DIRECTORY_STRUCTURED_DATA = directoryStructuredData()
 
 export function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, '\\u003c')

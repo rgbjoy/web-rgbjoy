@@ -36,9 +36,9 @@ export const CATALOG = [
   })),
 ]
 
-export function searchCatalog(query = '', kind?: 'project' | 'experiment') {
+export function searchCatalog(query = '', kind?: 'project' | 'experiment', entries = CATALOG) {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
-  return CATALOG.filter((entry) => {
+  return entries.filter((entry) => {
     if (kind && entry.kind !== kind) return false
     const text = [
       entry.title,
@@ -54,11 +54,11 @@ export function searchCatalog(query = '', kind?: 'project' | 'experiment') {
   })
 }
 
-export function catalogMarkdown() {
+export function catalogMarkdown(entries = CATALOG, description: string = SITE.description, author: string = SITE.author) {
   return [
-    `# rgbjoy — ${SITE.author}`,
+    `# rgbjoy — ${author}`,
     '',
-    `> rgbjoy is the online identity and portfolio of ${SITE.author}. ${SITE.description}`,
+    `> rgbjoy is the online identity and portfolio of ${author}. ${description}`,
     '',
     '## About this directory',
     '',
@@ -73,7 +73,7 @@ export function catalogMarkdown() {
     '',
     '## Projects and experiments',
     '',
-    ...CATALOG.flatMap((entry) => [
+    ...entries.flatMap((entry) => [
       `### [${entry.title}](${entry.url})`,
       '',
       entry.description ?? 'No description has been published for this project.',
