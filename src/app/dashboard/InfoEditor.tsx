@@ -11,10 +11,15 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link'
 import { FORMAT_TEXT_COMMAND, UNDO_COMMAND, REDO_COMMAND } from 'lexical'
 import type { SiteInfo } from '../data/content'
-import { infoDocument, safeInfoUrl } from '../data/info-document'
+import { infoDocument, safeInfoUrl, validateInfoDocument } from '../data/info-document'
 import { saveRecord } from './Editors'
 import SaveAction from './SaveAction'
 import styles from './dashboard.module.css'
+
+function fingerprint(document: string) {
+  try { return JSON.stringify(validateInfoDocument(JSON.parse(document))) }
+  catch { return document } // Invalid/empty edits must still be editable and report validation on save.
+}
 
 function Toolbar() {
   const [editor] = useLexicalComposerContext()
@@ -36,11 +41,15 @@ function Toolbar() {
 export default function InfoEditor({ info, saved }: { info: SiteInfo; saved: () => void }) {
   const formId = useId()
   const [document, setDocument] = useState(() => JSON.stringify(infoDocument(info)))
+  const [savedKey, setSavedKey] = useState(() => fingerprint(document))
+  const changeKey = fingerprint(document)
+  const dirty = changeKey !== savedKey
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
   async function submit(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setStatus('')
-    try { await saveRecord({ type: 'info', document: JSON.parse(document) }); saved() }
+    event.preventDefault(); if (!dirty || busy) return
+    setBusy(true); setStatus('')
+    try { await saveRecord({ type: 'info', document: JSON.parse(document) }); setSavedKey(changeKey); saved() }
     catch (error) { setStatus(error instanceof Error ? error.message : 'Could not save.') }
     finally { setBusy(false) }
   }
@@ -52,7 +61,6 @@ export default function InfoEditor({ info, saved }: { info: SiteInfo; saved: () 
       <HistoryPlugin /><LinkPlugin validateUrl={safeInfoUrl} />
       <OnChangePlugin ignoreSelectionChange onChange={state => setDocument(JSON.stringify(state.toJSON()))} />
     </LexicalComposer>
-    <p>Select text to format it or add a link. Contact links open the contact form.</p>
-    <SaveAction><button className={styles.primaryButton} form={formId} disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</button><span role="status">{status}</span></SaveAction>
+    <SaveAction><button className={styles.primaryButton} form={formId} disabled={busy || !dirty}>{busy ? 'Saving…' : 'Save changes'}</button><span role="status">{status}</span></SaveAction>
   </form>
 }

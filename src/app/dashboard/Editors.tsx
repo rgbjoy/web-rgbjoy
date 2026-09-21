@@ -13,35 +13,41 @@ export async function saveRecord(body: unknown) {
   const data = await response.json() as { error?: string }
   if (!response.ok) throw new Error(data.error || 'Could not save.')
 }
-function TabForm({ children, submit, saved, processing = false }: { children: ReactNode; submit: (data: FormData) => Promise<void>; saved: () => void; processing?: boolean }) {
+function TabForm({ children, submit, saved, changeKey, processing = false }: { changeKey: string; children: ReactNode; submit: (data: FormData) => Promise<void>; saved: () => void; processing?: boolean }) {
   const id = useId()
+  const [savedKey, setSavedKey] = useState(changeKey)
+  const dirty = changeKey !== savedKey
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!dirty || busy || processing) return
     const data = new FormData(event.currentTarget)
     setBusy(true); setStatus('')
-    try { await submit(data); saved(); setStatus('Saved.') }
+    try { await submit(data); setSavedKey(changeKey); saved(); setStatus('Saved.') }
     catch (error) { setStatus(error instanceof Error ? error.message : 'Could not save.') }
     finally { setBusy(false) }
   }
   return <form id={id} onSubmit={save} className={styles.editor}>
     <fieldset disabled={busy}>{children}</fieldset>
-    <SaveAction><button className={styles.primaryButton} form={id} disabled={busy || processing}>{busy ? 'Saving…' : processing ? 'Processing images…' : 'Save changes'}</button><span role="status">{status}</span></SaveAction>
+    <SaveAction><button className={styles.primaryButton} form={id} disabled={busy || processing || !dirty}>{busy ? 'Saving…' : processing ? 'Processing images…' : 'Save changes'}</button><span role="status">{status}</span></SaveAction>
   </form>
 }
 export function SeoEditor({ seo, media, saved }: { seo: SeoSetting; media: SiteMedia[]; saved: () => void }) {
+  const [title, setTitle] = useState(seo.title)
+  const [description, setDescription] = useState(seo.description)
+  const [imageRevision, setImageRevision] = useState(0)
   const [images, setImages] = useState<Partial<Record<MediaKind, FormData>>>({})
   const [processing, setProcessing] = useState<Partial<Record<MediaKind, boolean>>>({})
-  return <TabForm saved={saved} processing={Object.values(processing).some(Boolean)} submit={async data => {
+  return <TabForm saved={saved} changeKey={JSON.stringify([title.trim(), description.trim(), Object.values(images).some(Boolean) ? imageRevision : 0])} processing={Object.values(processing).some(Boolean)} submit={async data => {
     for (const [kind, image] of Object.entries(images)) for (const [file, value] of image?.entries() ?? []) data.set(`${kind}:${file}`, value)
     const response = await fetch('/dashboard/media?kind=seo', { method: 'POST', body: data })
     if (!response.ok) throw new Error(((await response.json()) as { error?: string }).error || 'Could not save SEO.')
   }}>
     <p>This title and description are used throughout the site and in social previews.</p>
-    <label>Page title<input name="title" defaultValue={seo.title} maxLength={200} /></label>
-    <label>Search and social description<textarea name="description" defaultValue={seo.description} maxLength={2000} rows={4} /></label>
-    {(['icon', 'social'] as const).map(kind => <ImageUpload key={kind} kind={kind} current={media.find(image => image.kind === kind)} onChange={data => setImages(values => ({ ...values, [kind]: data }))} onBusy={busy => setProcessing(values => ({ ...values, [kind]: busy }))} />)}
+    <label>Page title<input name="title" value={title} onChange={event => setTitle(event.target.value)} maxLength={200} /></label>
+    <label>Search and social description<textarea name="description" value={description} onChange={event => setDescription(event.target.value)} maxLength={2000} rows={4} /></label>
+    {(['icon', 'social'] as const).map(kind => <ImageUpload key={kind} kind={kind} current={media.find(image => image.kind === kind)} onChange={data => { setImages(values => ({ ...values, [kind]: data })); if (data) setImageRevision(value => value + 1) }} onBusy={busy => setProcessing(values => ({ ...values, [kind]: busy }))} />)}
   </TabForm>
 }
 type Draft = Omit<StoredProject, 'technologies'> & { technologies: string; removed?: boolean; isNew?: boolean }
@@ -49,7 +55,12 @@ export function ProjectList({ projects, saved }: { projects: StoredProject[]; sa
   const [drafts, setDrafts] = useState<Draft[]>(() => projects.map(project => ({ ...project, technologies: project.technologies.join(', ') })))
   const [active, setActive] = useState<string | null>(null)
   function update(id: string, values: Partial<Draft>) { setDrafts(rows => rows.map(row => row.id === id ? { ...row, ...values } : row)) }
-  return <TabForm saved={saved} submit={async () => {
+  const changeKey = JSON.stringify(drafts.filter(row => !(row.isNew && row.removed)).map(row => ({
+    id: row.id, removed: Boolean(row.removed), title: row.title.trim(), url: row.url.trim(),
+    year: row.year.trim(), description: row.description.trim(), hidden: Boolean(row.hidden),
+    technologies: [...new Set(row.technologies.split(',').map(value => value.trim()).filter(Boolean))],
+  })))
+  return <TabForm saved={saved} changeKey={changeKey} submit={async () => {
     await saveRecord({ type: 'projects', projects: drafts.map(row => ({ ...row, hidden: Boolean(row.hidden), technologies: row.technologies.split(',').map(value => value.trim()).filter(Boolean) })) })
   }}>
     <div className={styles.toolbar}><p>{drafts.filter(row => !row.removed).length} projects</p><button type="button" onClick={() => {
