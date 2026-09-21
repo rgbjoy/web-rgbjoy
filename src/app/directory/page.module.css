@@ -1,0 +1,47 @@
+.directory {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 64px var(--gutter);
+  line-height: 1.7;
+  user-select: text;
+  overflow-wrap: anywhere;
+}
+
+.directory header,
+.directory section,
+.directory footer {
+  margin-top: 48px;
+}
+
+.directory h1 {
+  font-size: clamp(24px, 5vw, 36px);
+  line-height: 1.3;
+}
+
+.directory h2 {
+  font-size: 22px;
+}
+.directory h3 {
+  font-size: 16px;
+}
+.directory p {
+  margin-top: 12px;
+}
+
+.directory article {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.details,
+.directory footer {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.directory nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  margin-top: 16px;
+}

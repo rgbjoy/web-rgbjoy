@@ -3,6 +3,7 @@ import { Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
 import localFont from "next/font/local"
 
 import { SITE } from "./data/site"
+import { serializeJsonLd, SITE_STRUCTURED_DATA } from "./data/structured-data"
 import { RolloverChroma } from "./utilities/RolloverChroma"
 import { SETTINGS_BOOT_SCRIPT } from "./utilities/settings/constants"
 import SearchPalette from "./utilities/SearchPalette/SearchPalette"
@@ -66,6 +67,22 @@ export default function RootLayout({
     // The boot script stamps data-theme / data-motion before React hydrates.
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link
+          rel="alternate"
+          type="text/plain"
+          href="/llms.txt"
+          title="rgbjoy portfolio as text"
+        />
+        <link
+          rel="alternate"
+          type="application/json"
+          href="/api/catalog"
+          title="rgbjoy public catalog"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(SITE_STRUCTURED_DATA) }}
+        />
         <meta
           name="impact-site-verification"
           {...{ value: "13d6059a-6a87-4af8-acea-99cfb14cf2ef" }}

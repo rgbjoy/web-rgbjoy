@@ -98,13 +98,16 @@ function restore(): IndexState | null {
  * Seeds the collapsed set for a first visit. Called from the page, which owns
  * the list of group names — this module should not have to know them.
  */
-export function seedCollapsed(names: string[]) {
+export function seedCollapsed(names: string[], initiallyOpen: string[] = []) {
   if (seeded) return
   seeded = true
 
   everyName = names
-  defaults = { ...defaults, collapsed: new Set(names) }
-  // A restored session wins; only a genuinely new one starts fully collapsed.
+  defaults = {
+    ...defaults,
+    collapsed: new Set(names.filter((name) => !initiallyOpen.includes(name))),
+  }
+  // A restored session wins over the first-visit defaults.
   state = restore() ?? defaults
   emit()
 }

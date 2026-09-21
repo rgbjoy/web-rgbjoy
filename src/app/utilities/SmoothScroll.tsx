@@ -27,6 +27,10 @@ export function SmoothScroll({ paused = false }: { paused?: boolean }) {
       // Overriding it is where Lenis tends to fight iOS rather than help it.
       smoothWheel: true,
       syncTouch: false,
+      // Section reveals change the page height every frame. Lenis's cached
+      // dimensions wait for resizing to settle, trapping wheel input at the
+      // old bottom in the meantime. Read the live scroll limit instead.
+      naiveDimensions: true,
     })
     lenisRef.current = lenis
 

@@ -26,6 +26,7 @@ import {
 import { LINKS, type SiteLink } from "./data/links"
 import { PROJECTS, type Project } from "./data/projects"
 import { SITE } from "./data/site"
+import { AskAboutWork } from "./utilities/AskAboutWork/AskAboutWork"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
 import {
   collapseAll,
@@ -46,8 +47,8 @@ import styles from "./page.module.css"
 /** Every section that can be opened or closed, parents and groups alike. */
 const COLLAPSIBLE = ["projects", "experiments", "links", ...EXPERIMENT_GROUPS]
 
-// Everything starts closed on a first visit; a restored session overrides this.
-seedCollapsed(COLLAPSIBLE)
+// Projects start open on a first visit; a restored session overrides this.
+seedCollapsed(COLLAPSIBLE, ["projects"])
 
 const MONTHS = [
   "Jan",
@@ -228,6 +229,7 @@ function Masthead({
   introCount,
   onContact,
   onSearch,
+  onAiPrompt,
   lockupRef,
   lockupStuck,
 }: {
@@ -235,6 +237,7 @@ function Masthead({
   introCount: number
   onContact: () => void
   onSearch: () => void
+  onAiPrompt: () => void
   lockupRef: React.RefObject<HTMLDivElement | null>
   lockupStuck: boolean
 }) {
@@ -267,7 +270,7 @@ function Masthead({
         </div>
         {/* Deliberately outside the intro timeline: someone who needs reduced
             motion should not have to sit through an animation to reach it. */}
-        <SettingsMenu onContact={onContact} onSearch={onSearch} />
+        <SettingsMenu onContact={onContact} onSearch={onSearch} onAiPrompt={onAiPrompt} />
       </div>
 
       <header className={styles.masthead}>
@@ -334,23 +337,18 @@ function CategoryHeader({
         aria-expanded={open}
         onClick={onToggle}
       >
-        {open ? (
-          <Minus
-            className={styles.categoryToggle}
-            data-intro="toggle"
-            size={14}
-            strokeWidth={1.75}
-            aria-hidden
-          />
-        ) : (
-          <Plus
-            className={styles.categoryToggle}
-            data-intro="toggle"
-            size={14}
-            strokeWidth={1.75}
-            aria-hidden
-          />
-        )}
+        {/* Keep the GSAP target mounted when session restoration swaps icons. */}
+        <span
+          className={styles.categoryToggle}
+          data-intro="toggle"
+          aria-hidden="true"
+        >
+          {open ? (
+            <Minus size={14} strokeWidth={1.75} />
+          ) : (
+            <Plus size={14} strokeWidth={1.75} />
+          )}
+        </span>
         <span className={styles.categoryName} data-intro="name">
           {name}
         </span>
@@ -503,6 +501,7 @@ export default function Home() {
   // restore against the real page height; a first visit still animates them.
   const resumeVisit = useRef(shouldSkipIntro()).current
   const [contactOpen, setContactOpen] = useState(false)
+  const [promptOpen, setPromptOpen] = useState(true)
   const reducedMotion = useReducedMotion()
   const theme = useTheme()
   const [controlsStuck, setControlsStuck] = useState(false)
@@ -796,6 +795,7 @@ export default function Home() {
             introCount={introCount}
             onContact={() => setContactOpen(true)}
             onSearch={openPalette}
+            onAiPrompt={() => setPromptOpen(true)}
             lockupRef={lockupRef}
             lockupStuck={lockupStuck}
           />
@@ -916,6 +916,7 @@ export default function Home() {
       )}
 
       <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
+      <AskAboutWork open={promptOpen} onOpenChange={setPromptOpen} />
     </>
   )
 }

@@ -101,3 +101,35 @@ entry in `experiments.ts`.
   for Turbopack in `next.config.ts`.
 
 Agent-facing notes on the physics engine live in `AGENTS.md`.
+
+## Public discovery and API
+
+All discovery content comes from the same authored arrays as the homepage:
+
+- `/directory` is a server-rendered, readable directory of every project and
+  experiment, with descriptions, technologies, status labels, and source links.
+- `/api/catalog` returns the public profile and all entries as JSON. Optional
+  `q` matches all whitespace-separated terms case-insensitively; `kind=project`
+  or `kind=experiment` limits the entry type. For example:
+  `/api/catalog?q=shader&kind=experiment`. Invalid kinds return 400; no matches
+  return an empty entries array. Public GET requests allow cross-origin reads.
+- `/openapi.json` documents the read-only API for tools and integrations.
+- `/prompt.md` hosts the conversation guide and full catalog. The homepage's
+  copy button provides a short fetch-and-follow prompt pointing here; edits to
+  this guide apply on the next fetch without changing what visitors copy.
+- `/llms.txt` provides the full catalog as plain text for readers that support
+  this convention. It is a convenience, not a guarantee of AI discovery.
+- `/robots.txt` permits public crawling and advertises `/sitemap.xml`. The
+  sitemap includes local pages only. Person, WebSite, and directory JSON-LD
+  describe the identity and portfolio for crawlers.
+
+There is no authentication, database, external-site scraping, or model API
+dependency. Unpublished details stay unknown. Edit `src/app/data/` and deploy
+to update the directory and API together. Run `test:discovery` in Scriptlet
+for the discovery contract checks; use `dev` to preview locally.
+
+This is a public HTTP API, not an MCP server. MCP clients need an explicitly
+configured MCP connection; ordinary ChatGPT search discovery relies on public
+web content. If adding MCP later, reuse `data/catalog.ts` for its search/fetch
+tools. Production search visibility also depends on the host allowing crawler
+requests and search engines indexing the deployed pages.

@@ -93,6 +93,7 @@
   padding: 12px;
   cursor: pointer;
   outline: none;
+  text-decoration: none;
   user-select: none;
   transition: background var(--transition), color var(--rollover-fade);
 }
