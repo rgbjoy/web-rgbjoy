@@ -45,6 +45,8 @@
     }
   ],
   "vars": {
-    "MEDIA_PUBLIC_URL": "https://web-rgbjoy.tom-a2d.workers.dev"
+    "MEDIA_PUBLIC_URL": "https://web-rgbjoy.tom-a2d.workers.dev",
+    "S3_REGION": "us-east-1",
+    "CONTACT_FROM": "rgbjoy.com contact form <tom@rgbjoy.com>"
   }
 }
