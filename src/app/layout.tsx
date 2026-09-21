@@ -3,6 +3,7 @@ import { mediaUrl } from "./data/media"
 import { getPublicCatalog, getSeo, getInfo, getSettings } from "./server/content"
 import { PortfolioProvider } from "./utilities/PortfolioProvider"
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
 import localFont from "next/font/local"
 
@@ -71,7 +72,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const media = (await getSettings()).media
   const icon = media.find(image => image.kind === 'icon')
   const social = media.find(image => image.kind === 'social')
-  const images = social ? [{ url: new URL(mediaUrl(social.version, 'social-1200.png'), env.MEDIA_PUBLIC_URL).href, width: 1200, height: 630, alt: seo.title }] : undefined
+  // Local D1/R2 uploads exist only in the local runtime. Point development
+  // metadata at that same origin instead of the production media bucket.
+  const requestHeaders = await headers()
+  const host = requestHeaders.get('host')
+  const protocol = requestHeaders.get('x-forwarded-proto') === 'https' ? 'https' : 'http'
+  const mediaOrigin = process.env.NODE_ENV === 'development' && host
+    ? `${protocol}://${host}`
+    : env.MEDIA_PUBLIC_URL
+  const images = social ? [{ url: new URL(mediaUrl(social.version, 'social-1200.png'), mediaOrigin).href, width: 1200, height: 630, alt: seo.title }] : undefined
   return {
     ...defaultMetadata, ...seo,
     authors: [{ name: info.author, url: SITE.url }], creator: info.author,

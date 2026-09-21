@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const { value, done } = await reader.read()
     if (done) break
     size += value.byteLength
-    if (size > 16384) { await reader.cancel(); return json({ error: 'Request too large.' }, 413) }
+    if (size > 1024 * 1024) { await reader.cancel(); return json({ error: 'Request too large.' }, 413) }
     text += decoder.decode(value, { stream: true })
   }
   text += decoder.decode()
@@ -37,6 +37,37 @@ export async function POST(request: Request) {
     return value.trim()
   }
   try {
+    if (body.type === 'projects') {
+      if (!Array.isArray(body.projects) || body.projects.length > 500) return json({ error: 'Invalid projects list.' }, 400)
+      const ids = new Set<string>()
+      const statements = []
+      for (const value of body.projects) {
+        if (!value || typeof value !== 'object') throw new Error('Invalid project.')
+        const row = value as Record<string, unknown>
+        const field = (key: string, max: number, required = false) => {
+          const value = row[key]
+          if (typeof value !== 'string' || value.length > max || (required && !value.trim())) throw new Error(`Invalid project ${key}.`)
+          return value.trim()
+        }
+        const id = field('id', 200, true)
+        if (ids.has(id)) throw new Error('Invalid duplicate project.')
+        ids.add(id)
+        if (row.removed === true) { if (!row.isNew) statements.push(env.DB.prepare('DELETE FROM projects WHERE id=?').bind(id)); continue }
+        const title = field('title', 200, true)
+        const url = field('url', 2000, true)
+        try { const parsed = new URL(url); if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw new Error() }
+        catch { throw new Error(`Invalid URL for ${title}. Use http or https without credentials.`) }
+        const year = field('year', 100)
+        const description = field('description', 2000)
+        if (typeof row.hidden !== 'boolean' || !Array.isArray(row.technologies) || row.technologies.length > 30 || row.technologies.some(item => typeof item !== 'string' || !item.trim() || item.length > 80)) throw new Error(`Invalid settings for ${title}.`)
+        const technologies = JSON.stringify([...new Set(row.technologies.map((item: string) => item.trim()))])
+        statements.push(row.isNew === true
+          ? env.DB.prepare('INSERT INTO projects (id,title,url,year,description,technologies,hidden,position) VALUES (?,?,?,?,?,?,?,(SELECT COALESCE(MAX(position),-1)+1 FROM projects))').bind(id,title,url,year,description,technologies,Number(row.hidden))
+          : env.DB.prepare("UPDATE projects SET title=?,url=?,year=?,description=?,technologies=?,hidden=?,updated_at=datetime('now') WHERE id=?").bind(title,url,year,description,technologies,Number(row.hidden),id))
+      }
+      if (statements.length) await env.DB.batch(statements)
+      return json({ ok: true })
+    }
     if (body.type === 'delete-project') {
       const id = string('id', 200, true)
       const result = await env.DB.prepare('DELETE FROM projects WHERE id = ?').bind(id).run()

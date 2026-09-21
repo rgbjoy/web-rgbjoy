@@ -57,3 +57,12 @@
 .imageUpload input::file-selector-button { margin-right: 12px; }
 @media (max-width: 520px) { .accountLinks { top: 16px; right: 24px; } .saveBarInner { gap: 8px; } .saveAction { gap: 8px; } }
 @media (prefers-reduced-motion: reduce) { .dashboard button, .accountLinks a, .imageUpload input::file-selector-button { transition: none; } }
+
+.editor .checkbox { margin: 16px 0; gap: 10px; min-height: 40px; }
+.editor .checkbox label { display: block; margin: 0; cursor: pointer; }
+.dashboard .checkboxControl { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 22px; width: 22px; height: 22px; min-height: 22px; padding: 0; border-radius: 5px; }
+.dashboard .checkboxControl[data-state=checked] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.checkboxIndicator { display: flex; align-items: center; justify-content: center; }
+@media (hover: hover) {
+  .dashboard .checkboxControl[data-state=checked]:not(:disabled):hover { background: var(--muted); border-color: var(--muted); }
+}

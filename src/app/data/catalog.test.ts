@@ -287,3 +287,65 @@ test('cache failures fall back to D1 and rolled-back writes do not invalidate', 
   expect(await getSettings()).toEqual(original)
   expect(cacheStats.batches).toBe(before)
 })
+
+test('Projects tab saves edits together and rejects invalid batches without partial writes', async () => {
+  const { testEnv, database } = await import('../../../tests/cloudflare-env')
+  const { POST } = await import('../dashboard/api/route')
+  const { createSession, SESSION_COOKIE } = await import('../server/dashboard-auth')
+  testEnv.DASHBOARD_PASSWORD_HASH = 'test-configured'
+  testEnv.DASHBOARD_SESSION_SECRET = 'test-session-secret-thirty-two-characters-long'
+  const cookie = `${SESSION_COOKIE}=${await createSession()}`
+  const save = (projects: unknown[]) => POST(new Request('https://rgbjoy.com/dashboard/api', { method: 'POST', headers: { Cookie: cookie, Origin: 'https://rgbjoy.com', 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'projects', projects }) }))
+  const project = { id: 'project:batch-test', isNew: true, title: 'Batch project', url: 'https://example.com', year: '2026', description: '', technologies: [], hidden: false }
+  try {
+    expect((await save([project, { ...project, id: 'project:bad', url: 'javascript:bad' }])).status).toBe(400)
+    expect(database.query('SELECT id FROM projects WHERE id=?').get(project.id)).toBeNull()
+    expect((await save([project])).status).toBe(200)
+    expect((await save([{ ...project, isNew: false, hidden: true }])).status).toBe(200)
+    expect(database.query('SELECT hidden FROM projects WHERE id=?').get(project.id)).toEqual({ hidden: 1 })
+    expect((await save([{ ...project, isNew: false, removed: true }])).status).toBe(200)
+    expect(database.query('SELECT id FROM projects WHERE id=?').get(project.id)).toBeNull()
+  } finally {
+    database.query('DELETE FROM projects WHERE id=?').run(project.id)
+    testEnv.DASHBOARD_PASSWORD_HASH = ''; testEnv.DASHBOARD_SESSION_SECRET = ''
+  }
+})
+
+test('SEO tab saves text and both images together, preserving published data on upload failure', async () => {
+  const { testEnv, database, mediaObjects, mediaState } = await import('../../../tests/cloudflare-env')
+  const { POST } = await import('../dashboard/media/route')
+  const { createSession, SESSION_COOKIE } = await import('../server/dashboard-auth')
+  const { IMAGE_VARIANTS } = await import('./media')
+  const { PNG } = await import('pngjs')
+  testEnv.DASHBOARD_PASSWORD_HASH = 'test-configured'
+  testEnv.DASHBOARD_SESSION_SECRET = 'test-session-secret-thirty-two-characters-long'
+  const cookie = `${SESSION_COOKIE}=${await createSession()}`
+  const original = database.query("SELECT title,description FROM seo_settings WHERE path='/'").get() as { title: string; description: string }
+  const originalMedia = database.query('SELECT kind,version FROM site_media').all() as {kind:string;version:string}[]
+  const save = (data: FormData) => POST(new Request('https://rgbjoy.com/dashboard/media?kind=seo', { method: 'POST', headers: { Cookie: cookie, Origin: 'https://rgbjoy.com' }, body: data }))
+  try {
+    const data = new FormData()
+    data.set('title', 'Saved together'); data.set('description', 'Unified SEO save')
+    for (const [kind, variants] of Object.entries(IMAGE_VARIANTS)) for (const variant of variants) {
+      const png = new PNG({ width: variant.width, height: variant.height }); png.data.fill(255)
+      data.set(`${kind}:${variant.file}`, new Blob([Uint8Array.from(PNG.sync.write(png))], {type:'image/png'}), variant.file)
+    }
+    mediaState.fail = true
+    expect((await save(data)).status).toBe(500)
+    expect(database.query("SELECT title,description FROM seo_settings WHERE path='/'").get()).toEqual(original)
+    expect(database.query('SELECT kind,version FROM site_media').all()).toEqual(originalMedia)
+    mediaState.fail = false
+    expect((await save(data)).status).toBe(200)
+    expect(database.query("SELECT title FROM seo_settings WHERE path='/'").get()).toEqual({title:'Saved together'})
+    const rows = database.query('SELECT kind,version FROM site_media').all() as {kind:string;version:string}[]
+    expect(rows.length).toBe(2)
+    expect(rows[0].version).toBe(rows[1].version)
+    expect(mediaObjects.size).toBe(4)
+  } finally {
+    mediaState.fail = false; mediaObjects.clear()
+    database.query("UPDATE seo_settings SET title=?,description=? WHERE path='/'").run(original.title,original.description)
+    database.exec('DELETE FROM site_media')
+    for (const row of originalMedia) database.query('INSERT INTO site_media (kind,version) VALUES (?,?)').run(row.kind,row.version)
+    testEnv.DASHBOARD_PASSWORD_HASH = ''; testEnv.DASHBOARD_SESSION_SECRET = ''
+  }
+})

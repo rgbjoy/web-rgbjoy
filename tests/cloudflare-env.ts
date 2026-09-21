@@ -14,16 +14,22 @@ Object.defineProperty(globalThis, 'caches', { configurable: true, value: { open:
   match: async (request: Request) => { if (cacheStats.fail) throw new Error('Cache unavailable'); cacheStats.reads++; return cacheEntries.get(request.url)?.clone() },
   put: async (request: Request, response: Response) => { if (cacheStats.fail) throw new Error('Cache unavailable'); cacheStats.writes++; cacheEntries.set(request.url, response.clone()) },
 }) } })
+export const mediaObjects = new Map<string, unknown>()
+export const mediaState = { fail: false }
 export const testEnv = {
+  MEDIA: {
+    put: async (key: string, value: unknown) => { if (mediaState.fail) throw new Error('Test storage failure'); mediaObjects.set(key, value) },
+    delete: async (keys: string[]) => { for (const key of keys) mediaObjects.delete(key) },
+  },
   MEDIA_PUBLIC_URL: 'https://web-rgbjoy.test',
   DASHBOARD_PASSWORD_HASH: '',
   DASHBOARD_SESSION_SECRET: '',
   DASHBOARD_LOGIN_LIMIT: { limit: async () => ({ success: true }) },
   DB: {
-    prepare: (sql: string) => ({ sql, first: async () => database.query(sql).get(), bind: (...values: (string | number | null)[]) => ({
+    prepare: (sql: string) => ({ sql, first: async () => database.query(sql).get(), bind: (...values: (string | number | null)[]) => ({ sql, values,
       run: async () => { const result = database.query(sql).run(...values); return { meta: { changes: result.changes } } },
     }) }),
-    batch: async (statements: { sql: string }[]) => { cacheStats.batches++; return statements.map(({ sql }) => ({ results: database.query(sql).all() })) },
+    batch: async (statements: { sql: string; values?: (string | number | null)[] }[]) => { cacheStats.batches++; return database.transaction(() => statements.map(({ sql, values = [] }) => ({ results: database.query(sql).all(...values) })))() },
   },
 }
 mock.module('cloudflare:workers', () => ({ env: testEnv }))

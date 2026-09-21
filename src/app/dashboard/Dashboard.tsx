@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import ImageUploads from './ImageUploads'
 import type { SiteMedia } from '../data/media'
 import { useEffect, useState, type FormEvent } from 'react'
 import type { StoredProject, SiteInfo, SeoSetting } from '../data/content'
@@ -77,11 +76,9 @@ export default function Dashboard() {
       )}</nav>
       <h2>{section}</h2>
       <p role="status">{notice}</p>
-      {section === 'Info' && <InfoEditor key={JSON.stringify(data.info)} info={data.info} saved={saved} />}
-      {section === 'Projects' && <ProjectList projects={data.projects} saved={saved} />}
-      {section === 'SEO' && <><p>Page titles and descriptions for search results and social previews.</p>{data.seo.map(seo =>
-        <SeoEditor key={JSON.stringify(seo)} seo={seo} saved={saved} />
-      )}<ImageUploads media={data.media} saved={saved} /></>}
+      <div hidden={section !== 'Info'}><SaveTarget.Provider value={section === 'Info' ? saveTarget : null}><InfoEditor key={JSON.stringify(data.info)} info={data.info} saved={saved} /></SaveTarget.Provider></div>
+      <div hidden={section !== 'Projects'}><SaveTarget.Provider value={section === 'Projects' ? saveTarget : null}><ProjectList key={JSON.stringify(data.projects)} projects={data.projects} saved={saved} /></SaveTarget.Provider></div>
+      <div hidden={section !== 'SEO'}><SaveTarget.Provider value={section === 'SEO' ? saveTarget : null}><SeoEditor key={JSON.stringify([data.seo, data.media])} seo={data.seo[0]} media={data.media} saved={saved} /></SaveTarget.Provider></div>
     </>}
     <div className={styles.saveBar}><div ref={setSaveTarget} className={styles.saveBarInner} /></div>
   </main></SaveTarget.Provider>

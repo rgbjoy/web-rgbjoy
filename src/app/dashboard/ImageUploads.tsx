@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { IMAGE_VARIANTS, mediaUrl, type MediaKind, type SiteMedia } from '../data/media'
-import SaveAction from './SaveAction'
 import styles from './dashboard.module.css'
 
 async function resize(file: File, kind: MediaKind) {
@@ -27,7 +26,7 @@ async function resize(file: File, kind: MediaKind) {
     return { data, preview: preview! }
   } finally { image.close() }
 }
-function ImageUpload({ kind, current, saved }: { kind: MediaKind; current?: SiteMedia; saved: () => void }) {
+export default function ImageUpload({ kind, current, onChange, onBusy }: { kind: MediaKind; current?: SiteMedia; onChange: (data: FormData | undefined) => void; onBusy: (busy: boolean) => void }) {
   const [pending, setPending] = useState<{ data: FormData; preview: string } | null>(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -37,22 +36,12 @@ function ImageUpload({ kind, current, saved }: { kind: MediaKind; current?: Site
   async function choose(file?: File) {
     if (!file) return
     const token = ++selection.current
-    setBusy(true); setMessage(''); setPending(null)
+    setBusy(true); onBusy(true); onChange(undefined); setMessage(''); setPending(null)
     try {
       const result = await resize(file, kind)
-      if (selection.current === token) setPending({ data: result.data, preview: URL.createObjectURL(result.preview) })
+      if (selection.current === token) { setPending({ data: result.data, preview: URL.createObjectURL(result.preview) }); onChange(result.data) }
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not process image.') }
-    finally { if (selection.current === token) setBusy(false) }
-  }
-  async function upload() {
-    if (!pending) return
-    setBusy(true); setMessage('')
-    try {
-      const response = await fetch(`/dashboard/media?kind=${kind}`, { method: 'POST', body: pending.data })
-      if (!response.ok) throw new Error(((await response.json()) as { error?: string }).error || 'Upload failed.')
-      saved(); setPending(null); setMessage('Image saved.')
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'Upload failed.') }
-    finally { setBusy(false) }
+    finally { if (selection.current === token) { setBusy(false); onBusy(false) } }
   }
   const src = pending?.preview || currentUrl
   return <section className={styles.imageUpload}>
@@ -60,10 +49,7 @@ function ImageUpload({ kind, current, saved }: { kind: MediaKind; current?: Site
     <p>{kind === 'icon' ? 'Upload a square image. Favicon and Apple-touch sizes are created automatically.' : 'Used when a page is shared. Images are center-cropped to fit; preview before saving.'}</p>
     {src && <img className={kind === 'icon' ? styles.iconPreview : styles.socialPreview} src={src} alt={kind === 'icon' ? 'Site icon preview' : 'Social card preview'} /> /* eslint-disable-line @next/next/no-img-element */}
     <label>Choose {kind === 'icon' ? 'icon' : 'social image'}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} onChange={event => { void choose(event.target.files?.[0]); event.target.value = '' }} /></label>
-    {pending && <SaveAction><button className={styles.primaryButton} disabled={busy} onClick={upload}>{busy ? 'Uploading…' : kind === 'icon' ? 'Save icon' : 'Save social card'}</button></SaveAction>}
+
     <p role="status">{busy && !pending ? 'Processing image…' : message}</p>
   </section>
-}
-export default function ImageUploads({ media, saved }: { media: SiteMedia[]; saved: () => void }) {
-  return <>{(['icon', 'social'] as const).map(kind => <ImageUpload key={kind} kind={kind} current={media.find(image => image.kind === kind)} saved={saved} />)}</>
 }
