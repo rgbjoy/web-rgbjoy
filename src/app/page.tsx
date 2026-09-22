@@ -18,6 +18,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react"
 
@@ -47,6 +48,16 @@ import { useReducedMotion, useTheme } from "./utilities/settings/useSettings"
 import styles from "./page.module.css"
 
 /** Every section that can be opened or closed, parents and groups alike. */
+// Keep the automatic AI prompt off small screens, including the first paint.
+const desktopPromptQuery = '(min-width: 641px)'
+function subscribeDesktopPrompt(callback: () => void) {
+  const media = window.matchMedia(desktopPromptQuery)
+  media.addEventListener('change', callback)
+  return () => media.removeEventListener('change', callback)
+}
+const desktopPromptSnapshot = () => window.matchMedia(desktopPromptQuery).matches
+const serverPromptSnapshot = () => false
+
 const COLLAPSIBLE = ["projects", "experiments", "links", ...EXPERIMENT_GROUPS]
 
 // Projects start open on a first visit; a restored session overrides this.
@@ -450,7 +461,9 @@ export default function Home() {
   // restore against the real page height; a first visit still animates them.
   const [resumeVisit] = useState(shouldSkipIntro)
   const [contactOpen, setContactOpen] = useState(false)
-  const [promptOpen, setPromptOpen] = useState(true)
+  const desktopPrompt = useSyncExternalStore(subscribeDesktopPrompt, desktopPromptSnapshot, serverPromptSnapshot)
+  const [promptOverride, setPromptOpen] = useState<boolean | null>(null)
+  const promptOpen = promptOverride ?? desktopPrompt
   const reducedMotion = useReducedMotion()
   const theme = useTheme()
   const [controlsStuck, setControlsStuck] = useState(false)

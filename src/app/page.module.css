@@ -621,20 +621,32 @@
 
 @media (max-width: 640px) {
   .container {
-    --lockup-h: 90px;
-    padding-top: 28px;
+    --lockup-h: 64px;
+    padding-top: 12px;
   }
 
-      .masthead {
-    padding: 4px 0 20px;
+  .masthead {
+    padding: 4px 0 16px;
   }
 
   .title {
-    font-size: 52px;
+    font-size: 36px;
   }
 
+  .page { font-size: 13px; }
+  .subtitle, .itemDesc { font-size: 13px; line-height: 1.5; }
+  .categoryName, .itemTitle { font-size: 15px; }
+  .categoryCount, .groupName, .groupCount, .itemDate { font-size: 12px; }
+  .itemTechTag { font-size: 10px; padding: 2px 6px; }
+  .controlButton, .sortButton { font-size: 11px; min-height: 36px; }
+  .category { margin-top: 14px; }
+  .group { margin-top: 18px; }
+  .footer { font-size: 11px; }
   .item {
     grid-template-columns: minmax(0, 1fr);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    row-gap: 4px;
   }
 
   .itemDate {
