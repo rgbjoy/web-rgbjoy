@@ -622,7 +622,7 @@
 @media (max-width: 640px) {
   .container {
     --lockup-h: 64px;
-    padding-top: 12px;
+    padding-top: 64px;
   }
 
   .masthead {

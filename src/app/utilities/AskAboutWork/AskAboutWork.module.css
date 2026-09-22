@@ -136,6 +136,12 @@
   }
 }
 
+@media (max-width: 640px) {
+  .content {
+    top: max(8px, env(safe-area-inset-top));
+  }
+}
+
 @media (hover: none) {
   .close {
     width: 40px;
