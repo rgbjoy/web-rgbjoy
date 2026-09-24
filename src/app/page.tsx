@@ -94,14 +94,17 @@ function introText(info: ReturnType<typeof useInfo>) {
 
 }
 
-/** ~ms per character; title runs a touch faster than the body. */
-const TITLE_CHAR_MS = 28
+/** ~ms per character, before INTRO_TIME_SCALE. The title is short, so it types
+ *  slower than the body to read as a reveal rather than a flash. */
+const TITLE_CHAR_MS = 84
 const INTRO_CHAR_MS = 16
 /** Whole intro timeline runs at this multiple of real time. */
 const INTRO_TIME_SCALE = 3
 /** Beat of stillness before the intro starts typing. Real seconds — a timeline's
  *  own delay sits on the parent timeline, so INTRO_TIME_SCALE does not shrink it. */
 const INTRO_DELAY_S = 0.35
+/** Longest the intro waits on the masthead face before typing in the fallback. */
+const TITLE_FONT_WAIT_MS = 1500
 /**
  * The intro is a greeting, not a page transition: arriving should play it,
  * coming back should not. Back-navigation remounts this component, which
@@ -391,18 +394,18 @@ function CollapsibleContent({
         .call(() => setPresent(true), undefined, 0)
         .to(outer, {
           height: "auto",
-          duration: 0.42,
+          duration: 0.26,
           ease: "power3.out",
         })
         .to(
           items,
           {
             autoAlpha: 1,
-            duration: 0.3,
-            stagger: 0.045,
+            duration: 0.2,
+            stagger: 0.02,
             ease: "power2.out",
           },
-          0.08,
+          0.04,
         )
         .set(outer, { clearProps: "height,overflow" })
         .set(items, { clearProps: "opacity,visibility" })
@@ -412,15 +415,15 @@ function CollapsibleContent({
       timeline
         .to(items, {
           autoAlpha: 0,
-          duration: 0.2,
-          stagger: { each: 0.025, from: "end" },
+          duration: 0.14,
+          stagger: { each: 0.012, from: "end" },
           ease: "power2.in",
         })
         .to(
           outer,
           {
             height: 0,
-            duration: 0.32,
+            duration: 0.2,
             ease: "power3.inOut",
           },
           0,
@@ -453,6 +456,7 @@ export default function Home() {
   const { INTRO_TOTAL } = introText(useInfo())
   const { projects, experiments } = usePortfolio()
   const controlsRef = useRef<HTMLDivElement>(null)
+  const footerRef = useRef<HTMLElement>(null)
   const mainRef = useRef<HTMLElement>(null)
   const lockupRef = useRef<HTMLDivElement>(null)
   const [lockupStuck, setLockupStuck] = useState(false)
@@ -478,7 +482,8 @@ export default function Home() {
   useLayoutEffect(() => {
     const controls = controlsRef.current
     const main = mainRef.current
-    if (!controls || !main) return
+    const footer = footerRef.current
+    if (!controls || !main || !footer) return
 
     const categories = Array.from(
       main.querySelectorAll<HTMLElement>("[data-category]"),
@@ -511,7 +516,7 @@ export default function Home() {
     })
 
     // CSS already hides these; lock matching GSAP state before the timeline runs.
-    gsap.set(controls, { autoAlpha: 0 })
+    gsap.set([controls, footer], { autoAlpha: 0 })
     for (const part of parts) {
       gsap.set(part.lead, { autoAlpha: 0 })
       gsap.set(part.count, { autoAlpha: 0 })
@@ -521,6 +526,7 @@ export default function Home() {
     const title = { i: 0 }
     const intro = { i: 0 }
     const timeline = gsap.timeline({
+      paused: true,
       delay: INTRO_DELAY_S,
       defaults: { ease: "power2.out" },
       onComplete: () => {
@@ -569,9 +575,29 @@ export default function Home() {
         })
     }
 
+    // Hold the typing until the display face is ready; otherwise the headline
+    // types in the mono fallback and visibly swaps partway through.
+    let waiting = true
+    const start = () => {
+      if (!waiting) return
+      waiting = false
+      timeline.restart(true)
+    }
+    const fontTimer = window.setTimeout(start, TITLE_FONT_WAIT_MS)
+    const heading = lockupRef.current?.querySelector("h1")
+    if (heading && document.fonts) {
+      const { fontSize, fontFamily } = getComputedStyle(heading)
+      document.fonts.load(`${fontSize} ${fontFamily}`, TITLE_TEXT).then(start, start)
+    } else start()
+
+    // Last beat: the footer settles in once the index is fully drawn.
+    timeline.to(footer, { autoAlpha: 1, duration: 0.35 }, "+=0.1")
+
     return () => {
+      waiting = false
+      window.clearTimeout(fontTimer)
       timeline.kill()
-      gsap.set(controls, { clearProps: "opacity,visibility" })
+      gsap.set([controls, footer], { clearProps: "opacity,visibility" })
       for (const part of parts) {
         gsap.set(part.lead, { clearProps: "opacity,visibility" })
         gsap.set(part.count, { clearProps: "opacity,visibility" })
@@ -870,7 +896,7 @@ export default function Home() {
             )}
 
           </main>
-          <footer className={styles.footer}>
+          <footer ref={footerRef} className={styles.footer}>
             <span>{SITE.name}</span>
             <Link href="/directory">directory &amp; API</Link>
           </footer>

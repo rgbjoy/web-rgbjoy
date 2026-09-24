@@ -41,6 +41,8 @@ export async function POST(request: Request) {
       if (!Array.isArray(body.projects) || body.projects.length > 500) return json({ error: 'Invalid projects list.' }, 400)
       const ids = new Set<string>()
       const statements = []
+      // Array order is display order; removed rows don't take a position.
+      let position = 0
       for (const value of body.projects) {
         if (!value || typeof value !== 'object') throw new Error('Invalid project.')
         const row = value as Record<string, unknown>
@@ -62,8 +64,8 @@ export async function POST(request: Request) {
         if (typeof row.hidden !== 'boolean' || !Array.isArray(row.technologies) || row.technologies.length > 30 || row.technologies.some(item => typeof item !== 'string' || !item.trim() || item.length > 80)) throw new Error(`Invalid settings for ${title}.`)
         const technologies = JSON.stringify([...new Set(row.technologies.map((item: string) => item.trim()))])
         statements.push(row.isNew === true
-          ? env.DB.prepare('INSERT INTO projects (id,title,url,year,description,technologies,hidden,position) VALUES (?,?,?,?,?,?,?,(SELECT COALESCE(MAX(position),-1)+1 FROM projects))').bind(id,title,url,year,description,technologies,Number(row.hidden))
-          : env.DB.prepare("UPDATE projects SET title=?,url=?,year=?,description=?,technologies=?,hidden=?,updated_at=datetime('now') WHERE id=?").bind(title,url,year,description,technologies,Number(row.hidden),id))
+          ? env.DB.prepare('INSERT INTO projects (id,title,url,year,description,technologies,hidden,position) VALUES (?,?,?,?,?,?,?,?)').bind(id,title,url,year,description,technologies,Number(row.hidden),position++)
+          : env.DB.prepare("UPDATE projects SET title=?,url=?,year=?,description=?,technologies=?,hidden=?,position=?,updated_at=datetime('now') WHERE id=?").bind(title,url,year,description,technologies,Number(row.hidden),position++,id))
       }
       if (statements.length) await env.DB.batch(statements)
       return json({ ok: true })

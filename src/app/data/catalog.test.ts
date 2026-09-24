@@ -303,10 +303,15 @@ test('Projects tab saves edits together and rejects invalid batches without part
     expect((await save([project])).status).toBe(200)
     expect((await save([{ ...project, isNew: false, hidden: true }])).status).toBe(200)
     expect(database.query('SELECT hidden FROM projects WHERE id=?').get(project.id)).toEqual({ hidden: 1 })
+    const second = { ...project, id: 'project:batch-test-2', title: 'Second project' }
+    expect((await save([second, { ...project, isNew: false }])).status).toBe(200)
+    expect(database.query('SELECT id, position FROM projects WHERE id IN (?,?) ORDER BY position').all(project.id, second.id)).toEqual([{ id: second.id, position: 0 }, { id: project.id, position: 1 }])
+    expect((await save([{ ...second, isNew: false, removed: true }, { ...project, isNew: false }])).status).toBe(200)
+    expect(database.query('SELECT position FROM projects WHERE id=?').get(project.id)).toEqual({ position: 0 })
     expect((await save([{ ...project, isNew: false, removed: true }])).status).toBe(200)
     expect(database.query('SELECT id FROM projects WHERE id=?').get(project.id)).toBeNull()
   } finally {
-    database.query('DELETE FROM projects WHERE id=?').run(project.id)
+    database.query('DELETE FROM projects WHERE id IN (?,?)').run(project.id, 'project:batch-test-2')
     testEnv.DASHBOARD_PASSWORD_HASH = ''; testEnv.DASHBOARD_SESSION_SECRET = ''
   }
 })

@@ -40,12 +40,12 @@ const CHROMA_GAIN = 1.25;
 const CHROMA_GAIN_LIGHT = 0.72;
 const PULSE_MIN_MS = 1680;
 const PULSE_MAX_MS = 3920;
-const ARC_LENGTH_MIN = 56;
-const ARC_LENGTH_MAX = 148;
+const ARC_LENGTH_MIN = 112;
+const ARC_LENGTH_MAX = 296;
 const ARC_SWEEP_MIN = 0.55;
 const ARC_SWEEP_MAX = 1.65;
-const ARC_SEGMENTS_MIN = 4;
-const ARC_SEGMENTS_MAX = 7;
+const ARC_SEGMENTS_MIN = 8;
+const ARC_SEGMENTS_MAX = 14;
 const ARC_THICKNESS_MIN = 26;
 const ARC_THICKNESS_MAX = 38;
 /** One-shot bloom fired when the field first comes up, so the page never opens on
@@ -188,7 +188,8 @@ function stepSimulation(
 
   composer.drawLayerAsVectorField({
     layer: velocityState,
-    vectorSpacing: 10,
+    // ~√2 × the old 10px spacing: half the ticks to draw.
+    vectorSpacing: 14,
     vectorScale: 2.5,
     program: programs.chroma,
   });

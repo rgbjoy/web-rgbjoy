@@ -1,7 +1,7 @@
 'use client'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
-import { useId, useState, type FormEvent, type ReactNode } from 'react'
+import { Check, GripVertical } from 'lucide-react'
+import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import type { StoredProject, SeoSetting } from '../data/content'
 import type { MediaKind, SiteMedia } from '../data/media'
 import ImageUpload from './ImageUploads'
@@ -54,7 +54,35 @@ type Draft = Omit<StoredProject, 'technologies'> & { technologies: string; remov
 export function ProjectList({ projects, saved }: { projects: StoredProject[]; saved: () => void }) {
   const [drafts, setDrafts] = useState<Draft[]>(() => projects.map(project => ({ ...project, technologies: project.technologies.join(', ') })))
   const [active, setActive] = useState<string | null>(null)
+  const [dragging, setDragging] = useState<string | null>(null)
+  const list = useRef<HTMLUListElement>(null)
   function update(id: string, values: Partial<Draft>) { setDrafts(rows => rows.map(row => row.id === id ? { ...row, ...values } : row)) }
+  function move(id: string, to: number) {
+    setDrafts(rows => {
+      const from = rows.findIndex(row => row.id === id)
+      if (from < 0 || to < 0 || to >= rows.length || from === to) return rows
+      const next = [...rows]
+      next.splice(to, 0, ...next.splice(from, 1))
+      return next
+    })
+  }
+  function dragStart(event: PointerEvent<HTMLButtonElement>, id: string) {
+    if (event.button !== 0) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setActive(null); setDragging(id)
+  }
+  function dragMove(event: PointerEvent<HTMLButtonElement>, id: string) {
+    if (dragging !== id || !list.current) return
+    // Target index = how many other rows sit above the pointer, which stays stable as rows shift.
+    const others = [...list.current.children].filter(item => (item as HTMLElement).dataset.id !== id)
+    move(id, others.filter(item => { const rect = item.getBoundingClientRect(); return rect.top + rect.height / 2 < event.clientY }).length)
+  }
+  function dragKey(event: KeyboardEvent<HTMLButtonElement>, id: string) {
+    const offset = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0
+    if (!offset) return
+    event.preventDefault()
+    move(id, drafts.findIndex(row => row.id === id) + offset)
+  }
   const changeKey = JSON.stringify(drafts.filter(row => !(row.isNew && row.removed)).map(row => ({
     id: row.id, removed: Boolean(row.removed), title: row.title.trim(), url: row.url.trim(),
     year: row.year.trim(), description: row.description.trim(), hidden: Boolean(row.hidden),
@@ -67,8 +95,11 @@ export function ProjectList({ projects, saved }: { projects: StoredProject[]; sa
       const id = `project:${crypto.randomUUID()}`
       setDrafts(rows => [...rows, { id, title: '', url: '', year: '', description: '', technologies: '', hidden: 0, position: rows.length, isNew: true }]); setActive(id)
     }}>Add project</button></div>
-    <p>Edits, new projects, and removals are published together when you save.</p>
-    <ul className={styles.projects}>{drafts.map(project => <li key={project.id}>
+    <ul ref={list} className={styles.projects}>{drafts.map(project => <li key={project.id} data-id={project.id} data-dragging={dragging === project.id || undefined}>
+      <button type="button" className={styles.dragHandle} aria-label={`Reorder ${project.title || 'new project'}. Use the up and down arrow keys.`}
+        onPointerDown={event => dragStart(event, project.id)} onPointerMove={event => dragMove(event, project.id)}
+        onPointerUp={() => setDragging(null)} onPointerCancel={() => setDragging(null)} onKeyDown={event => dragKey(event, project.id)}><GripVertical size={18} aria-hidden="true" /></button>
+      <div>
       {project.removed ? <div className={styles.toolbar}><p>{project.title} · Will be deleted</p><button type="button" onClick={() => update(project.id, { removed: false })}>Undo removal</button></div> : <details open={active === project.id}>
         <summary onClick={event => { event.preventDefault(); setActive(active === project.id ? null : project.id) }}><span>{project.title || 'New project'}</span><small>{project.hidden ? 'Hidden' : 'Visible'} · {project.year}</small></summary>
         <div className={styles.editor}>
@@ -81,6 +112,7 @@ export function ProjectList({ projects, saved }: { projects: StoredProject[]; sa
           <button type="button" className={styles.deleteButton} onClick={() => update(project.id, { removed: true })}>Remove project</button>
         </div>
       </details>}
+      </div>
     </li>)}</ul>
   </TabForm>
 }

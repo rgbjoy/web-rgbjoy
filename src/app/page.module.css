@@ -42,6 +42,7 @@
 
 /* Hide search + section headers until the intro timeline reveals them. */
 .introPending .controls,
+.introPending .footer,
 .introPending [data-intro="toggle"],
 .introPending [data-intro="name"],
 .introPending [data-intro="count"] {
@@ -245,6 +246,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+  margin-top: 80px;
   padding: 20px 0 max(24px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--hairline);
   color: var(--muted);
