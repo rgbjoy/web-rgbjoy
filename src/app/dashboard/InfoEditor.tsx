@@ -10,6 +10,8 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link'
 import { FORMAT_TEXT_COMMAND, UNDO_COMMAND, REDO_COMMAND } from 'lexical'
+import * as Checkbox from '@radix-ui/react-checkbox'
+import { Check } from 'lucide-react'
 import type { SiteInfo } from '../data/content'
 import { infoDocument, safeInfoUrl, validateInfoDocument } from '../data/info-document'
 import { saveRecord } from './Editors'
@@ -41,15 +43,16 @@ function Toolbar() {
 export default function InfoEditor({ info, saved }: { info: SiteInfo; saved: () => void }) {
   const formId = useId()
   const [document, setDocument] = useState(() => JSON.stringify(infoDocument(info)))
-  const [savedKey, setSavedKey] = useState(() => fingerprint(document))
-  const changeKey = fingerprint(document)
+  const [availableForWork, setAvailableForWork] = useState(Boolean(info.available_for_work))
+  const [savedKey, setSavedKey] = useState(() => JSON.stringify([fingerprint(document), Boolean(info.available_for_work)]))
+  const changeKey = JSON.stringify([fingerprint(document), availableForWork])
   const dirty = changeKey !== savedKey
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
   async function submit(event: FormEvent) {
     event.preventDefault(); if (!dirty || busy) return
     setBusy(true); setStatus('')
-    try { await saveRecord({ type: 'info', document: JSON.parse(document) }); setSavedKey(changeKey); saved() }
+    try { await saveRecord({ type: 'info', document: JSON.parse(document), availableForWork }); setSavedKey(changeKey); saved() }
     catch (error) { setStatus(error instanceof Error ? error.message : 'Could not save.') }
     finally { setBusy(false) }
   }
@@ -61,6 +64,12 @@ export default function InfoEditor({ info, saved }: { info: SiteInfo; saved: () 
       <HistoryPlugin /><LinkPlugin validateUrl={safeInfoUrl} />
       <OnChangePlugin ignoreSelectionChange onChange={state => setDocument(JSON.stringify(state.toJSON()))} />
     </LexicalComposer>
+    <div className={styles.checkbox}>
+      <Checkbox.Root id={`${formId}-available`} checked={availableForWork} onCheckedChange={value => setAvailableForWork(value === true)} className={styles.checkboxControl}>
+        <Checkbox.Indicator className={styles.checkboxIndicator}><Check size={14} aria-hidden="true" /></Checkbox.Indicator>
+      </Checkbox.Root>
+      <label htmlFor={`${formId}-available`}>Show “Available for new work” on the homepage</label>
+    </div>
     <SaveAction><button className={styles.primaryButton} form={formId} disabled={busy || !dirty}>{busy ? 'Saving…' : 'Save changes'}</button><span role="status">{status}</span></SaveAction>
   </form>
 }

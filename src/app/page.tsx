@@ -10,6 +10,7 @@ import {
   ChevronsUpDown,
   Minus,
   Plus,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -145,6 +146,25 @@ function markIntroPlayed() {
  * the value after Next has already scrolled the experiment to the top.
  */
 const INDEX_SCROLL_KEY = "rgbjoy:index-scroll"
+const AVAILABILITY_DISMISSED_KEY = "rgbjoy:availability-dismissed"
+const AVAILABILITY_DISMISSED_EVENT = "rgbjoy:availability-dismissed-change"
+let availabilityDismissedThisLoad = false
+
+function subscribeAvailabilityDismissal(callback: () => void) {
+  window.addEventListener(AVAILABILITY_DISMISSED_EVENT, callback)
+  return () => window.removeEventListener(AVAILABILITY_DISMISSED_EVENT, callback)
+}
+
+function availabilityDismissedSnapshot() {
+  if (availabilityDismissedThisLoad) return true
+  try {
+    return window.sessionStorage.getItem(AVAILABILITY_DISMISSED_KEY) === "1"
+  } catch {
+    return false
+  }
+}
+
+const serverAvailabilityDismissedSnapshot = () => false
 let rememberedIndexScroll = 0
 
 function rememberIndexScroll() {
@@ -453,10 +473,13 @@ function CollapsibleContent({
 }
 
 export default function Home() {
-  const { INTRO_TOTAL } = introText(useInfo())
+  const info = useInfo()
+  const { INTRO_TOTAL } = introText(info)
+  const availableForWork = Boolean(info.available_for_work)
   const { projects, experiments } = usePortfolio()
   const controlsRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLElement>(null)
+  const availabilityRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
   const lockupRef = useRef<HTMLDivElement>(null)
   const [lockupStuck, setLockupStuck] = useState(false)
@@ -465,6 +488,7 @@ export default function Home() {
   // restore against the real page height; a first visit still animates them.
   const [resumeVisit] = useState(shouldSkipIntro)
   const [contactOpen, setContactOpen] = useState(false)
+  const availabilityDismissed = useSyncExternalStore(subscribeAvailabilityDismissal, availabilityDismissedSnapshot, serverAvailabilityDismissedSnapshot)
   const desktopPrompt = useSyncExternalStore(subscribeDesktopPrompt, desktopPromptSnapshot, serverPromptSnapshot)
   const [promptOverride, setPromptOpen] = useState<boolean | null>(null)
   const promptOpen = promptOverride ?? desktopPrompt
@@ -478,11 +502,22 @@ export default function Home() {
   const [introCount, setIntroCount] = useState(resumeVisit ? INTRO_TOTAL : 0)
   const [introPending, setIntroPending] = useState(!resumeVisit)
 
+  const dismissAvailability = () => {
+    availabilityDismissedThisLoad = true
+    try {
+      window.sessionStorage.setItem(AVAILABILITY_DISMISSED_KEY, "1")
+    } catch {
+      // Closing the button does not depend on session storage.
+    }
+    window.dispatchEvent(new Event(AVAILABILITY_DISMISSED_EVENT))
+  }
+
   // Load choreography: headline → desc → search → each category (+ name, line, count).
   useLayoutEffect(() => {
     const controls = controlsRef.current
     const main = mainRef.current
     const footer = footerRef.current
+    const availability = availabilityRef.current
     if (!controls || !main || !footer) return
 
     const categories = Array.from(
@@ -516,7 +551,7 @@ export default function Home() {
     })
 
     // CSS already hides these; lock matching GSAP state before the timeline runs.
-    gsap.set([controls, footer], { autoAlpha: 0 })
+    gsap.set([controls, footer, ...(availability ? [availability] : [])], { autoAlpha: 0 })
     for (const part of parts) {
       gsap.set(part.lead, { autoAlpha: 0 })
       gsap.set(part.count, { autoAlpha: 0 })
@@ -590,21 +625,22 @@ export default function Home() {
       document.fonts.load(`${fontSize} ${fontFamily}`, TITLE_TEXT).then(start, start)
     } else start()
 
-    // Last beat: the footer settles in once the index is fully drawn.
+    // Once the index is drawn, reveal the footer and then the fixed contact link.
     timeline.to(footer, { autoAlpha: 1, duration: 0.35 }, "+=0.1")
+    if (availability) timeline.to(availability, { autoAlpha: 1, duration: 0.9 }, "+=0.15")
 
     return () => {
       waiting = false
       window.clearTimeout(fontTimer)
       timeline.kill()
-      gsap.set([controls, footer], { clearProps: "opacity,visibility" })
+      gsap.set([controls, footer, ...(availability ? [availability] : [])], { clearProps: "opacity,visibility" })
       for (const part of parts) {
         gsap.set(part.lead, { clearProps: "opacity,visibility" })
         gsap.set(part.count, { clearProps: "opacity,visibility" })
         gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
       }
     }
-  }, [reducedMotion, resumeVisit, INTRO_TOTAL])
+  }, [reducedMotion, resumeVisit, INTRO_TOTAL, availableForWork])
 
   // Keep a restore point while the index is up, then put it back once open
   // sections have their real height (see CollapsibleContent's `instant`).
@@ -896,15 +932,27 @@ export default function Home() {
             )}
 
           </main>
-          <footer ref={footerRef} className={styles.footer}>
+          <footer ref={footerRef} className={`${styles.footer} ${availableForWork ? styles.footerWithAvailability : ""}`}>
             <span>{SITE.name}</span>
             <Link href="/directory">directory &amp; API</Link>
           </footer>
         </div>
+        {availableForWork && (
+          <div ref={availabilityRef} className={styles.availability} hidden={availabilityDismissed}>
+            <button type="button" className={styles.availabilityAction} onClick={() => setContactOpen(true)}>
+              <span className={styles.availabilityDot} aria-hidden="true" />
+              Available for new work
+              <ArrowUpRight size={14} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+            <button type="button" className={styles.availabilityClose} onClick={dismissAvailability} aria-label="Dismiss availability message" title="Dismiss">
+              <X size={14} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
 
       {reducedMotion && (
-        <p className={styles.motionIndicator}>reduced motion on</p>
+        <p className={`${styles.motionIndicator} ${availableForWork ? styles.motionIndicatorWithAvailability : ""}`}>reduced motion on</p>
       )}
 
       <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />

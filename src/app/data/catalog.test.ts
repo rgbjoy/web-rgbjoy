@@ -177,15 +177,18 @@ test('dashboard creates, edits, hides and deletes D1 projects and saves Info', a
     expect(admin.projects.find(project => project.id === id)?.hidden).toBe(1)
     expect((await write({ type: 'delete-project', id })).status).toBe(200)
     expect((await write({ ...project, id })).status).toBe(404)
-    expect((await write({ type: 'info', document: infoDocument({ ...oldInfo, body: null, lead: 'Updated introduction.' }) })).status).toBe(200)
+    expect(oldInfo.available_for_work).toBe(1)
+    expect((await write({ type: 'info', document: infoDocument({ ...oldInfo, body: null, lead: 'Updated introduction.' }), availableForWork: false })).status).toBe(200)
     expect((await getInfo()).lead).toStartWith('Updated introduction.')
     expect((await getInfo()).author).toBe(oldInfo.author)
+    expect((await getInfo()).available_for_work).toBe(0)
+    expect((await write({ type: 'info', document: infoDocument(oldInfo), availableForWork: 'yes' })).status).toBe(400)
     const profile = await (await GET(new Request('https://rgbjoy.com/api/catalog'))).json() as { profile: { name: string } }
     expect(profile.profile.name).toBe(oldInfo.author)
     expect(await (await getText()).text()).toContain(oldInfo.author)
   } finally {
     if (id) database.query('DELETE FROM projects WHERE id=?').run(id)
-    database.query('UPDATE site_info SET body=NULL,author=?,email=?,lead=?,invite=?,link_label=? WHERE id=1').run(oldInfo.author,oldInfo.email,oldInfo.lead,oldInfo.invite,oldInfo.link_label)
+    database.query('UPDATE site_info SET body=NULL,author=?,email=?,lead=?,invite=?,link_label=?,available_for_work=? WHERE id=1').run(oldInfo.author,oldInfo.email,oldInfo.lead,oldInfo.invite,oldInfo.link_label,oldInfo.available_for_work)
     testEnv.DASHBOARD_PASSWORD_HASH = ''
     testEnv.DASHBOARD_SESSION_SECRET = ''
   }
@@ -223,7 +226,7 @@ test('image validation checks PNG pixels, dimensions and corruption', async () =
 
 
 test('bio document preserves legacy copy and rejects unsafe links and unsupported nodes', () => {
-  const document = infoDocument({ author: 'Name', email: 'test@example.com', lead: 'Hello.', invite: 'Please', link_label: 'contact me' })
+  const document = infoDocument({ author: 'Name', email: 'test@example.com', lead: 'Hello.', invite: 'Please', link_label: 'contact me', available_for_work: 1 })
   expect(infoText(validateInfoDocument(document).root)).toBe('Hello. Please contact me.')
   const link = document.root.children![0].children![1]
   link.url = 'javascript:alert(1)'
@@ -238,7 +241,7 @@ test('Lexical can reopen the migrated and validated bio document', async () => {
   const { createEditor } = await import('lexical')
   const { LinkNode } = await import('@lexical/link')
   const editor = createEditor({ nodes: [LinkNode], onError: error => { throw error } })
-  const migrated = infoDocument({ author: 'Name', email: 'test@example.com', lead: 'Hello.', invite: 'Please', link_label: 'contact me' })
+  const migrated = infoDocument({ author: 'Name', email: 'test@example.com', lead: 'Hello.', invite: 'Please', link_label: 'contact me', available_for_work: 1 })
   const state = editor.parseEditorState(JSON.stringify(migrated))
   const validated = validateInfoDocument(state.toJSON())
   expect(infoText(validated.root)).toBe('Hello. Please contact me.')

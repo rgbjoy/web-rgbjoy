@@ -7,11 +7,11 @@ export const SITE = {
   handle: "@rgbjoy",
 
   /** Browser tab and search result headline. */
-  title: "Tom Fletcher — fullstack engineering, architecture, and design",
+  title: "Tom Fletcher is a full-stack engineer and creative developer who designs and builds for the web, from client sites and product systems to shader experiments. Available for new work.",
 
   /** Search results and link previews. */
   description:
-    "Tom Fletcher is a fullstack engineer who architects and designs for the web — client sites, product systems, and shader experiments. Available for new work.",
+    "Tom Fletcher is a full-stack engineer and creative developer who designs and builds for the web, from client sites and product systems to shader experiments. Available for new work.",
 
   /** Masthead copy. Split so the invite can end in the contact trigger. */
   intro: {

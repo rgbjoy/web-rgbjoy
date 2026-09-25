@@ -17,4 +17,4 @@ export type StoredProject = {
   id: string; title: string; url: string; year: string; description: string;
   technologies: string[]; hidden: number; position: number
 }
-export type SiteInfo = { body?: string | null; author: string; email: string; lead: string; invite: string; link_label: string }
+export type SiteInfo = { body?: string | null; author: string; email: string; lead: string; invite: string; link_label: string; available_for_work: number }

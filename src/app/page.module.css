@@ -40,9 +40,15 @@
   pointer-events: none;
 }
 
+.motionIndicatorWithAvailability {
+  right: auto;
+  left: max(var(--gutter), env(safe-area-inset-left));
+}
+
 /* Hide search + section headers until the intro timeline reveals them. */
 .introPending .controls,
 .introPending .footer,
+.introPending .availability,
 .introPending [data-intro="toggle"],
 .introPending [data-intro="name"],
 .introPending [data-intro="count"] {
@@ -251,6 +257,78 @@
   border-top: 1px solid var(--hairline);
   color: var(--muted);
   font-size: 12px;
+}
+
+.footerWithAvailability {
+  padding-bottom: max(88px, calc(72px + env(safe-area-inset-bottom)));
+}
+
+.availability {
+  position: fixed;
+  right: max(var(--gutter), env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  box-shadow: 0 8px 24px #0003;
+  pointer-events: auto;
+}
+
+.availability[hidden] { display: none; }
+
+.availabilityAction,
+.availabilityClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--rollover-fade);
+}
+
+.availabilityAction {
+  gap: 9px;
+  padding: 11px 10px 11px 14px;
+  border-radius: 999px 0 0 999px;
+  white-space: nowrap;
+}
+
+.availabilityClose {
+  width: 36px;
+  min-height: 36px;
+  border-left: 1px solid var(--hairline);
+  border-radius: 0 999px 999px 0;
+}
+
+.availabilityDot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--seed-g);
+}
+
+@media (hover: hover) {
+  .availabilityAction:hover,
+  .availabilityClose:hover {
+    background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+  }
+}
+
+.availabilityAction:focus-visible,
+.availabilityClose:focus-visible {
+  background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
 }
 
 .footer a {
@@ -644,6 +722,7 @@
   .category { margin-top: 14px; }
   .group { margin-top: 18px; }
   .footer { font-size: 11px; }
+  .availabilityAction { font-size: 11px; }
   .item {
     grid-template-columns: minmax(0, 1fr);
     padding-top: 10px;

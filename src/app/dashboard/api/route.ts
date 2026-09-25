@@ -98,8 +98,9 @@ export async function POST(request: Request) {
     }
     if (body.type === 'info') {
       const document = validateInfoDocument(body.document)
-      await env.DB.prepare("UPDATE site_info SET body=?,lead=?,invite='',updated_at=datetime('now') WHERE id=1")
-        .bind(JSON.stringify(document),infoText(document.root)).run()
+      if (typeof body.availableForWork !== 'boolean') return json({ error: 'Invalid availability setting.' }, 400)
+      await env.DB.prepare("UPDATE site_info SET body=?,lead=?,invite='',available_for_work=?,updated_at=datetime('now') WHERE id=1")
+        .bind(JSON.stringify(document),infoText(document.root),Number(body.availableForWork)).run()
       return json({ ok: true })
     }
     if (body.type === 'seo') {

@@ -8,7 +8,7 @@ async function readSettings() {
     env.DB.prepare('SELECT id, hidden, title, description FROM content_settings'),
     env.DB.prepare("SELECT path, title, description FROM seo_settings WHERE path = '/'"),
     env.DB.prepare('SELECT * FROM projects ORDER BY position, id'),
-    env.DB.prepare('SELECT author, email, lead, invite, link_label, body FROM site_info WHERE id = 1'),
+    env.DB.prepare('SELECT author, email, lead, invite, link_label, body, available_for_work FROM site_info WHERE id = 1'),
     env.DB.prepare('SELECT kind, version FROM site_media'),
   ])
   if (!info.results[0]) throw new Error('Site info is missing; apply D1 migrations')
@@ -29,7 +29,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
   const state = await env.DB.prepare('SELECT revision FROM content_revision WHERE id = 1').first<{ revision: number }>()
   if (!state) throw new Error('Content revision is missing; apply D1 migrations')
   let storage: Cache | undefined
-  const key = new Request(new URL(`/__content-cache/schema-1/${state.revision}`, env.MEDIA_PUBLIC_URL))
+  const key = new Request(new URL(`/__content-cache/schema-2/${state.revision}`, env.MEDIA_PUBLIC_URL))
   try {
     // A named cache is internal, separate from public HTTP response caching.
     storage = await caches.open('rgbjoy-content-v1')

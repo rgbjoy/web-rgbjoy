@@ -10,7 +10,7 @@ React 19, TypeScript, and Bun. Deployment uses Cloudflare Workers and Wrangler.
 
 The dashboard has three sections:
 
-- **Info:** one Lexical rich-text bio with paragraphs, bold, italic, and links. Use a contact link to open the contact form. Existing copy is imported when opening the editor; the stored owner name and delivery email are preserved.
+- **Info:** one Lexical rich-text bio with paragraphs, bold, italic, and links, plus a toggle for the floating “Available for new work” contact button. Visitors can dismiss that button for the current browser session. Use a contact link to open the contact form. Existing copy is imported when opening the editor; the stored owner name and delivery email are preserved.
 - **Projects:** add, edit, hide, and delete full project records, including their
   URL, year/status, description, and technology list.
 - **SEO:** one title and description used across the entire site, plus a site

@@ -8,6 +8,7 @@ database.exec(readFileSync(new URL('../migrations/0002_projects_and_info.sql', i
 database.exec(readFileSync(new URL('../migrations/0003_site_media.sql', import.meta.url), 'utf8'))
 database.exec(readFileSync(new URL('../migrations/0004_info_document.sql', import.meta.url), 'utf8'))
 database.exec(readFileSync(new URL('../migrations/0005_content_cache.sql', import.meta.url), 'utf8'))
+database.exec(readFileSync(new URL('../migrations/0006_availability_and_seo.sql', import.meta.url), 'utf8'))
 export const cacheEntries = new Map<string, Response>()
 export const cacheStats = { reads: 0, writes: 0, batches: 0, fail: false }
 Object.defineProperty(globalThis, 'caches', { configurable: true, value: { open: async () => ({
