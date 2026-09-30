@@ -1,6 +1,6 @@
 "use client"
 
-import { usePortfolio } from "../PortfolioProvider"
+import { usePortfolio, type PortfolioProject } from "../PortfolioProvider"
 import { X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -10,7 +10,6 @@ import {
   type Experiment,
 } from "../../data/experiments"
 import { LINKS, linkSearchText, type SiteLink } from "../../data/links"
-import { projectSearchText, type Project } from "../../data/projects"
 import { closePalette, togglePalette, usePaletteOpen } from "./paletteState"
 import styles from "./SearchPalette.module.css"
 
@@ -34,19 +33,21 @@ function formatDate(date: string): string {
 }
 
 /**
- * One flat index across projects, experiments and links, built once at module
- * load — the data is static, so rebuilding per keystroke would be pure waste.
+ * One flat index from the CMS portfolio and authored experiment/link metadata.
+ * Rebuilt when the portfolio changes, rather than on every search keystroke.
  */
-function makeIndex(PROJECTS: Project[], EXPERIMENTS: Experiment[]): Entry[] { return [
-  ...PROJECTS.map((project: Project) => ({
+function makeIndex(projects: PortfolioProject[], experiments: Experiment[]): Entry[] { return [
+  ...projects.map((project) => ({
     href: project.href,
     title: project.title,
     description: project.description,
     meta: project.year,
     external: true,
-    haystack: projectSearchText(project),
+    haystack: [project.title, project.year, project.description ?? "", ...project.tech]
+      .join(" ")
+      .toLowerCase(),
   })),
-  ...EXPERIMENTS.map((experiment: Experiment) => ({
+  ...experiments.map((experiment) => ({
     href: experiment.href,
     title: experiment.title,
     description: experiment.description,

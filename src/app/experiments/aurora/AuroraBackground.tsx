@@ -7,6 +7,7 @@ import React, { type FC, memo, useEffect, useRef } from "react"
 import { ShaderMaterial, Vector2 } from "three"
 
 import fragmentShader from "./aurora.frag"
+import type { AuroraBeat, BeatPulse } from "./beat"
 import vertexShader from "../../utilities/shaders/gradient.vert"
 
 import styles from "./AuroraBackground.module.css"
@@ -27,8 +28,11 @@ type Uniforms = {
   uPulseSpeed: number
   uPulseFreq: number
   uPulseFalloff: number
-  uLineThickness: number
-  uLineLength: number
+  uKick: number
+  uKickAge: number
+  uClap: number
+  uBeatGlow: number
+  uShockSpeed: number
 }
 
 const INITIAL_UNIFORMS: Uniforms = {
@@ -47,8 +51,11 @@ const INITIAL_UNIFORMS: Uniforms = {
   uPulseSpeed: 1.2,
   uPulseFreq: 4,
   uPulseFalloff: 0.55,
-  uLineThickness: 0.01,
-  uLineLength: 0.7,
+  uKick: 0,
+  uKickAge: 1e3,
+  uClap: 0,
+  uBeatGlow: 0.015,
+  uShockSpeed: 2.4,
 }
 
 const AuroraMaterial = shaderMaterial(
@@ -66,8 +73,11 @@ declare module "@react-three/fiber" {
   }
 }
 
-const ShaderAurora: FC = memo(() => {
+type AuroraProps = { beat: AuroraBeat }
+
+const ShaderAurora: FC<AuroraProps> = memo(({ beat }) => {
   const materialRef = useRef<(ShaderMaterial & Uniforms) | null>(null)
+  const pulseRef = useRef<BeatPulse>({ kick: 0, kickAge: 1e3, clap: 0 })
   const { size } = useThree()
 
   const paramsRef = useRef({
@@ -84,8 +94,10 @@ const ShaderAurora: FC = memo(() => {
     pulseSpeed: INITIAL_UNIFORMS.uPulseSpeed,
     pulseFreq: INITIAL_UNIFORMS.uPulseFreq,
     pulseFalloff: INITIAL_UNIFORMS.uPulseFalloff,
-    lineThickness: INITIAL_UNIFORMS.uLineThickness,
-    lineLength: INITIAL_UNIFORMS.uLineLength,
+    bpm: beat.bpm,
+    volume: beat.volume,
+    beatGlow: INITIAL_UNIFORMS.uBeatGlow,
+    shockSpeed: INITIAL_UNIFORMS.uShockSpeed,
   })
 
   useEffect(() => {
@@ -109,8 +121,10 @@ const ShaderAurora: FC = memo(() => {
       mat.uPulseSpeed = p.pulseSpeed
       mat.uPulseFreq = p.pulseFreq
       mat.uPulseFalloff = p.pulseFalloff
-      mat.uLineThickness = p.lineThickness
-      mat.uLineLength = p.lineLength
+      mat.uBeatGlow = p.beatGlow
+      mat.uShockSpeed = p.shockSpeed
+      beat.setBpm(p.bpm)
+      beat.setVolume(p.volume)
     }
 
     const motion = gui.addFolder("Motion")
@@ -152,13 +166,15 @@ const ShaderAurora: FC = memo(() => {
       .onChange(syncMaterial)
     pulse.open()
 
-    const line = gui.addFolder("Line")
-    line
-      .add(paramsRef.current, "lineThickness", 0.001, 0.08, 0.001)
-      .name("Thickness")
+    const beatFolder = gui.addFolder("Beat")
+    beatFolder.add(paramsRef.current, "volume", 0, 1, 0.01).name("Volume").onChange(syncMaterial)
+    beatFolder.add(paramsRef.current, "bpm", 60, 140, 1).name("BPM").onChange(syncMaterial)
+    beatFolder.add(paramsRef.current, "beatGlow", 0, 0.06, 0.001).name("Glow").onChange(syncMaterial)
+    beatFolder
+      .add(paramsRef.current, "shockSpeed", 0.5, 6, 0.01)
+      .name("Shell speed")
       .onChange(syncMaterial)
-    line.add(paramsRef.current, "lineLength", 0, 1.5, 0.01).name("Length").onChange(syncMaterial)
-    line.open()
+    beatFolder.open()
 
     syncMaterial()
 
@@ -189,11 +205,16 @@ const ShaderAurora: FC = memo(() => {
       window.removeEventListener("keydown", onKeyDown)
       gui.destroy()
     }
-  }, [])
+  }, [beat])
 
   useFrame(({ elapsed }) => {
     if (!materialRef.current) return
     materialRef.current.uTime = elapsed
+
+    const pulse = beat.pulse(pulseRef.current)
+    materialRef.current.uKick = pulse.kick
+    materialRef.current.uKickAge = pulse.kickAge
+    materialRef.current.uClap = pulse.clap
 
     if (materialRef.current.uResolution instanceof Vector2) {
       materialRef.current.uResolution.set(size.width, size.height)
@@ -214,12 +235,12 @@ const ShaderAurora: FC = memo(() => {
 
 ShaderAurora.displayName = "ShaderAurora"
 
-export const ShaderAuroraCanvas: FC = () => (
+export const ShaderAuroraCanvas: FC<AuroraProps> = ({ beat }) => (
   <Canvas
     className={styles.canvas}
     gl={{ alpha: false, antialias: false }}
     style={{ background: "#000" }}
   >
-    <ShaderAurora />
+    <ShaderAurora beat={beat} />
   </Canvas>
 )

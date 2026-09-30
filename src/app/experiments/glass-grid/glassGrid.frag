@@ -2,102 +2,79 @@
 precision highp float;
 #endif
 
-#pragma glslify: cosinePalettePreset = require('../../utilities/shaders/colorPalettePresets.glsl')
-
-// Fluted glass over soft vertical color wash
-
-uniform vec2 uResolution;
 uniform float uTime;
 uniform float uAspectRatio;
-
+uniform vec2 uPointer;
 varying vec2 vUv;
 
-const float TIME_SCALE = 0.7;
-const float NUM_SEGMENTS = 10.0;
-const float INPUT_OUTPUT_RATIO = 1.85;
-const float OVERLAP = 0.72;
-const float LOG_RANGE = 39.0;
-const float BAND_COUNT = 7.0;
-const float LINE_DRIFT = 0.06;
-const float WAVE_AMP = 0.005;
-const float WAVE_SPATIAL = 8.0;
-const float WAVE_SPEED = 0.5;
-const float PALETTE_PRESET = 1.0; // cool-drift
-const float FRAME_HALF_Y = 0.62;
-const float FRAME_BLEED = 0.06;
-const float FRAME_FEATHER = 0.012;
-const vec3 FRAME_BG = vec3(0.0);
+const float PI = 3.14159265;
 
-vec3 sampleWash(vec2 refractUV, float time) {
-    vec2 p = refractUV - 0.5;
+float softGlow(float distance, float width) {
+    float d = distance / width;
+    return exp(-d * d);
+}
+
+// A broad, asymmetric light ribbon: honey above, a thin copper edge below.
+// Evaluated analytically so the glass needs no blur textures or extra passes.
+vec3 amberLight(vec2 uv, float time) {
+    vec2 p = uv - 0.5;
     p.x *= uAspectRatio;
-    p.x -= time * LINE_DRIFT;
+    float sweep = sin(p.x * 1.65 + time * 0.19);
+    float ribbon = 0.04 + sweep * 0.23;
+    ribbon += sin(p.x * 3.1 - time * 0.13 + 0.8) * 0.035;
+    ribbon += uPointer.y * 0.065 + uPointer.x * p.x * 0.035;
+    float distance = p.y - ribbon;
 
-    // Soft vertical curtains — compress cleanly through log flutes
-    float curtains = 0.5 + 0.5 * sin(p.x * BAND_COUNT + time * 0.12);
-    curtains = mix(
-        curtains,
-        0.5 + 0.5 * sin(p.x * BAND_COUNT * 1.65 - time * 0.07 + 1.1),
-        0.4
-    );
+    float width = 0.19 + 0.04 * sin(p.x * 1.8 + time * 0.21);
+    float upperGlow = softGlow(distance, width);
+    upperGlow *= smoothstep(-0.035, 0.025, distance);
+    float core = softGlow(distance - 0.075, 0.095);
+    float copper = softGlow(distance + 0.032, 0.065);
+    float haze = exp(-abs(distance) * 5.5);
 
-    // Thin bright ridges so flute edges stay readable
-    float ridge = 0.5 + 0.5 * sin(p.x * BAND_COUNT * 3.14159265);
-    ridge = pow(ridge, 10.0);
+    vec3 color = mix(vec3(0.010, 0.018, 0.017), vec3(0.055, 0.035, 0.012),
+        smoothstep(-0.25, 0.5, p.y));
+    color += vec3(0.18, 0.055, 0.008) * haze;
+    color += vec3(0.23, 0.042, 0.023) * copper;
+    color += vec3(0.76, 0.32, 0.055) * upperGlow;
+    color += vec3(0.62, 0.47, 0.29) * core;
 
-    // Soft sky falloff + horizon bloom
-    float sky = smoothstep(-0.6, 0.45, p.y);
-    float glow = exp(-abs(p.y + 0.02) * 2.1) * 0.4;
-
-    float drift = p.x * 0.07 - time * 0.035;
-    float t = curtains * 0.42 + sky * 0.38 + glow + drift;
-
-    vec3 col = cosinePalettePreset(t, PALETTE_PRESET);
-    col += vec3(0.18, 0.2, 0.22) * ridge * 0.28;
-
-    // Gentle vignette so the panel feels lit from center
-    float vig = 1.0 - dot(p * 0.7, p * 0.7);
-    vig = clamp(pow(vig, 1.1), 0.0, 1.0);
-    col *= 0.92 + 0.1 * vig;
-
-    return col;
-}
-
-vec3 sampleFluted(vec2 uv, float time) {
-    float segmentWidth = 1.0 / NUM_SEGMENTS;
-    float inputSegmentWidth = segmentWidth * INPUT_OUTPUT_RATIO;
-    float overlapWidth = segmentWidth * OVERLAP;
-
-    float segmentIndex = floor(uv.x / segmentWidth);
-    float segmentStart = segmentIndex * segmentWidth;
-    float localUVx = (uv.x - segmentStart) / segmentWidth;
-
-    float compressedX = log(1.0 + localUVx * LOG_RANGE) / log(1.0 + LOG_RANGE);
-
-    float inputSegmentStart = segmentIndex * (inputSegmentWidth - overlapWidth);
-    vec2 inputUV = vec2(inputSegmentStart + compressedX * inputSegmentWidth, uv.y);
-
-    return sampleWash(inputUV, time);
-}
-
-vec2 wavyUV(vec2 uv, float time) {
-    float wave = sin(uv.y * WAVE_SPATIAL + time * WAVE_SPEED);
-    wave += 0.45 * sin(uv.y * WAVE_SPATIAL * 1.7 - time * WAVE_SPEED * 0.65);
-    return vec2(uv.x + wave * WAVE_AMP, uv.y);
+    // A second, dim reflection drifts independently behind the main ribbon.
+    float reflection = p.y + ribbon * 0.65 + 0.35;
+    color += vec3(0.14, 0.065, 0.012) * exp(-reflection * reflection * 32.0);
+    return color;
 }
 
 void main() {
     vec2 uv = vUv;
-    float time = uTime * TIME_SCALE;
+    float count = clamp(uAspectRatio * 25.0, 12.0, 30.0);
+    float flute = uv.x * count;
+    float cell = floor(flute);
+    float local = fract(flute);
+    float roundness = sin(local * PI);
 
-    vec3 col = sampleFluted(wavyUV(uv, time), time);
+    // Thick ribbed glass gathers a wider piece of the scene into each flute.
+    // Log compression makes the ribbon taper into a sharp point at each seam.
+    float lens = log(1.0 + local * 22.0) / log(23.0);
+    vec2 refracted = vec2((cell + lens * 1.85 - 0.42) / count, uv.y);
+    refracted.y += (1.0 - roundness) * 0.075;
+    refracted.y += sin(cell * 0.73 + uTime * 0.17) * 0.009 * roundness;
+    vec3 color = amberLight(refracted, uTime);
 
-    vec2 frameP = uv - 0.5;
-    frameP.x *= uAspectRatio;
-    float frameHalfX = uAspectRatio * 0.5 + FRAME_BLEED;
-    float frameMask = smoothstep(0.0, FRAME_FEATHER, frameHalfX - abs(frameP.x))
-        * smoothstep(0.0, FRAME_FEATHER, FRAME_HALF_Y + FRAME_BLEED * 0.5 - abs(frameP.y));
-    col = mix(FRAME_BG, col, frameMask);
+    // Dark rolled edges and a fine champagne reflection give each rib depth.
+    float body = 0.68 + 0.32 * pow(roundness, 0.55);
+    color *= body;
+    float aa = max(fwidth(local), 0.001);
+    float seam = 1.0 - smoothstep(0.0, aa * 1.3, local);
+    float glint = softGlow(local - 0.08, 0.035);
+    float lightHeight = 0.35 + 0.65 * softGlow(uv.y - 0.6, 0.667);
+    color += vec3(0.12, 0.10, 0.06) * seam * lightHeight;
+    color += vec3(0.025, 0.016, 0.006) * glint;
+    color *= 1.0 - 0.35 * smoothstep(0.87, 1.0, local);
 
-    gl_FragColor = vec4(col, 1.0);
+    vec2 vignette = (uv - 0.5) * vec2(1.1, 0.8);
+    color *= 1.0 - dot(vignette, vignette) * 0.45;
+    float grain = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    color += (grain - 0.5) * 0.006;
+    gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
 }

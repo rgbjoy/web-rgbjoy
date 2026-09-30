@@ -21,8 +21,11 @@ uniform float uPulseStrength;
 uniform float uPulseSpeed;
 uniform float uPulseFreq;
 uniform float uPulseFalloff;
-uniform float uLineThickness;
-uniform float uLineLength;
+uniform float uKick;
+uniform float uKickAge;
+uniform float uClap;
+uniform float uBeatGlow;
+uniform float uShockSpeed;
 
 varying vec2 vUv;
 
@@ -62,7 +65,8 @@ void main() {
         float o = min(r - uSphereRadius, hash21(F) * 0.1) + 0.1;
         R += o;
 
-        O += uIntensity / (0.4 + o)
+        // Claps lift the ribbons themselves.
+        O += uIntensity * (1.0 + uClap * 0.5) / (0.4 + o)
             * mix(
                 smoothstep(
                     0.5,
@@ -86,16 +90,15 @@ void main() {
         O += uPulseStrength * glow / (0.4 + o)
             * vec4(1.0, 0.88, 0.72, 1.0)
             * smoothstep(uFadeDistance, 0.0, r);
-    }
 
-    // Pure black diagonal at a true 45° (aspect-corrected), centered.
-    float aspect = uResolution.x / max(uResolution.y, 1.0);
-    vec2 c = (vUv - 0.5) * vec2(aspect, 1.0);
-    vec2 dir = vec2(0.70710678, 0.70710678);
-    float along = dot(c, dir);
-    float across = abs(dot(c, vec2(-dir.y, dir.x)));
-    float line = step(across, uLineThickness * 0.5) * step(abs(along), uLineLength * 0.5);
-    O.rgb = mix(O.rgb, vec3(0.0), line);
+        // Each kick flares the core and throws a shell out from the sphere.
+        float shellR = uSphereRadius + uKickAge * uShockSpeed;
+        float shell = exp(-pow((r - shellR) * 6.0, 2.0));
+        float hit = (core * 1.6 + shell) * uKick;
+        O += uBeatGlow * hit / (0.4 + o)
+            * vec4(0.82, 0.9, 1.0, 1.0)
+            * smoothstep(uFadeDistance, 0.0, r);
+    }
 
     gl_FragColor = O;
 }

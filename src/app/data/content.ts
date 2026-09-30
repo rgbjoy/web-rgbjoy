@@ -1,9 +1,10 @@
-import { CATALOG } from './catalog'
+import { EXPERIMENT_CATALOG, type CatalogEntry } from './catalog'
 import { EXPERIMENTS, type Experiment } from './experiments'
+
+export type { CatalogEntry } from './catalog'
 
 export type ContentSetting = { id: string; hidden: number; title: string; description: string }
 export type SeoSetting = { path: string; title: string; description: string }
-export type CatalogEntry = (typeof CATALOG)[number]
 
 /** Visible experiments with their authored metadata, under the titles and descriptions set in the dashboard. */
 export function catalogExperiments(entries: CatalogEntry[]): Experiment[] {
@@ -16,7 +17,7 @@ export function catalogExperiments(entries: CatalogEntry[]): Experiment[] {
 
 export function applyContentSettings(settings: ContentSetting[], includeHidden = false) {
   const byId = new Map(settings.map((setting) => [setting.id, setting]))
-  return CATALOG.flatMap((entry) => {
+  return EXPERIMENT_CATALOG.flatMap((entry) => {
     const setting = byId.get(entry.id)
     if (setting?.hidden && !includeHidden) return []
     return [{ ...entry, title: setting?.title || entry.title, ...(setting?.description ? { description: setting.description } : {}) }]

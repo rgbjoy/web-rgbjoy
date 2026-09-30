@@ -20,8 +20,8 @@ D1 is the source of truth for project records, Info, shared SEO, and current
 media versions. Migration
 `0002_projects_and_info.sql` imports the original nine projects and profile,
 preserving previous project overrides. New deployments never re-seed or restore
-deleted projects. The original `projects.ts` array remains as a historical seed
-fixture for regression tests; it is not a runtime project data source.
+deleted projects. Project listings, search, directory metadata, and AI endpoints
+use CMS records exclusively; there is no local project array or fallback.
 
 Experiment implementations and their authored listings remain in code. Hidden
 projects disappear from the homepage, search, directory, and AI endpoints.
@@ -60,7 +60,6 @@ Use **Scriptlet** to run the long-running `dev` or `start` scripts.
 | `build` | Build the Worker and browser assets |
 | `start` | Preview the built Worker with the same local D1 storage |
 | `lint` / `ts:check` | ESLint / TypeScript |
-| `test:discovery` | Catalog, project CRUD, Info, and dashboard access regression checks |
 | `cf:types` | Regenerate Worker bindings and runtime types |
 | `db:migrate:local` | Apply migrations to local D1 |
 | `db:migrate:remote` | Apply migrations to the configured production D1 |

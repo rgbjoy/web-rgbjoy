@@ -1,6 +1,5 @@
 import { EXPERIMENTS } from './experiments'
 import { LINKS } from './links'
-import { PROJECTS } from './projects'
 import { SITE } from './site'
 
 export const PUBLIC_PROFILE = {
@@ -11,17 +10,7 @@ export const PUBLIC_PROFILE = {
   profiles: LINKS.map(({ title, href }) => ({ name: title, url: href })),
 }
 
-export const CATALOG = [
-  ...PROJECTS.map((project) => ({
-    id: `project:${new URL(project.href).hostname}`,
-    kind: 'project' as const,
-    title: project.title,
-    url: project.href,
-    description: project.description ?? null,
-    year: project.year,
-    technologies: project.tech ?? [],
-    keywords: [] as string[],
-  })),
+export const EXPERIMENT_CATALOG = [
   ...EXPERIMENTS.map((experiment) => ({
     id: `experiment:${experiment.href.split('/').pop()}`,
     kind: 'experiment' as const,
@@ -36,7 +25,18 @@ export const CATALOG = [
   })),
 ]
 
-export function searchCatalog(query = '', kind?: 'project' | 'experiment', entries = CATALOG) {
+export type CatalogEntry = (typeof EXPERIMENT_CATALOG)[number] | {
+  id: string
+  kind: 'project'
+  title: string
+  url: string
+  description: string | null
+  year: string
+  technologies: string[]
+  keywords: string[]
+}
+
+export function searchCatalog(query: string, kind: 'project' | 'experiment' | undefined, entries: CatalogEntry[]) {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
   return entries.filter((entry) => {
     if (kind && entry.kind !== kind) return false
@@ -54,7 +54,7 @@ export function searchCatalog(query = '', kind?: 'project' | 'experiment', entri
   })
 }
 
-export function catalogMarkdown(entries = CATALOG, description: string = SITE.description, author: string = SITE.author) {
+export function catalogMarkdown(entries: CatalogEntry[], description: string = SITE.description, author: string = SITE.author) {
   return [
     `# rgbjoy — ${author}`,
     '',

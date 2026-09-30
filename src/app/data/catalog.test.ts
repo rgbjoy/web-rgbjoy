@@ -5,10 +5,34 @@ import { GET as getText } from '../llms.txt/route'
 import { GET as getSchema } from '../openapi.json/route'
 import { GET as getPrompt } from '../prompt.md/route'
 import sitemap from '../sitemap'
-import { CATALOG } from './catalog'
+import { getPublicCatalog } from '../server/content'
 import { EXPERIMENTS } from './experiments'
-import { PROJECTS } from './projects'
 import { serializeJsonLd } from './structured-data'
+
+const initialCatalog = await getPublicCatalog()
+
+test('an empty CMS project table publishes no fallback projects', async () => {
+  const { database } = await import('../../../tests/cloudflare-env')
+  const projects = database.query('SELECT * FROM projects').all() as {
+    id: string; title: string; url: string; year: string; description: string;
+    technologies: string; hidden: number; position: number; updated_at: string
+  }[]
+  try {
+    database.exec('DELETE FROM projects')
+    expect((await getPublicCatalog()).filter(entry => entry.kind === 'project')).toEqual([])
+    const data = await (await GET(new Request('https://rgbjoy.com/api/catalog?kind=project'))).json() as { total: number; entries: unknown[] }
+    expect(data).toMatchObject({ total: 0, entries: [] })
+    for (const response of [await getText(), await getPrompt()]) {
+      const text = await response.text()
+      for (const project of projects) expect(text).not.toContain(`](${project.url})`)
+    }
+  } finally {
+    const restore = database.query('INSERT INTO projects (id,title,url,year,description,technologies,hidden,position,updated_at) VALUES (?,?,?,?,?,?,?,?,?)')
+    database.transaction(() => {
+      for (const project of projects) restore.run(project.id, project.title, project.url, project.year, project.description, project.technologies, project.hidden, project.position, project.updated_at)
+    })()
+  }
+})
 
 describe('public portfolio discovery', () => {
   test('serves the conversation guide as fetcher-compatible plain text with the full catalog', async () => {
@@ -16,14 +40,14 @@ describe('public portfolio discovery', () => {
     expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
     const text = await response.text()
     expect(text).toContain('## Start the conversation')
-    for (const entry of CATALOG) expect(text).toContain(`](${entry.url})`)
+    for (const entry of initialCatalog) expect(text).toContain(`](${entry.url})`)
   })
 
-  test('publishes every authored entry with unique IDs and absolute URLs', async () => {
+  test('publishes every CMS project and authored experiment with unique IDs and absolute URLs', async () => {
     const response = await GET(new Request('https://rgbjoy.com/api/catalog'))
     const data = await response.json() as { profile: { alias: string }; total: number; entries: { id: string; url: string }[] }
     expect(data.profile.alias).toBe('rgbjoy')
-    expect(data.total).toBe(PROJECTS.length + EXPERIMENTS.length)
+    expect(data.total).toBe(initialCatalog.length)
     expect(new Set(data.entries.map((entry: { id: string }) => entry.id)).size).toBe(data.total)
     for (const entry of data.entries) expect(new URL(entry.url).protocol).toBe('https:')
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
@@ -54,19 +78,19 @@ describe('public portfolio discovery', () => {
     expect((await GET(new Request('https://rgbjoy.com/api/catalog?kind=private'))).status).toBe(400)
   })
 
-  test('preserves unknown details and unfinished work', () => {
-    expect(CATALOG.find((entry) => entry.title === 'oib.beer')?.description).toBeNull()
-    expect(CATALOG.find((entry) => entry.title === 'golfisweird.com')).toMatchObject({
+  test('preserves CMS project details and unfinished experiments', () => {
+    expect(initialCatalog.find((entry) => entry.title === 'oib.beer')?.description).toBeNull()
+    expect(initialCatalog.find((entry) => entry.title === 'golfisweird.com')).toMatchObject({
       year: 'Coming soon',
     })
-    expect(CATALOG.find((entry) => entry.title === 'Island Generator')).toMatchObject({
+    expect(initialCatalog.find((entry) => entry.title === 'Island Generator')).toMatchObject({
       status: 'wip',
     })
   })
 
-  test('text and sitemap stay in sync with the authored catalog', async () => {
+  test('text and sitemap stay in sync with the CMS catalog', async () => {
     const text = await (await getText()).text()
-    for (const entry of CATALOG) expect(text).toContain(`](${entry.url})`)
+    for (const entry of initialCatalog) expect(text).toContain(`](${entry.url})`)
     const urls = (await sitemap()).map((entry) => entry.url)
     expect(urls).toContain('https://rgbjoy.com/directory')
     for (const experiment of EXPERIMENTS)
@@ -85,8 +109,8 @@ describe('public portfolio discovery', () => {
 
 test('D1 visibility and text overrides propagate to every discovery format', async () => {
   const { database } = await import('../../../tests/cloudflare-env')
-  const hidden = CATALOG.find(entry => entry.kind === 'experiment')!
-  const edited = CATALOG.find(entry => entry.kind === 'project')!
+  const hidden = initialCatalog.find(entry => entry.kind === 'experiment')!
+  const edited = initialCatalog.find(entry => entry.kind === 'project')!
   database.query('INSERT INTO content_settings (id, hidden) VALUES (?, 1)').run(hidden.id)
   database.query('UPDATE projects SET title=?,description=? WHERE id=?').run('Updated project', 'Updated description', edited.id)
   try {

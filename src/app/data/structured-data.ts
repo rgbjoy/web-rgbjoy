@@ -1,4 +1,4 @@
-import { CATALOG, PUBLIC_PROFILE } from './catalog'
+import { PUBLIC_PROFILE, type CatalogEntry } from './catalog'
 import { SITE } from './site'
 
 export const SITE_STRUCTURED_DATA = {
@@ -24,7 +24,7 @@ export const SITE_STRUCTURED_DATA = {
   ],
 }
 
-export function directoryStructuredData(entries = CATALOG) { return {
+export function directoryStructuredData(entries: CatalogEntry[]) { return {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   url: `${SITE.url}/directory`,
@@ -49,8 +49,6 @@ export function directoryStructuredData(entries = CATALOG) { return {
 }
 
 }
-
-export const DIRECTORY_STRUCTURED_DATA = directoryStructuredData()
 
 export function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, '\\u003c')

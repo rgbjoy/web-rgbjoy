@@ -39,12 +39,12 @@ export const EXPERIMENTS: Experiment[] = [
     href: "/experiments/aurora",
     title: "Aurora",
     description:
-      "Raymarched aurora curtains after kishimisu — spectral ribbons that drift and fold in deep space.",
+      "Raymarched aurora curtains after kishimisu — spectral ribbons that drift and fold in deep space, pulsing to a generated beat.",
     group: "Generative & Visual",
     date: "2026-07",
     status: "live",
-    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
-    keywords: ["aurora", "raymarch", "kishimisu", "shader", "space", "spectral"],
+    tech: ["Three.js", "R3F", "GLSL", "Web Audio", "lil-gui"],
+    keywords: ["aurora", "raymarch", "kishimisu", "shader", "space", "spectral", "beat", "music", "synth"],
   },
   {
     href: "/experiments/gradient",

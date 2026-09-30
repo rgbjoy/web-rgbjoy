@@ -52,7 +52,7 @@ export async function getPublicCatalog(snapshot?: Settings): Promise<CatalogEntr
       id: project.id, kind: 'project' as const, title: project.title, url: project.url,
       year: project.year, description: project.description || null, technologies: project.technologies, keywords: [],
     })),
-    ...applyContentSettings(settings.content).filter(entry => entry.kind === 'experiment'),
+    ...applyContentSettings(settings.content),
   ]
 }
 export async function getSeo(settings?: Settings) {

@@ -1,73 +1,73 @@
-"use client";
+'use client'
 
-import { ScreenQuad, shaderMaterial } from "@react-three/drei/legacy";
-import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
-import React, { type FC, memo, useRef } from "react";
-import { ShaderMaterial, Vector2 } from "three";
+import { ScreenQuad, shaderMaterial } from '@react-three/drei/legacy'
+import { Canvas, extend, useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
+import { ShaderMaterial, Vector2 } from 'three'
 
-import fragmentShader from "./glassGrid.frag";
-import vertexShader from "../../utilities/shaders/gradient.vert";
-
-import styles from "./GlassGridBackground.module.css";
+import { useReducedMotion } from '../../utilities/settings/useSettings'
+import vertexShader from '../../utilities/shaders/gradient.vert'
+import fragmentShader from './glassGrid.frag'
+import styles from './GlassGridBackground.module.css'
 
 type Uniforms = {
-  uTime: number;
-  uResolution: Vector2;
-  uAspectRatio: number;
-};
-
-const INITIAL_UNIFORMS: Uniforms = {
-  uTime: 0,
-  uResolution: new Vector2(1, 1),
-  uAspectRatio: 1,
-};
+  uTime: number
+  uAspectRatio: number
+  uPointer: Vector2
+}
 
 const GlassGridMaterial = shaderMaterial(
-  INITIAL_UNIFORMS,
+  { uTime: 0, uAspectRatio: 1, uPointer: new Vector2() },
   vertexShader,
   fragmentShader,
-);
+)
 
-extend({ GlassGridMaterial });
+extend({ GlassGridMaterial })
 
-declare module "@react-three/fiber" {
+declare module '@react-three/fiber' {
   interface ThreeElements {
-    glassGridMaterial: import("@react-three/fiber").ThreeElements["shaderMaterial"] &
-      Partial<Uniforms>;
+    glassGridMaterial: import('@react-three/fiber').ThreeElements['shaderMaterial'] &
+      Partial<Uniforms>
   }
 }
 
-const ShaderGlassGrid: FC = memo(() => {
-  const materialRef = useRef<ShaderMaterial & Partial<Uniforms>>(null);
-  const { size } = useThree();
+function ShaderGlassGrid() {
+  const materialRef = useRef<ShaderMaterial & Uniforms>(null)
+  const reducedMotion = useReducedMotion()
 
-  useFrame(({ elapsed }) => {
-    if (!materialRef.current) return;
-    materialRef.current.uTime = elapsed;
-    materialRef.current.uAspectRatio = size.width / size.height;
-
-    if (materialRef.current.uResolution instanceof Vector2) {
-      materialRef.current.uResolution.set(size.width, size.height);
-    }
-  });
+  useFrame(({ size, pointer }, delta) => {
+    const material = materialRef.current
+    if (!material) return
+    const dt = Math.min(delta, 0.05)
+    material.uAspectRatio = size.width / size.height
+    if (!reducedMotion) material.uTime += dt
+    const ease = 1 - Math.exp(-dt * 2.5)
+    material.uPointer.x += ((reducedMotion ? 0 : pointer.x) - material.uPointer.x) * ease
+    material.uPointer.y += ((reducedMotion ? 0 : pointer.y) - material.uPointer.y) * ease
+  })
 
   return (
     <ScreenQuad>
       <glassGridMaterial
         key={GlassGridMaterial.key}
         ref={materialRef}
-        uTime={0}
-        uResolution={new Vector2(size.width, size.height)}
-        uAspectRatio={1}
+        toneMapped={false}
+        depthTest={false}
+        depthWrite={false}
       />
     </ScreenQuad>
-  );
-});
+  )
+}
 
-ShaderGlassGrid.displayName = "ShaderGlassGrid";
-
-export const ShaderGlassGridCanvas: FC = () => (
-  <Canvas className={styles.canvas} gl={{ alpha: false, antialias: true }} style={{ background: "#000" }}>
-    <ShaderGlassGrid />
-  </Canvas>
-);
+export function ShaderGlassGridCanvas() {
+  return (
+    <Canvas
+      className={styles.canvas}
+      dpr={[1, 1.25]}
+      gl={{ alpha: false, antialias: false }}
+      style={{ background: '#080905' }}
+    >
+      <ShaderGlassGrid />
+    </Canvas>
+  )
+}

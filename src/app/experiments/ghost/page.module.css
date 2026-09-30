@@ -11,6 +11,14 @@
   position: absolute;
   inset: 0;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.stage:focus-visible {
+  outline: 1px solid #e95036;
+  outline-offset: -4px;
 }
 
 .stage canvas {

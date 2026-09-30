@@ -15,6 +15,7 @@ import {
   ShaderMaterial,
 } from 'three'
 import { GHOST_QUALITY, type GhostQuality } from './quality'
+import type { GhostCharge } from './charge'
 
 // Bake seamless cloud detail once. Each layer needs only two texture samples
 // per fragment instead of recomputing noise or ray marching a volume.
@@ -85,6 +86,7 @@ const fragmentShader = `
   uniform float uOpacity;
   uniform float uIllumination;
   uniform float uHalfWidth;
+  uniform float uCharge;
   varying vec2 vUv;
   varying vec3 vWorld;
 
@@ -129,6 +131,7 @@ const fragmentShader = `
       + pool * vec3(0.3, 0.29, 0.27)
       + rim * vec3(0.04, 0.055, 0.075);
     #endif
+    light = mix(light, vec3(1.35, 0.13, 0.035), uCharge * 0.75);
     gl_FragColor = vec4(light * uIllumination, alpha);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -138,21 +141,26 @@ const fragmentShader = `
 export default function Fog({
   quality,
   reducedMotion,
+  charge,
 }: {
   quality: GhostQuality
   reducedMotion: boolean
+  charge: React.RefObject<GhostCharge>
 }) {
   const root = useRef<Group>(null)
   const cards = useRef<InstancedMesh[]>([])
   const time = useRef({ value: 0 })
   const halfWidths = useRef([{ value: 4.4 }, { value: 4.4 }])
   const view = useRef({ width: 0, height: 0, depth: 0 })
-  const { camera } = useThree()
+  const { camera, gl } = useThree()
 
   useEffect(() => {
     const owner = root.current
     if (!owner) return
     const settings = GHOST_QUALITY[quality]
+    // Linear HDR compositing lifts faint white mist much more than the
+    // original display-space blend. Keep its visible density understated.
+    const opacityScale = gl.extensions.has('EXT_color_buffer_float') ? 0.2 : 1
     const noise = createNoiseTexture(settings.noiseSize)
     const geometry = new PlaneGeometry(1, 1, ...settings.fogSegments).rotateX(-Math.PI / 2)
     // Fewer slices also reduce transparent overdraw, not just draw calls.
@@ -188,9 +196,10 @@ export default function Fog({
           uTime: time.current,
           uSpeed: { value: layer.speed },
           uPhase: { value: layer.phase },
-          uOpacity: { value: layer.opacity / slices },
+          uOpacity: { value: (layer.opacity / slices) * opacityScale },
           uIllumination: { value: layer.illumination },
           uHalfWidth: halfWidths.current[index],
+          uCharge: charge.current.glow,
         },
         vertexShader,
         fragmentShader,
@@ -222,7 +231,7 @@ export default function Fog({
       geometry.dispose()
       noise.dispose()
     }
-  }, [quality])
+  }, [quality, charge, gl])
 
   useFrame(({ size, viewport }, delta) => {
     if (!reducedMotion) time.current.value += Math.min(delta, 0.05)

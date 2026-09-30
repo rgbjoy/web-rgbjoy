@@ -20,3 +20,5 @@ export function usePortfolio() {
     experiments: catalogExperiments(entries),
   }
 }
+
+export type PortfolioProject = ReturnType<typeof usePortfolio>["projects"][number]

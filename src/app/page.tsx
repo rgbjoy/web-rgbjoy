@@ -1,6 +1,6 @@
 "use client"
 
-import { usePortfolio, useInfo } from "./utilities/PortfolioProvider"
+import { usePortfolio, useInfo, type PortfolioProject } from "./utilities/PortfolioProvider"
 import gsap from "gsap"
 import { infoDocument, infoText } from "./data/info-document"
 import { InfoBody } from "./utilities/InfoBody"
@@ -28,7 +28,6 @@ import {
   type Experiment,
 } from "./data/experiments"
 import { LINKS, type SiteLink } from "./data/links"
-import { type Project } from "./data/projects"
 import { SITE } from "./data/site"
 import { AskAboutWork } from "./utilities/AskAboutWork/AskAboutWork"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
@@ -142,8 +141,8 @@ function markIntroPlayed() {
 /**
  * Index scroll position across a trip into an experiment and back. Module state
  * covers soft client navigations; sessionStorage covers a hard back/forward
- * where the module reloads. Written continuously so unmount order cannot lose
- * the value after Next has already scrolled the experiment to the top.
+ * where the module reloads. Tracked while scrolling and saved before leaving;
+ * cleanup persists that snapshot instead of reading the experiment's offset.
  */
 const INDEX_SCROLL_KEY = "rgbjoy:index-scroll"
 const AVAILABILITY_DISMISSED_KEY = "rgbjoy:availability-dismissed"
@@ -167,8 +166,8 @@ function availabilityDismissedSnapshot() {
 const serverAvailabilityDismissedSnapshot = () => false
 let rememberedIndexScroll = 0
 
-function rememberIndexScroll() {
-  rememberedIndexScroll = window.scrollY
+function rememberIndexScroll(y = window.scrollY) {
+  rememberedIndexScroll = y
   try {
     window.sessionStorage.setItem(
       INDEX_SCROLL_KEY,
@@ -654,16 +653,16 @@ export default function Home() {
   // sections have their real height (see CollapsibleContent's `instant`).
   useEffect(() => {
     const onScroll = () => {
-      rememberedIndexScroll = window.scrollY
+      // A route change can reset scroll before this page's effect cleans up.
+      if (window.location.pathname === "/") rememberedIndexScroll = window.scrollY
     }
-    const onHide = () => rememberIndexScroll()
+    const onHide = () => rememberIndexScroll(rememberedIndexScroll)
 
-    onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
     window.addEventListener("pagehide", onHide)
 
     return () => {
-      rememberIndexScroll()
+      rememberIndexScroll(rememberedIndexScroll)
       window.removeEventListener("scroll", onScroll)
       window.removeEventListener("pagehide", onHide)
     }
@@ -1016,7 +1015,7 @@ function LinkRow({ link }: { link: SiteLink }) {
   )
 }
 
-function ProjectRow({ project }: { project: Project }) {
+function ProjectRow({ project }: { project: PortfolioProject }) {
   return (
     <a
       href={project.href}
@@ -1046,7 +1045,11 @@ function ProjectRow({ project }: { project: Project }) {
 
 function ExperimentRow({ experiment }: { experiment: Experiment }) {
   return (
-    <Link href={experiment.href} className={styles.item}>
+    <Link
+      href={experiment.href}
+      className={styles.item}
+      onNavigate={() => rememberIndexScroll()}
+    >
       <div className={styles.itemBody}>
         <div className={styles.itemTitleRow}>
           <span className={styles.itemTitle}>{experiment.title}</span>

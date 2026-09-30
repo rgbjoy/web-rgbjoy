@@ -13,6 +13,9 @@ import {
   Matrix4,
   Mesh,
   Object3D,
+  HemisphereLight,
+  PointLight,
+  PointsMaterial,
   Quaternion,
   Vector3,
 } from 'three'
@@ -22,6 +25,9 @@ import { GhostCloth, HEAD_Y } from './cloth'
 import { createClothMaterials } from './materials'
 import { IdleDirector, type IdleActivity } from './idle'
 import Fog from './Fog'
+import ChargeSky, { EyeCharge } from './ChargeEffects'
+import ColorGrade from './ColorGrade'
+import { CHARGE_HORIZON, stepCharge, type GhostCharge } from './charge'
 import { GHOST_QUALITY, type GhostQuality } from './quality'
 import styles from './page.module.css'
 
@@ -30,12 +36,21 @@ type SceneProps = {
   quality: GhostQuality
   reducedMotion: boolean
   pointer: React.RefObject<Pointer>
+  charge: React.RefObject<GhostCharge>
   onAttention: (near: boolean) => void
   onActivity: (activity: IdleActivity) => void
   onReady: () => void
 }
 
-function Ghost({ quality, reducedMotion, pointer, onAttention, onActivity, onReady }: SceneProps) {
+function Ghost({
+  quality,
+  reducedMotion,
+  pointer,
+  charge,
+  onAttention,
+  onActivity,
+  onReady,
+}: SceneProps) {
   const root = useRef<Group>(null)
   const { camera, size } = useThree()
   const resources = useRef<{
@@ -107,18 +122,28 @@ function Ghost({ quality, reducedMotion, pointer, onAttention, onActivity, onRea
     }
     if (!reducedMotion) state.time += dt
     const t = state.time
-    const pose = idle.current.update(dt, state.near, reducedMotion)
+    const power = charge.current.glow.value
+    // The charge already eases at both ends. Squaring it keeps the first
+    // moments quiet, then builds a restrained, irregular tremble at full power.
+    const shake = reducedMotion ? 0 : power * power
+    const shakeX = (Math.sin(t * 42) + Math.sin(t * 67 + 0.8) * 0.3) * 0.035 * shake
+    const shakeRoll = Math.sin(t * 39 + 0.4) * 0.009 * shake
+    const pose = idle.current.update(
+      dt,
+      state.near || charge.current.held || power > 0.05,
+      reducedMotion,
+    )
     if (state.activity !== idle.current.activity) {
       state.activity = idle.current.activity
       onActivity(state.activity)
     }
 
     root.current.position.set(
-      (reducedMotion ? 0 : Math.sin(t * 0.47) * 0.045) + pose.x,
-      (reducedMotion ? 0.03 : 0.045 + Math.sin(t * 1.15) * 0.065) + pose.y,
-      (reducedMotion ? 0 : Math.sin(t * 0.38) * 0.025) + pose.z,
+      (reducedMotion ? 0 : Math.sin(t * 0.47) * 0.045) + pose.x + shakeX,
+      (reducedMotion ? 0.03 : 0.045 + Math.sin(t * 1.15) * 0.065 + power * 0.1) + pose.y,
+      (reducedMotion ? 0 : Math.sin(t * 0.38) * 0.025) + pose.z + Math.sin(t * 37) * 0.01 * shake,
     )
-    root.current.rotation.set(pose.pitch, pose.yaw, pose.roll, 'YXZ')
+    root.current.rotation.set(pose.pitch, pose.yaw, pose.roll + shakeRoll, 'YXZ')
     const width = 1 / Math.sqrt(pose.stretch)
     root.current.scale.set(width, pose.stretch, width)
     root.current.updateMatrix()
@@ -165,7 +190,12 @@ function Ghost({ quality, reducedMotion, pointer, onAttention, onActivity, onRea
     state.pitch = MathUtils.lerp(state.pitch, pitch, ease)
     state.roll = MathUtils.lerp(state.roll, roll, ease)
 
-    s.euler.set(state.pitch, state.yaw, state.roll, 'YXZ')
+    s.euler.set(
+      state.pitch + Math.sin(t * 48) * 0.006 * shake,
+      state.yaw + Math.sin(t * 45 + 0.8) * 0.01 * shake,
+      state.roll + Math.sin(t * 40) * 0.007 * shake,
+      'YXZ',
+    )
     s.rotation.setFromEuler(s.euler)
     s.head.compose(s.pivot, s.rotation, s.scale).multiply(s.inversePivot)
 
@@ -182,15 +212,33 @@ function Ghost({ quality, reducedMotion, pointer, onAttention, onActivity, onRea
       near ? 0.07 : 0,
       reducedMotion ? 1 : 1 - Math.exp(-dt * 4),
     )
-    active.fabrics.blink.value = Math.max(blink, pose.squint, state.focus)
-    active.cloth.update(dt, s.head, reducedMotion ? 0 : 0.35 + pose.flutter, root.current.matrix)
-  })
+    active.fabrics.blink.value = Math.max(blink, pose.squint, state.focus) * (1 - power * 0.95)
+    active.fabrics.charge.value = power
+    active.cloth.update(
+      dt,
+      s.head,
+      reducedMotion ? 0 : 0.35 + pose.flutter + power * 0.16,
+      root.current.matrix,
+    )
+  }, -1)
 
-  return <group ref={root} />
+  return (
+    <group ref={root}>
+      <EyeCharge charge={charge} head={scratch} quality={quality} reducedMotion={reducedMotion} />
+    </group>
+  )
 }
 
-function Dust({ reducedMotion }: { reducedMotion: boolean }) {
+function Dust({
+  reducedMotion,
+  charge,
+}: {
+  reducedMotion: boolean
+  charge: React.RefObject<GhostCharge>
+}) {
   const points = useRef<Group>(null)
+  const material = useRef<PointsMaterial>(null)
+  const colors = useRef({ idle: new Color('#d8d3bd'), ember: new Color('#ff5012') })
   const time = useRef(0)
   const [positions] = useState(() => {
     const data = new Float32Array(65 * 3)
@@ -205,10 +253,16 @@ function Dust({ reducedMotion }: { reducedMotion: boolean }) {
     return data
   })
   useFrame((_, dt) => {
+    const power = charge.current.glow.value
+    if (material.current) {
+      material.current.color.copy(colors.current.idle).lerp(colors.current.ember, power)
+      material.current.opacity = 0.22 + power * 0.6
+      material.current.size = 0.011 + power * 0.017
+    }
     if (!points.current || reducedMotion) return
     time.current += Math.min(dt, 1 / 30)
     points.current.rotation.y = Math.sin(time.current * 0.035) * 0.2
-    points.current.position.y = Math.sin(time.current * 0.13) * 0.12
+    points.current.position.y = Math.sin(time.current * 0.13) * 0.12 + power * 0.2
   })
   return (
     <group ref={points}>
@@ -217,6 +271,7 @@ function Dust({ reducedMotion }: { reducedMotion: boolean }) {
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
         <pointsMaterial
+          ref={material}
           size={0.011}
           color="#d8d3bd"
           transparent
@@ -229,8 +284,28 @@ function Dust({ reducedMotion }: { reducedMotion: boolean }) {
   )
 }
 
-function Stage(props: SceneProps) {
-  const settings = GHOST_QUALITY[props.quality]
+function Stage({
+  quality,
+  reducedMotion,
+  pointer,
+  charge: chargeRef,
+  onAttention,
+  onActivity,
+  onReady,
+}: SceneProps) {
+  const settings = GHOST_QUALITY[quality]
+  const fill = useRef<PointLight>(null)
+  const hemisphere = useRef<HemisphereLight>(null)
+  const colors = useRef({
+    background: new Color('#050708'),
+    emberBackground: new Color(CHARGE_HORIZON),
+    fill: new Color('#b8c8d1'),
+    emberFill: new Color('#ff1907'),
+    sky: new Color('#bccada'),
+    emberSky: new Color('#ff6728'),
+    ground: new Color('#181512'),
+    emberGround: new Color('#542015'),
+  })
   const [target] = useState(() => {
     const object = new Object3D()
     object.position.set(0, 0.7, 0)
@@ -244,15 +319,36 @@ function Stage(props: SceneProps) {
     camera.updateProjectionMatrix()
   }, [camera, size.width, size.height])
 
+  useFrame(({ scene }, delta) => {
+    const state = chargeRef.current
+    state.level = stepCharge(state.level, state.held, delta)
+    const power = state.level * state.level * (3 - 2 * state.level)
+    state.glow.value = power
+    if (!reducedMotion) state.time.value += Math.min(delta, 0.1)
+    const palette = colors.current
+    if (scene.background instanceof Color)
+      scene.background.copy(palette.background).lerp(palette.emberBackground, power)
+    if (scene.fog) scene.fog.color.copy(palette.background).lerp(palette.emberBackground, power)
+    if (fill.current) {
+      fill.current.color.copy(palette.fill).lerp(palette.emberFill, power)
+      fill.current.intensity = 1.1 + power * 8
+    }
+    if (hemisphere.current) {
+      hemisphere.current.color.copy(palette.sky).lerp(palette.emberSky, power)
+      hemisphere.current.groundColor.copy(palette.ground).lerp(palette.emberGround, power)
+      hemisphere.current.intensity = 0.17 + power * 0.2
+    }
+  }, -2)
+
   return (
     <>
       <color attach="background" args={['#050708']} />
       <fog attach="fog" args={['#050708', 9, 26]} />
       <ambientLight intensity={0.07} color="#9aaab8" />
-      <hemisphereLight args={['#bccada', '#181512', 0.17]} />
+      <hemisphereLight ref={hemisphere} args={['#bccada', '#181512', 0.17]} />
       <primitive object={target} />
       <spotLight
-        key={props.quality}
+        key={quality}
         position={[-3.2, 6.2, 3.5]}
         target={target}
         color="#fff0d4"
@@ -274,12 +370,22 @@ function Stage(props: SceneProps) {
         angle={0.5}
         penumbra={1}
       />
-      <pointLight position={[-0.6, 1.5, 4]} color="#b8c8d1" intensity={1.1} />
-      <Ghost {...props} />
+      <pointLight ref={fill} position={[-0.6, 1.5, 4]} color="#b8c8d1" intensity={1.1} />
+      <ChargeSky charge={chargeRef} />
+      <ColorGrade charge={chargeRef} />
+      <Ghost
+        quality={quality}
+        reducedMotion={reducedMotion}
+        pointer={pointer}
+        charge={chargeRef}
+        onAttention={onAttention}
+        onActivity={onActivity}
+        onReady={onReady}
+      />
       <Scenery compact={size.width / size.height < 0.75} />
       <Graveyard compact={size.width / size.height < 0.75} />
-      <Dust reducedMotion={props.reducedMotion} />
-      <Fog quality={props.quality} reducedMotion={props.reducedMotion} />
+      <Dust reducedMotion={reducedMotion} charge={chargeRef} />
+      <Fog quality={quality} reducedMotion={reducedMotion} charge={chargeRef} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[200, 200]} />
         <meshStandardMaterial color="#25282a" roughness={0.95} metalness={0.08} />
@@ -318,6 +424,18 @@ export default function Scene() {
   const [activity, setActivity] = useState<IdleActivity>('waiting')
   const reducedMotion = useReducedMotion()
   const pointer = useRef<Pointer>({ x: 0, y: 0, active: false })
+  const charge = useRef<GhostCharge>({
+    held: false,
+    level: 0,
+    glow: { value: 0 },
+    time: { value: 0 },
+  })
+  const [held, setHeldState] = useState(false)
+  const setHeld = useCallback((next: boolean) => {
+    charge.current.held = next
+    setHeldState(next)
+  }, [])
+
   const onReady = useCallback(() => setReady(true), [])
   const onAttention = useCallback((attention: boolean) => setNear(attention), [])
   const onActivity = useCallback((next: IdleActivity) => setActivity(next), [])
@@ -325,12 +443,25 @@ export default function Scene() {
   useEffect(() => {
     const onBlur = () => {
       pointer.current.active = false
+      setHeld(false)
+    }
+    const onRelease = (event: PointerEvent) => {
+      if (event.isPrimary) setHeld(false)
+    }
+    const onVisibility = () => {
+      if (document.hidden) onBlur()
     }
     window.addEventListener('blur', onBlur)
+    window.addEventListener('pointerup', onRelease)
+    window.addEventListener('pointercancel', onBlur)
+    document.addEventListener('visibilitychange', onVisibility)
     return () => {
       window.removeEventListener('blur', onBlur)
+      window.removeEventListener('pointerup', onRelease)
+      window.removeEventListener('pointercancel', onBlur)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [])
+  }, [setHeld])
 
   return (
     <main
@@ -338,11 +469,29 @@ export default function Scene() {
       data-quality={quality}
       data-attention={near ? 'watching' : 'waiting'}
       data-idle={activity}
+      data-held={held}
       aria-label="A cloth ghost that watches the pointer and plays while waiting"
     >
       <div
         className={styles.stage}
         data-ready={ready}
+        role="button"
+        tabIndex={0}
+        aria-label="Hold to awaken the ghost's red eyes and ember sky"
+        aria-pressed={held}
+        onKeyDown={(event) => {
+          if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault()
+            setHeld(true)
+          }
+        }}
+        onKeyUp={(event) => {
+          if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault()
+            setHeld(false)
+          }
+        }}
+        onBlur={() => setHeld(false)}
         onPointerMove={(event) => {
           const bounds = event.currentTarget.getBoundingClientRect()
           pointer.current = {
@@ -352,6 +501,9 @@ export default function Scene() {
           }
         }}
         onPointerDown={(event) => {
+          if (!event.isPrimary || event.button !== 0) return
+          event.currentTarget.setPointerCapture(event.pointerId)
+          setHeld(true)
           const bounds = event.currentTarget.getBoundingClientRect()
           pointer.current = {
             x: event.clientX - bounds.left,
@@ -363,11 +515,14 @@ export default function Scene() {
           pointer.current.active = false
         }}
         onPointerUp={(event) => {
+          setHeld(false)
           if (event.pointerType === 'touch') pointer.current.active = false
         }}
         onPointerCancel={() => {
+          setHeld(false)
           pointer.current.active = false
         }}
+        onLostPointerCapture={() => setHeld(false)}
       >
         <Canvas
           shadows
@@ -388,6 +543,7 @@ export default function Scene() {
             quality={quality}
             reducedMotion={reducedMotion}
             pointer={pointer}
+            charge={charge}
             onAttention={onAttention}
             onActivity={onActivity}
             onReady={onReady}

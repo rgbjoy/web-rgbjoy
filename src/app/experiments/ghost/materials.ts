@@ -31,6 +31,7 @@ const eyeBackingMask = `
 
 export function createClothMaterials(quality: GhostQuality = 'desktop') {
   const blink = { value: 0 }
+  const charge = { value: 0 }
   const material = new MeshPhysicalMaterial({
     color: '#e4e0d4',
     roughness: 0.93,
@@ -44,10 +45,15 @@ export function createClothMaterials(quality: GhostQuality = 'desktop') {
     depthPacking: RGBADepthPacking,
     side: DoubleSide,
   })
-  const eyeMaterial = new MeshBasicMaterial({ color: '#020305', side: DoubleSide })
+  const eyeMaterial = new MeshBasicMaterial({
+    color: '#020305',
+    side: DoubleSide,
+    toneMapped: false,
+  })
 
   const inject = (shader: WebGLProgramParametersWithUniforms, mask: string) => {
     shader.uniforms.uBlink = blink
+    shader.uniforms.uCharge = charge
     shader.vertexShader = `attribute vec3 restPosition;
       varying vec3 vRestPosition;
       varying vec2 vClothUv;
@@ -60,6 +66,7 @@ export function createClothMaterials(quality: GhostQuality = 'desktop') {
       `,
     )
     shader.fragmentShader = `uniform float uBlink;
+      uniform float uCharge;
       varying vec3 vRestPosition;
       varying vec2 vClothUv;
       ${eyeDistance}
@@ -86,6 +93,14 @@ export function createClothMaterials(quality: GhostQuality = 'desktop') {
         diffuseColor.rgb *= mix(1.0, mix(0.54, 1.0, edge), 1.0 - uBlink);
     `,
     )
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <emissivemap_fragment>',
+      `#include <emissivemap_fragment>
+       if (vRestPosition.z > 0.42) {
+         float eyeSpill = exp(-pow(ghostEyeDistance(), 2.0) * 1.5);
+         totalEmissiveRadiance += vec3(2.2, 0.008, 0.002) * eyeSpill * uCharge;
+       }`,
+    )
   }
   depthMaterial.onBeforeCompile = (shader) => inject(shader, eyeMask)
   eyeMaterial.onBeforeCompile = (shader) => {
@@ -96,10 +111,17 @@ export function createClothMaterials(quality: GhostQuality = 'desktop') {
       '#include <begin_vertex>',
       '#include <begin_vertex>\n transformed -= normal * 0.008;',
     )
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <opaque_fragment>',
+      `float core = 1.0 - smoothstep(0.0, 0.95, ghostEyeDistance());
+       vec3 burningEye = mix(vec3(2.8, 0.003, 0.001), vec3(6.0, 0.028, 0.002), core * core);
+       outgoingLight = mix(outgoingLight, burningEye, uCharge);
+       #include <opaque_fragment>`,
+    )
   }
-  material.customProgramCacheKey = () => `ghost-cloth-v3-${quality}`
-  depthMaterial.customProgramCacheKey = () => 'ghost-cloth-depth-v2'
-  eyeMaterial.customProgramCacheKey = () => 'ghost-eye-backing-v1'
+  material.customProgramCacheKey = () => `ghost-cloth-v4-${quality}`
+  depthMaterial.customProgramCacheKey = () => 'ghost-cloth-depth-v3'
+  eyeMaterial.customProgramCacheKey = () => 'ghost-eye-backing-v2'
 
-  return { material, depthMaterial, eyeMaterial, blink }
+  return { material, depthMaterial, eyeMaterial, blink, charge }
 }
