@@ -1,0 +1,51 @@
+.main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: #e2e0d9;
+  background: #050708;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.stage canvas {
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+.stage[data-ready='true'] canvas {
+  opacity: 1;
+}
+.main:has(.stage > .fallback) .loading {
+  display: none;
+}
+
+.vignette,
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.vignette {
+  background: radial-gradient(ellipse at 50% 42%, transparent 20%, #02030440 65%, #020304b3 100%);
+}
+
+.grain {
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.94' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+}
+
+.loading,
+.fallback {
+  position: absolute;
+  inset: 45% 20px auto;
+  color: #a0aaa2;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.8;
+}

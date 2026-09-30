@@ -25,6 +25,17 @@ export const EXPERIMENT_GROUPS = [
 
 export const EXPERIMENTS: Experiment[] = [
   {
+    href: "/experiments/ghost",
+    title: "Ghost",
+    description:
+      "A quietly waiting sheet ghost — simulated cloth, wandering idle motion, and a gaze that notices you in the dark.",
+    group: "3D & Spatial",
+    date: "2026-09",
+    status: "live",
+    tech: ["Three.js", "R3F", "GLSL"],
+    keywords: ["ghost", "cloth", "simulation", "fabric", "spotlight", "idle", "mouse", "gaze"],
+  },
+  {
     href: "/experiments/aurora",
     title: "Aurora",
     description:
