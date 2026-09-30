@@ -1,7 +1,7 @@
 'use client'
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
   ACESFilmicToneMapping,
   Color,
@@ -20,10 +20,12 @@ import { GhostCloth, HEAD_Y } from './cloth'
 import { createClothMaterials } from './materials'
 import { IdleDirector, type IdleActivity } from './idle'
 import Fog from './Fog'
+import { GHOST_QUALITY, type GhostQuality } from './quality'
 import styles from './page.module.css'
 
 type Pointer = { x: number; y: number; active: boolean }
 type SceneProps = {
+  quality: GhostQuality
   reducedMotion: boolean
   pointer: React.RefObject<Pointer>
   onAttention: (near: boolean) => void
@@ -31,7 +33,7 @@ type SceneProps = {
   onReady: () => void
 }
 
-function Ghost({ reducedMotion, pointer, onAttention, onActivity, onReady }: SceneProps) {
+function Ghost({ quality, reducedMotion, pointer, onAttention, onActivity, onReady }: SceneProps) {
   const root = useRef<Group>(null)
   const { camera, size } = useThree()
   const resources = useRef<{
@@ -67,14 +69,15 @@ function Ghost({ reducedMotion, pointer, onAttention, onActivity, onReady }: Sce
     if (!owner) return
     idle.current = new IdleDirector()
     animation.current.focus = 0
-    const cloth = new GhostCloth()
-    const fabrics = createClothMaterials()
+    const cloth = new GhostCloth(quality)
+    const fabrics = createClothMaterials(quality)
     const identity = new Matrix4()
-    for (let frame = 0; frame < 90; frame++) cloth.update(1 / 90, identity, 0.3)
+    const step = GHOST_QUALITY[quality].cloth.step
+    for (let frame = 0; frame < Math.round(1 / step); frame++) cloth.update(step, identity, 0.3)
     const mesh = new Mesh(cloth.geometry, fabrics.material)
     mesh.customDepthMaterial = fabrics.depthMaterial
     mesh.castShadow = true
-    mesh.receiveShadow = true
+    mesh.receiveShadow = quality === 'desktop'
     mesh.frustumCulled = false
     const eyes = new Mesh(cloth.geometry, fabrics.eyeMaterial)
     eyes.frustumCulled = false
@@ -88,7 +91,7 @@ function Ghost({ reducedMotion, pointer, onAttention, onActivity, onReady }: Sce
       fabrics.depthMaterial.dispose()
       fabrics.eyeMaterial.dispose()
     }
-  }, [])
+  }, [quality])
 
   useFrame((_, frameDelta) => {
     const active = resources.current
@@ -225,6 +228,7 @@ function Dust({ reducedMotion }: { reducedMotion: boolean }) {
 }
 
 function Stage(props: SceneProps) {
+  const settings = GHOST_QUALITY[props.quality]
   const [target] = useState(() => {
     const object = new Object3D()
     object.position.set(0, 0.7, 0)
@@ -246,6 +250,7 @@ function Stage(props: SceneProps) {
       <hemisphereLight args={['#bccada', '#181512', 0.17]} />
       <primitive object={target} />
       <spotLight
+        key={props.quality}
         position={[-3.2, 6.2, 3.5]}
         target={target}
         color="#fff0d4"
@@ -254,7 +259,7 @@ function Stage(props: SceneProps) {
         penumbra={0.85}
         decay={2}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[settings.shadowSize, settings.shadowSize]}
         shadow-bias={-0.0004}
         shadow-normalBias={0.025}
         shadow-radius={4}
@@ -270,7 +275,7 @@ function Stage(props: SceneProps) {
       <pointLight position={[-0.6, 1.5, 4]} color="#b8c8d1" intensity={1.1} />
       <Ghost {...props} />
       <Dust reducedMotion={props.reducedMotion} />
-      <Fog reducedMotion={props.reducedMotion} />
+      <Fog quality={props.quality} reducedMotion={props.reducedMotion} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[200, 200]} />
         <meshStandardMaterial color="#25282a" roughness={0.95} metalness={0.08} />
@@ -292,7 +297,18 @@ function Stage(props: SceneProps) {
   )
 }
 
+const mobileQuery = '(any-pointer: coarse), (max-width: 700px)'
+function subscribeQuality(onChange: () => void) {
+  const query = window.matchMedia(mobileQuery)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+const clientQuality = (): GhostQuality =>
+  window.matchMedia(mobileQuery).matches ? 'mobile' : 'desktop'
+const serverQuality = (): GhostQuality => 'mobile'
+
 export default function Scene() {
+  const quality = useSyncExternalStore(subscribeQuality, clientQuality, serverQuality)
   const [ready, setReady] = useState(false)
   const [near, setNear] = useState(false)
   const [activity, setActivity] = useState<IdleActivity>('waiting')
@@ -315,6 +331,7 @@ export default function Scene() {
   return (
     <main
       className={styles.main}
+      data-quality={quality}
       data-attention={near ? 'watching' : 'waiting'}
       data-idle={activity}
       aria-label="A cloth ghost that watches the pointer and plays while waiting"
@@ -350,9 +367,9 @@ export default function Scene() {
       >
         <Canvas
           shadows
-          dpr={[1, 1.5]}
+          dpr={quality === 'mobile' ? 1 : [1, GHOST_QUALITY[quality].dpr]}
           camera={{ position: [0, 2.6, 8.4], fov: 38, near: 0.1, far: 50 }}
-          gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+          gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
           onCreated={({ gl }) => {
             gl.toneMapping = ACESFilmicToneMapping
             gl.toneMappingExposure = 1.05
@@ -364,6 +381,7 @@ export default function Scene() {
           }
         >
           <Stage
+            quality={quality}
             reducedMotion={reducedMotion}
             pointer={pointer}
             onAttention={onAttention}

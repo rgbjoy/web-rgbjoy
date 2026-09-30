@@ -6,6 +6,7 @@ import {
   RGBADepthPacking,
   type WebGLProgramParametersWithUniforms,
 } from 'three'
+import type { GhostQuality } from './quality'
 
 // The opening and its shaded rim use one distance field, so the rim closes
 // with the eyelid instead of leaving an open oval behind during a blink.
@@ -28,7 +29,7 @@ const eyeBackingMask = `
   if (uBlink >= 0.999 || vRestPosition.z <= 0.42 || ghostEyeDistance() >= 1.12) discard;
 `
 
-export function createClothMaterials() {
+export function createClothMaterials(quality: GhostQuality = 'desktop') {
   const blink = { value: 0 }
   const material = new MeshPhysicalMaterial({
     color: '#e4e0d4',
@@ -77,7 +78,8 @@ export function createClothMaterials() {
       `
       #include <color_fragment>
       // Tiny threads in both directions, with a low contrast irregular weave.
-      float weave = sin(vClothUv.x * 1800.0) * sin(vClothUv.y * 1400.0);
+      // Subpixel threads alias at the mobile render resolution.
+      float weave = ${quality === 'mobile' ? '0.0' : 'sin(vClothUv.x * 1800.0) * sin(vClothUv.y * 1400.0)'};
       diffuseColor.rgb *= 0.975 + weave * 0.025;
       float edge = smoothstep(1.0, 1.32, ghostEyeDistance());
       if (vRestPosition.z > 0.42)
@@ -95,7 +97,7 @@ export function createClothMaterials() {
       '#include <begin_vertex>\n transformed -= normal * 0.008;',
     )
   }
-  material.customProgramCacheKey = () => 'ghost-cloth-v2'
+  material.customProgramCacheKey = () => `ghost-cloth-v3-${quality}`
   depthMaterial.customProgramCacheKey = () => 'ghost-cloth-depth-v2'
   eyeMaterial.customProgramCacheKey = () => 'ghost-eye-backing-v1'
 

@@ -31,6 +31,10 @@
   pointer-events: none;
 }
 
+.main[data-quality='mobile'] .grain {
+  display: none;
+}
+
 .vignette {
   background: radial-gradient(ellipse at 50% 42%, transparent 20%, #02030440 65%, #020304b3 100%);
 }

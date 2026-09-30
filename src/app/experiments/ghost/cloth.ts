@@ -1,11 +1,7 @@
 import { BufferAttribute, BufferGeometry, DynamicDrawUsage, Matrix4 } from 'three'
+import { GHOST_QUALITY, type GhostQuality } from './quality'
 
-const SEGMENTS = 64
-const CAP_ROWS = 16
-const SKIRT_ROWS = 30
-const ROWS = CAP_ROWS + SKIRT_ROWS
 const HEAD_SUPPORT_RADIUS = 0.625
-const STEP = 1 / 90
 export const HEAD_Y = 2.0
 
 type Constraint = { a: number; b: number; length: number; stiffness: number }
@@ -16,12 +12,18 @@ type Constraint = { a: number; b: number; length: number; stiffness: number }
  * the skirt integrates gravity, wind and inertia at a fixed timestep. */
 export class GhostCloth {
   readonly geometry = new BufferGeometry()
-  readonly rest = new Float32Array((ROWS + 1) * SEGMENTS * 3)
-  readonly positions = new Float32Array(this.rest.length)
-  private readonly previous = new Float32Array(this.rest.length)
-  private readonly weights = new Float32Array((ROWS + 1) * SEGMENTS)
+  readonly segments: number
+  readonly rest: Float32Array
+  readonly positions: Float32Array
+  private readonly previous: Float32Array
+  private readonly weights: Float32Array
+  private readonly rows: number
+  private readonly step: number
+  private readonly stepSquared: number
+  private readonly iterations: number
+  private readonly damping: number
   private readonly constraints: Constraint[] = []
-  private readonly renderPositions = new Float32Array((ROWS + 1) * (SEGMENTS + 1) * 3)
+  private readonly renderPositions: Float32Array
   private readonly inverseBody = new Matrix4()
   private gravityX = 0
   private gravityY = -2.4
@@ -35,20 +37,34 @@ export class GhostCloth {
   private accumulator = 0
   private time = 0
 
-  constructor() {
-    for (let row = 0; row <= ROWS; row++) {
-      const skirt = Math.max(0, (row - CAP_ROWS) / SKIRT_ROWS)
-      const phi = Math.min(row / CAP_ROWS, 1) * Math.PI * 0.5
+  constructor(quality: GhostQuality = 'desktop') {
+    const { segments, capRows, skirtRows, step, iterations } = GHOST_QUALITY[quality].cloth
+    const rows = capRows + skirtRows
+    this.segments = segments
+    this.rows = rows
+    this.step = step
+    this.stepSquared = step * step
+    this.iterations = iterations
+    // Preserve the same damping per second at either simulation frequency.
+    this.damping = 0.975 ** (step * 90)
+    this.rest = new Float32Array((rows + 1) * segments * 3)
+    this.positions = new Float32Array(this.rest.length)
+    this.previous = new Float32Array(this.rest.length)
+    this.weights = new Float32Array((rows + 1) * segments)
+    this.renderPositions = new Float32Array((rows + 1) * (segments + 1) * 3)
+    for (let row = 0; row <= rows; row++) {
+      const skirt = Math.max(0, (row - capRows) / skirtRows)
+      const phi = Math.min(row / capRows, 1) * Math.PI * 0.5
       const radius =
-        row <= CAP_ROWS ? Math.max(0.001, Math.sin(phi) * 0.64) : 0.64 + Math.pow(skirt, 0.8) * 0.19
-      const y = row <= CAP_ROWS ? HEAD_Y + Math.cos(phi) * 0.64 : HEAD_Y - skirt * 1.72
+        row <= capRows ? Math.max(0.001, Math.sin(phi) * 0.64) : 0.64 + Math.pow(skirt, 0.8) * 0.19
+      const y = row <= capRows ? HEAD_Y + Math.cos(phi) * 0.64 : HEAD_Y - skirt * 1.72
 
-      for (let col = 0; col < SEGMENTS; col++) {
-        const theta = (col / SEGMENTS) * Math.PI * 2
+      for (let col = 0; col < segments; col++) {
+        const theta = (col / segments) * Math.PI * 2
         // The cloth has a little excess material over the head. Broad,
         // uneven pleats run from the crown into the hanging folds, rather
         // than making the supported part a perfectly smooth hemisphere.
-        const cap = row <= CAP_ROWS
+        const cap = row <= capRows
         const crownEnvelope = cap ? Math.sin(phi) ** 1.5 : Math.exp(-skirt * 12)
         const faceClearance = cap
           ? 1 - Math.exp(-Math.pow((y - 2.14) / 0.25, 2)) * Math.max(0, Math.cos(theta)) ** 8
@@ -61,7 +77,7 @@ export class GhostCloth {
           (Math.sin(theta * 9 + 0.4) * 0.044 + Math.sin(theta * 13 - 0.7) * 0.015) *
             Math.pow(skirt, 0.65) +
           crownFold
-        const index = (row * SEGMENTS + col) * 3
+        const index = (row * segments + col) * 3
         this.rest[index] = Math.sin(theta) * (radius + fold)
         this.rest[index + 1] =
           y +
@@ -70,8 +86,8 @@ export class GhostCloth {
         this.rest[index + 2] = Math.cos(theta) * (radius + fold)
         // Keep the fabric immediately around the eyes attached to the gaze.
         // The remaining crown can move against the head's collision surface.
-        const faceAnchor = row <= CAP_ROWS + 1 && y < 2.4 && Math.cos(theta) > 0.58
-        this.weights[row * SEGMENTS + col] = row <= 2 || faceAnchor ? 0 : 1
+        const faceAnchor = row <= capRows + 1 && y < 2.4 && Math.cos(theta) > 0.58
+        this.weights[row * segments + col] = row <= 2 || faceAnchor ? 0 : 1
       }
     }
     this.positions.set(this.rest)
@@ -93,35 +109,35 @@ export class GhostCloth {
         ),
       })
     }
-    for (let row = 0; row <= ROWS; row++) {
-      for (let col = 0; col < SEGMENTS; col++) {
-        const a = row * SEGMENTS + col
-        const next = (col + 1) % SEGMENTS
-        add(a, row * SEGMENTS + next, 0.95)
-        if (row < ROWS) {
-          add(a, (row + 1) * SEGMENTS + col, 0.95)
-          add(a, (row + 1) * SEGMENTS + next, 0.48)
-          add(row * SEGMENTS + next, (row + 1) * SEGMENTS + col, 0.48)
+    for (let row = 0; row <= rows; row++) {
+      for (let col = 0; col < segments; col++) {
+        const a = row * segments + col
+        const next = (col + 1) % segments
+        add(a, row * segments + next, 0.95)
+        if (row < rows) {
+          add(a, (row + 1) * segments + col, 0.95)
+          add(a, (row + 1) * segments + next, 0.48)
+          add(row * segments + next, (row + 1) * segments + col, 0.48)
         }
-        if (row < ROWS - 1) add(a, (row + 2) * SEGMENTS + col, 0.3)
-        add(a, row * SEGMENTS + ((col + 2) % SEGMENTS), 0.26)
+        if (row < rows - 1) add(a, (row + 2) * segments + col, 0.3)
+        add(a, row * segments + ((col + 2) % segments), 0.26)
       }
     }
 
-    const uv = new Float32Array((ROWS + 1) * (SEGMENTS + 1) * 2)
+    const uv = new Float32Array((rows + 1) * (segments + 1) * 2)
     const restPositions = new Float32Array(this.renderPositions.length)
     const indices: number[] = []
-    for (let row = 0; row <= ROWS; row++) {
-      for (let col = 0; col <= SEGMENTS; col++) {
-        const vertex = row * (SEGMENTS + 1) + col
-        const particle = (row * SEGMENTS + (col % SEGMENTS)) * 3
+    for (let row = 0; row <= rows; row++) {
+      for (let col = 0; col <= segments; col++) {
+        const vertex = row * (segments + 1) + col
+        const particle = (row * segments + (col % segments)) * 3
         restPositions.set(this.rest.subarray(particle, particle + 3), vertex * 3)
-        uv[vertex * 2] = col / SEGMENTS
-        uv[vertex * 2 + 1] = row / ROWS
-        if (row < ROWS && col < SEGMENTS) {
+        uv[vertex * 2] = col / segments
+        uv[vertex * 2 + 1] = row / rows
+        if (row < rows && col < segments) {
           const a = vertex
           const b = vertex + 1
-          const c = vertex + SEGMENTS + 1
+          const c = vertex + segments + 1
           indices.push(a, c, b, b, c, c + 1)
         }
       }
@@ -161,11 +177,11 @@ export class GhostCloth {
     }
     // Dropping excess elapsed time prevents a tab returning from suspension
     // from producing a burst of physics or a large velocity impulse.
-    this.accumulator = Math.min(this.accumulator + delta, STEP * 4)
-    while (this.accumulator >= STEP) {
+    this.accumulator = Math.min(this.accumulator + delta, this.step * 4)
+    while (this.accumulator >= this.step) {
       this.integrate(head, breeze)
-      this.accumulator -= STEP
-      this.time += STEP
+      this.accumulator -= this.step
+      this.time += this.step
     }
     // The gaze changes every render, including frames without a physics step
     // on high refresh rate displays. Keep the supported face and its interior
@@ -230,13 +246,13 @@ export class GhostCloth {
       for (let axis = 0; axis < 3; axis++) {
         const current = p[i + axis]
         p[i + axis] +=
-          (current - this.previous[i + axis]) * 0.975 +
-          (axis === 0 ? fx : axis === 1 ? fy : fz) * STEP * STEP
+          (current - this.previous[i + axis]) * this.damping +
+          (axis === 0 ? fx : axis === 1 ? fy : fz) * this.stepSquared
         this.previous[i + axis] = current
       }
     }
 
-    for (let iteration = 0; iteration < 5; iteration++) {
+    for (let iteration = 0; iteration < this.iterations; iteration++) {
       for (const constraint of this.constraints) {
         const { a, b, length, stiffness } = constraint
         const wa = this.weights[a]
@@ -246,7 +262,8 @@ export class GhostCloth {
         const dx = p[j] - p[i]
         const dy = p[j + 1] - p[i + 1]
         const dz = p[j + 2] - p[i + 2]
-        const distance = Math.hypot(dx, dy, dz)
+        // Distances are small and bounded; avoid generalized hypot in this hot loop.
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
         if (distance < 0.00001) continue
         const correction = (((distance - length) / distance) * stiffness) / (wa + wb)
         p[i] += dx * correction * wa
@@ -290,10 +307,11 @@ export class GhostCloth {
   }
 
   private syncGeometry() {
-    for (let row = 0; row <= ROWS; row++) {
-      for (let col = 0; col <= SEGMENTS; col++) {
-        const source = (row * SEGMENTS + (col % SEGMENTS)) * 3
-        const destination = (row * (SEGMENTS + 1) + col) * 3
+    const { segments, rows } = this
+    for (let row = 0; row <= rows; row++) {
+      for (let col = 0; col <= segments; col++) {
+        const source = (row * segments + (col % segments)) * 3
+        const destination = (row * (segments + 1) + col) * 3
         for (let axis = 0; axis < 3; axis++) {
           this.renderPositions[destination + axis] = this.positions[source + axis]
         }
@@ -304,9 +322,9 @@ export class GhostCloth {
     // The duplicated UV seam shares a physical particle and must share a
     // normal, too, or a bright vertical seam appears on the face.
     const normals = this.geometry.attributes.normal
-    for (let row = 0; row <= ROWS; row++) {
-      const a = row * (SEGMENTS + 1)
-      const b = a + SEGMENTS
+    for (let row = 0; row <= rows; row++) {
+      const a = row * (segments + 1)
+      const b = a + segments
       const x = normals.getX(a) + normals.getX(b)
       const y = normals.getY(a) + normals.getY(b)
       const z = normals.getZ(a) + normals.getZ(b)
