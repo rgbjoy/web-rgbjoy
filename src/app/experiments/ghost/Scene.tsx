@@ -1,6 +1,8 @@
 'use client'
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import Scenery from './Scenery'
+import Graveyard from './Graveyard'
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
   ACESFilmicToneMapping,
@@ -274,6 +276,8 @@ function Stage(props: SceneProps) {
       />
       <pointLight position={[-0.6, 1.5, 4]} color="#b8c8d1" intensity={1.1} />
       <Ghost {...props} />
+      <Scenery compact={size.width / size.height < 0.75} />
+      <Graveyard compact={size.width / size.height < 0.75} />
       <Dust reducedMotion={props.reducedMotion} />
       <Fog quality={props.quality} reducedMotion={props.reducedMotion} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
