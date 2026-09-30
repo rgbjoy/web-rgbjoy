@@ -43,6 +43,8 @@
 
 .brand {
   justify-self: start;
+  /* Clears the shared back link pinned above it. */
+  margin-top: 52px;
   padding: 6px 0;
 }
 

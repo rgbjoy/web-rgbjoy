@@ -1,0 +1,55 @@
+/* Shared by every experiment, so it follows the site's theme tokens rather than
+   any one scene. Frosted instead of filled: it has to read over the bright
+   scenes and the dark ones alike. Under the search palette (40). */
+.back {
+  position: fixed;
+  z-index: 20;
+  top: max(var(--gutter), env(safe-area-inset-top));
+  left: max(var(--gutter), env(safe-area-inset-left));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px 9px 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  box-shadow: 0 8px 24px #0003;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--fg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--rollover-fade);
+}
+
+.back svg {
+  flex-shrink: 0;
+  transition: color var(--rollover-fade);
+}
+
+@media (hover: hover) {
+  .back:hover {
+    background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+  }
+
+  .back:hover svg {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.back:focus-visible {
+  background: color-mix(in srgb, var(--fg) 18%, var(--bg));
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .back {
+    font-size: 11px;
+  }
+}

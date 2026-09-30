@@ -14,7 +14,9 @@
 
 .stats {
   position: absolute !important;
-  top: 8px !important;
+  /* Bottom corner: the top-left belongs to the shared back link. */
+  top: auto !important;
+  bottom: 8px !important;
   left: 8px !important;
   z-index: 10;
   opacity: 0.85;

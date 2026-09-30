@@ -34,7 +34,8 @@
 .titleBlock {
   position: absolute;
   z-index: 1;
-  top: max(24px, env(safe-area-inset-top));
+  /* Clears the shared back link pinned above it. */
+  top: calc(max(24px, env(safe-area-inset-top)) + 64px);
   left: max(28px, env(safe-area-inset-left));
   max-width: min(42vw, 560px);
   color: #f6fff8;
@@ -491,7 +492,7 @@
 
 @media (max-width: 720px) {
   .titleBlock {
-    top: max(16px, env(safe-area-inset-top));
+    top: calc(max(16px, env(safe-area-inset-top)) + 48px);
     left: max(16px, env(safe-area-inset-left));
     max-width: calc(100vw - 32px);
   }

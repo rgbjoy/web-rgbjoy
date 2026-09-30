@@ -1,0 +1,170 @@
+/* Mirrors the index's experiment list on the home page, flattened: no toggles,
+   so groups sit flush with the heading instead of indenting past a toggle. */
+.index {
+  min-height: 100vh;
+  min-height: 100dvh;
+  /* Clears the pinned back link above. */
+  padding: 112px var(--gutter) max(64px, env(safe-area-inset-bottom));
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap);
+  margin: 0 0 4px;
+  padding: 4px 0;
+  font-weight: inherit;
+}
+
+.headingName,
+.groupName {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.headingName {
+  font-size: 18px;
+}
+
+.groupName {
+  font-size: 16px;
+}
+
+.rule {
+  flex: 1;
+  align-self: center;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.headingCount,
+.groupCount {
+  font-size: 16px;
+  color: var(--faint);
+}
+
+.group {
+  margin-top: 28px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: var(--gap);
+  align-items: baseline;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 14px var(--gutter);
+  color: inherit;
+  text-decoration: none;
+}
+
+.item:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.itemBody {
+  min-width: 0;
+}
+
+.itemTitle {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--rollover-fade);
+}
+
+@media (hover: hover) {
+  .item:hover .itemTitle,
+  .item:active .itemTitle {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.item:focus-visible .itemTitle {
+  color: var(--rollover-seed, var(--fg));
+}
+
+.itemDesc {
+  max-width: 560px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.itemTech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-tight);
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itemTechTag {
+  padding: 2px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--faint);
+}
+
+.itemDate {
+  padding-top: 2px;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--faint);
+}
+
+@media (max-width: 640px) {
+  .index {
+    padding-top: 84px;
+  }
+
+  .group {
+    margin-top: 18px;
+  }
+
+  .headingName,
+  .itemTitle {
+    font-size: 15px;
+  }
+
+  .groupName,
+  .headingCount,
+  .groupCount,
+  .itemDate {
+    font-size: 12px;
+  }
+
+  .itemDesc {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .itemTechTag {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .item {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 4px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .itemDate {
+    grid-column: 1;
+    padding-top: 0;
+    text-align: left;
+  }
+}

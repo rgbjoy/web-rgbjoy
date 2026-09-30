@@ -60,12 +60,6 @@
   transform: scaleX(0);
 }
 
-/* Rows of an already-open category, held back until their heading arrives. */
-.introPending .category > *:not(.categoryHeading) {
-  opacity: 0;
-  visibility: hidden;
-}
-
 .container {
   display: flex;
   flex-direction: column;

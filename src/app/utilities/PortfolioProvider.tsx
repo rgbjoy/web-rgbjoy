@@ -1,8 +1,7 @@
 'use client'
 
 import { createContext, useContext } from 'react'
-import type { CatalogEntry, SiteInfo } from '../data/content'
-import { EXPERIMENTS } from '../data/experiments'
+import { catalogExperiments, type CatalogEntry, type SiteInfo } from '../data/content'
 
 const PortfolioContext = createContext<CatalogEntry[]>([])
 const InfoContext = createContext<SiteInfo | null>(null)
@@ -18,10 +17,6 @@ export function usePortfolio() {
   const entries = useContext(PortfolioContext)
   return {
     projects: entries.flatMap((entry) => entry.kind === 'project' ? [{ title: entry.title, href: entry.url, year: entry.year, description: entry.description ?? undefined, tech: entry.technologies }] : []),
-    experiments: entries.flatMap((entry) => {
-      if (entry.kind !== 'experiment') return []
-      const source = EXPERIMENTS.find((item) => item.href === new URL(entry.url).pathname)
-      return source ? [{ ...source, title: entry.title, description: entry.description ?? '' }] : []
-    }),
+    experiments: catalogExperiments(entries),
   }
 }

@@ -314,7 +314,7 @@ function CategoryHeader({
       <button
         type="button"
         className={styles.categoryHeader}
-        data-category=""
+        data-category={name}
         aria-expanded={open}
         onClick={onToggle}
       >
@@ -501,6 +501,10 @@ export default function Home() {
   )
   const [introCount, setIntroCount] = useState(resumeVisit ? INTRO_TOTAL : 0)
   const [introPending, setIntroPending] = useState(!resumeVisit)
+  // Categories whose heading the intro has drawn. An open one unfurls as its
+  // heading lands, rather than every section waiting on the whole intro.
+  const [arrived, setArrived] = useState<ReadonlySet<string>>(() => new Set())
+  const hasArrived = (name: string) => !introPending || arrived.has(name)
 
   const dismissAvailability = () => {
     availabilityDismissedThisLoad = true
@@ -541,6 +545,7 @@ export default function Home() {
     // intro set there would be stranded hidden when that kill lands.
     const parts = categories.map((category) => {
       return {
+        name: category.dataset.category ?? "",
         lead: [
           category.querySelector('[data-intro="toggle"]'),
           category.querySelector('[data-intro="name"]'),
@@ -600,6 +605,9 @@ export default function Home() {
           },
           "+=0.06",
         )
+        // Opens alongside the rule, so an expanded section has unfurled by the
+        // time the next heading lands beneath it.
+        .call(() => setArrived((names) => new Set(names).add(part.name)))
         .to(part.rule, {
           scaleX: 1,
           duration: 0.45,
@@ -795,7 +803,13 @@ export default function Home() {
           </button>
         </h3>
 
-        <CollapsibleContent open={isOpen} ready={!introPending} instant={resumeVisit}>
+        {/* Opens with its parent category. Snapped while the intro runs so the
+            parent's unfurl measures this group at full height, not at zero. */}
+        <CollapsibleContent
+          open={isOpen}
+          ready={hasArrived("experiments")}
+          instant={resumeVisit || introPending}
+        >
           {group.items.map((experiment) => (
             <ExperimentRow key={experiment.href} experiment={experiment} />
           ))}
@@ -881,7 +895,7 @@ export default function Home() {
 
                 <CollapsibleContent
                   open={projectsOpen}
-                  ready={!introPending}
+                  ready={hasArrived("projects")}
                   instant={resumeVisit}
                 >
                   {filteredProjects.map((project) => (
@@ -902,7 +916,7 @@ export default function Home() {
 
                 <CollapsibleContent
                   open={experimentsOpen}
-                  ready={!introPending}
+                  ready={hasArrived("experiments")}
                   instant={resumeVisit}
                 >
                   {groups.map(renderGroup)}
@@ -921,7 +935,7 @@ export default function Home() {
 
                 <CollapsibleContent
                   open={linksOpen}
-                  ready={!introPending}
+                  ready={hasArrived("links")}
                   instant={resumeVisit}
                 >
                   {filteredLinks.map((link) => (
