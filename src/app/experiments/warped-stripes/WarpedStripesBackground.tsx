@@ -14,6 +14,9 @@ import styles from "./WarpedStripesBackground.module.css";
 type Uniforms = {
   uTime: number;
   uResolution: Vector2;
+  uPointer: Vector2;
+  uPointerStrength: number;
+  uPointerRadius: number;
   uAngle: number;
   uTimeScale: number;
   uStripeDensity: number;
@@ -28,6 +31,9 @@ type Uniforms = {
 const INITIAL_UNIFORMS: Uniforms = {
   uTime: 0,
   uResolution: new Vector2(1, 1),
+  uPointer: new Vector2(0.5, 0.5),
+  uPointerStrength: 0,
+  uPointerRadius: 0.3,
   uAngle: 0.4,
   uTimeScale: 0.15,
   uStripeDensity: 17.0,
@@ -62,7 +68,51 @@ const colorToGui = (color: Vector3) => ({
 
 const ShaderWarpedStripes: FC = memo(() => {
   const materialRef = useRef<(ShaderMaterial & Uniforms) | null>(null);
-  const { size } = useThree();
+  const { size, gl } = useThree();
+  const pointerTarget = useRef(new Vector2(0.5, 0.5));
+  const pointerActive = useRef(false);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    const movePointer = (event: PointerEvent) => {
+      const bounds = canvas.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+
+      pointerTarget.current.set(
+        (event.clientX - bounds.left) / bounds.width,
+        1 - (event.clientY - bounds.top) / bounds.height,
+      );
+      // Re-enter at the cursor instead of sweeping from its last position.
+      if (!pointerActive.current) {
+        materialRef.current?.uPointer.copy(pointerTarget.current);
+      }
+      pointerActive.current = true;
+    };
+
+    const leavePointer = () => {
+      pointerActive.current = false;
+    };
+    const releasePointer = (event: PointerEvent) => {
+      if (event.pointerType === "touch") leavePointer();
+    };
+
+    canvas.addEventListener("pointermove", movePointer);
+    canvas.addEventListener("pointerdown", movePointer);
+    canvas.addEventListener("pointerleave", leavePointer);
+    canvas.addEventListener("pointercancel", leavePointer);
+    window.addEventListener("pointerup", releasePointer);
+    window.addEventListener("blur", leavePointer);
+
+    return () => {
+      canvas.removeEventListener("pointermove", movePointer);
+      canvas.removeEventListener("pointerdown", movePointer);
+      canvas.removeEventListener("pointerleave", leavePointer);
+      canvas.removeEventListener("pointercancel", leavePointer);
+      window.removeEventListener("pointerup", releasePointer);
+      window.removeEventListener("blur", leavePointer);
+    };
+  }, [gl]);
 
   const paramsRef = useRef({
     angle: INITIAL_UNIFORMS.uAngle,
@@ -145,12 +195,19 @@ const ShaderWarpedStripes: FC = memo(() => {
     };
   }, []);
 
-  useFrame(({ elapsed }) => {
+  useFrame(({ elapsed, delta }) => {
     if (!materialRef.current) return;
-    materialRef.current.uTime = elapsed;
+    const material = materialRef.current;
+    material.uTime = elapsed;
 
-    if (materialRef.current.uResolution instanceof Vector2) {
-      materialRef.current.uResolution.set(size.width, size.height);
+    const follow = 1 - Math.exp(-12 * delta);
+    const fade = 1 - Math.exp(-6 * delta);
+    material.uPointer.lerp(pointerTarget.current, follow);
+    material.uPointerStrength +=
+      ((pointerActive.current ? 1 : 0) - material.uPointerStrength) * fade;
+
+    if (material.uResolution instanceof Vector2) {
+      material.uResolution.set(size.width, size.height);
     }
   });
 

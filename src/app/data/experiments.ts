@@ -17,10 +17,10 @@ export type Experiment = {
 
 /** Group display order on the index. */
 export const EXPERIMENT_GROUPS = [
-  "Play",
+  "3D & Spatial",
   "Generative & Visual",
   "Glass & Refraction",
-  "3D & Spatial",
+  "Play",
 ] as const
 
 export const EXPERIMENTS: Experiment[] = [
@@ -48,13 +48,13 @@ export const EXPERIMENTS: Experiment[] = [
   },
   {
     href: "/experiments/gradient",
-    title: "Background Gradient",
-    description: "Shader-led gradient exploration.",
+    title: "Black Ink",
+    description: "A slow monochrome ink wash shaped by layered noise.",
     group: "Generative & Visual",
     date: "2026-03",
     status: "live",
     tech: ["Three.js", "R3F", "GLSL"],
-    keywords: ["gradient", "background", "color", "shader"],
+    keywords: ["black ink", "monochrome", "ink wash", "noise", "shader"],
   },
   {
     href: "/experiments/frog-hop",
@@ -196,16 +196,6 @@ export const EXPERIMENTS: Experiment[] = [
     keywords: ["gradient", "color", "palette", "oklab", "natural", "mesh", "shader", "thi.ng"],
   },
   {
-    href: "/experiments/moon-waves",
-    title: "Moon Waves",
-    description: "Lunar-toned atmospheric wave study.",
-    group: "Generative & Visual",
-    date: "2026-03",
-    status: "live",
-    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
-    keywords: ["moon", "waves", "water", "shader"],
-  },
-  {
     href: "/experiments/palm-leaf",
     title: "Palm Leaf",
     description: "Tropical light filtering through large fronds.",
@@ -245,17 +235,6 @@ export const EXPERIMENTS: Experiment[] = [
     status: "live",
     tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
     keywords: ["sky", "atmosphere", "sun", "shader"],
-  },
-  {
-    href: "/experiments/space-road",
-    title: "Space Road",
-    description:
-      "2001-inspired octagonal corridor with long dark wall panels and forward drift.",
-    group: "3D & Spatial",
-    date: "2026-06",
-    status: "live",
-    tech: ["Three.js", "R3F", "GLSL", "Postprocessing"],
-    keywords: ["space", "road", "2001", "tunnel", "octagon", "three", "odyssey"],
   },
   {
     href: "/experiments/unbreaking-waves",

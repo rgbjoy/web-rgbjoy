@@ -19,20 +19,24 @@ type Uniforms = {
   uMouse: Vector4;
 };
 
-function sunDirection(azimuth: number, elevation: number) {
+function sunDirection(azimuth: number, elevation: number, target = new Vector3()) {
   const ce = Math.cos(elevation);
-  return new Vector3(ce * Math.sin(azimuth), Math.sin(elevation), ce * Math.cos(azimuth));
+  return target.set(ce * Math.sin(azimuth), Math.sin(elevation), ce * Math.cos(azimuth));
 }
 
 // Azimuth is angle in the XZ plane. The sky shader’s view rays point toward -Z, so the sun sits
 // in the middle of the screen when the light direction is (0, y, -|z|): sin(azimuth)=0 and
 // cos(azimuth)=-1 → azimuth = ±π (same direction on the circle).
 const DEFAULT_SUN_AZIMUTH = -Math.PI;
+const DEFAULT_SUN_ELEVATION = 0.42;
+const SUN_BOUNCE_MIN = -0.017;
+const SUN_BOUNCE_MAX = 0.485;
+const SUN_BOUNCE_PERIOD = 20; // Seconds for a full rise and fall.
 
 const INITIAL_UNIFORMS: Uniforms = {
   uTime: 0,
   uResolution: new Vector2(1, 1),
-  uSunDir: sunDirection(DEFAULT_SUN_AZIMUTH, 0.42),
+  uSunDir: sunDirection(DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION),
   uExposure: 1.05,
   uMouse: new Vector4(0, 0, 0, 0),
 };
@@ -58,9 +62,13 @@ const ShaderSkyAtmosphere: FC = memo(() => {
 
   const paramsRef = useRef({
     azimuth: DEFAULT_SUN_AZIMUTH,
-    elevation: 0.42,
+    elevation: DEFAULT_SUN_ELEVATION,
+    bounce: true,
     exposure: 1.05,
   });
+  const bouncePhaseRef = useRef(Math.acos(
+    1 - 2 * (DEFAULT_SUN_ELEVATION - SUN_BOUNCE_MIN) / (SUN_BOUNCE_MAX - SUN_BOUNCE_MIN),
+  ));
   const guiRef = useRef<GUI | null>(null);
 
   useEffect(() => {
@@ -78,10 +86,27 @@ const ShaderSkyAtmosphere: FC = memo(() => {
       .add(paramsRef.current, "azimuth", -Math.PI, Math.PI, 0.001)
       .name("Sun azimuth")
       .onChange(syncSun);
-    gui
+    const elevationController = gui
       .add(paramsRef.current, "elevation", -0.15, Math.PI * 0.5 - 0.02, 0.001)
       .name("Sun elevation")
+      .decimals(3)
+      .listen()
+      .disable(paramsRef.current.bounce)
       .onChange(syncSun);
+    gui
+      .add(paramsRef.current, "bounce")
+      .name("Bounce")
+      .onChange((enabled: boolean) => {
+        if (enabled) {
+          // Start from the current elevation without jumping within the range.
+          const fraction = Math.max(0, Math.min(1,
+            (paramsRef.current.elevation - SUN_BOUNCE_MIN) /
+              (SUN_BOUNCE_MAX - SUN_BOUNCE_MIN),
+          ));
+          bouncePhaseRef.current = Math.acos(1 - 2 * fraction);
+        }
+        elevationController.disable(enabled);
+      });
     gui
       .add(paramsRef.current, "exposure", 0.4, 2.2, 0.01)
       .name("Exposure")
@@ -125,11 +150,23 @@ const ShaderSkyAtmosphere: FC = memo(() => {
     };
   }, []);
 
-  useFrame(({ elapsed }) => {
+  useFrame(({ elapsed, delta }) => {
     if (!materialRef.current) return;
-    materialRef.current.uTime = elapsed;
-    if (materialRef.current.uResolution instanceof Vector2) {
-      materialRef.current.uResolution.set(size.width, size.height);
+    const material = materialRef.current;
+    const params = paramsRef.current;
+    material.uTime = elapsed;
+
+    if (params.bounce) {
+      bouncePhaseRef.current = (
+        bouncePhaseRef.current + delta * Math.PI * 2 / SUN_BOUNCE_PERIOD
+      ) % (Math.PI * 2);
+      const fraction = (1 - Math.cos(bouncePhaseRef.current)) * 0.5;
+      params.elevation = SUN_BOUNCE_MIN + (SUN_BOUNCE_MAX - SUN_BOUNCE_MIN) * fraction;
+      sunDirection(params.azimuth, params.elevation, material.uSunDir);
+    }
+
+    if (material.uResolution instanceof Vector2) {
+      material.uResolution.set(size.width, size.height);
     }
   });
 

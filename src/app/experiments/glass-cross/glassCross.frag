@@ -12,6 +12,7 @@ varying vec2 vUv;
 
 const float GLASS_STRENGTH = 0.2;
 const float TILT_V = 1.57079632679; // vertical line
+const float SPIN_PERIOD = 40.0; // Seconds per full revolution.
 const float TIME_SCALE = 0.7;
 const float DISTORT = 1.05;
 const float REFRACT_SCALE = 0.45;
@@ -77,7 +78,12 @@ void main() {
 
     float time = uTime * TIME_SCALE;
 
-    vec2 refractUV = uv + GLASS_STRENGTH * glassLineRefraction(s, TILT_V);
+    float spin = uTime * 6.28318530718 / SPIN_PERIOD;
+    vec2 refraction = glassLineRefraction(rot2(s, -spin), TILT_V);
+    // Rotate the glass and its refraction together in screen space.
+    refraction = rot2(refraction * vec2(uAspectRatio, 1.0), spin);
+    refraction.x /= uAspectRatio;
+    vec2 refractUV = uv + GLASS_STRENGTH * refraction;
 
     vec3 col = sampleLineWave(refractUV, time);
 

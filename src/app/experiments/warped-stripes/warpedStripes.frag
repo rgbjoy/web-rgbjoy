@@ -3,6 +3,9 @@ precision highp float;
 #endif
 
 uniform vec2 uResolution;
+uniform vec2 uPointer;
+uniform float uPointerStrength;
+uniform float uPointerRadius;
 uniform float uTime;
 uniform float uAngle;
 uniform float uTimeScale;
@@ -39,6 +42,13 @@ void main() {
     vec2 uv = vUv;
     float aspect = uResolution.x / uResolution.y;
     vec2 p = vec2(uv.x * aspect, uv.y);
+
+    // Work in screen space so the bend stays round at every aspect ratio.
+    vec2 pointer = vec2(uPointer.x * aspect, uPointer.y);
+    vec2 offset = p - pointer;
+    float influence = exp(-dot(offset, offset) / (uPointerRadius * uPointerRadius));
+    vec2 twist = vec2(-offset.y, offset.x);
+    p += (offset * 0.8 + twist * 0.65) * influence * uPointerStrength;
 
     float c = cos(uAngle);
     float s = sin(uAngle);
