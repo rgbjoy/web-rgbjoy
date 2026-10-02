@@ -220,7 +220,9 @@ function Ghost({
       reducedMotion ? 0 : 0.35 + pose.flutter + power * 0.16,
       root.current.matrix,
     )
-  }, -1)
+    // After the stage settles the charge (higher priority runs first), and
+    // before the eye rays, which read the head pose written here.
+  }, { priority: 1 })
 
   return (
     <group ref={root}>
@@ -338,7 +340,8 @@ function Stage({
       hemisphere.current.groundColor.copy(palette.ground).lerp(palette.emberGround, power)
       hemisphere.current.intensity = 0.17 + power * 0.2
     }
-  }, -2)
+    // First in the update phase: everything else reads this frame's charge.
+  }, { priority: 2 })
 
   return (
     <>

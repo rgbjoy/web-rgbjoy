@@ -126,7 +126,8 @@ export default function ColorGrade({ charge }: { charge: React.RefObject<GhostCh
     gl.render(scene, camera)
     gl.setRenderTarget(previousTarget)
     gl.render(pass.scene, pass.camera)
-  }, 1)
+    // The render phase runs after every update; a job here replaces R3F's default render.
+  }, { phase: 'render' })
 
   return null
 }
