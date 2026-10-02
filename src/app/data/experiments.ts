@@ -25,6 +25,17 @@ export const EXPERIMENT_GROUPS = [
 
 export const EXPERIMENTS: Experiment[] = [
   {
+    href: "/experiments/endless-scroll",
+    title: "Endless Scroll",
+    description:
+      "An endless vertical list of names — fast, smooth scrolling and paired background and preview colors that crossfade on hover.",
+    group: "Generative & Visual",
+    date: "2026-10",
+    status: "live",
+    tech: ["React", "CSS", "Lenis"],
+    keywords: ["endless", "infinite", "scroll", "names", "color", "hover", "typography"],
+  },
+  {
     href: "/experiments/ghost",
     title: "Ghost",
     description:
