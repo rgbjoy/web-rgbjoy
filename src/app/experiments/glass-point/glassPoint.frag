@@ -4,11 +4,16 @@ precision highp float;
 
 #pragma glslify: cosinePalettePreset = require('../../utilities/shaders/colorPalettePresets.glsl')
 
-// 5×3 grid of point lenses refracting an Unbreaking Waves-style wash background
+// 5×3 grid of point lenses refracting an Unbreaking Waves-style wash background.
+// The lens positions are simulated on the CPU (points.ts) so they can shy away
+// from the pointer and spring back.
+
+#define POINT_COUNT 15
 
 uniform vec2 uResolution;
 uniform float uTime;
 uniform float uAspectRatio;
+uniform vec2 uPoints[POINT_COUNT];
 
 varying vec2 vUv;
 
@@ -19,12 +24,10 @@ const float LENS_POWER = 0.55;
 const float FIELD_GAIN = 0.065;
 const float FIELD_FALLOFF = 0.85;
 const float MAX_WARP = 0.22;
-const float GRID_COLS = 5.0;
-const float GRID_ROWS = 3.0;
-const float GRID_MARGIN = 0.9;
 const float PALETTE_PRESET = 4.0; // sunset — see src/app/utilities/shaders/colorPalettePresets.glsl
 const float PALETTE_SCROLL_SPEED = 0.22;
 const float FOG_MIX = 0.06;
+// The grid in points.ts is laid out in this frame; keep the two in sync.
 const float FRAME_HALF_Y = 0.62;
 const float FRAME_BLEED = 0.06;
 const float FRAME_FEATHER = 0.012;
@@ -93,28 +96,18 @@ float pointInfluence(float r) {
     return 1.0 / (r * r + soft2);
 }
 
-vec2 gridPointAt(float col, float row) {
-    float spanX = (uAspectRatio * 0.5 + FRAME_BLEED * 0.5) * GRID_MARGIN * 2.0;
-    float spanY = (FRAME_HALF_Y + FRAME_BLEED * 0.25) * GRID_MARGIN * 2.0;
-    float u = col / (GRID_COLS - 1.0);
-    float v = row / (GRID_ROWS - 1.0);
-    return vec2((u - 0.5) * spanX, (v - 0.5) * spanY);
-}
-
 vec2 blendGridLens(vec2 s, float time) {
     vec2 lensOff = vec2(0.0);
     float wSum = 0.0;
     float phase = 0.0;
 
-    for (float row = 0.0; row < GRID_ROWS; row++) {
-        for (float col = 0.0; col < GRID_COLS; col++) {
-            vec2 pt = gridPointAt(col, row);
-            float r = length(s - pt);
-            float w = pointInfluence(r);
-            lensOff += pointLensOffsetAt(s, pt, time, phase) * w;
-            wSum += w;
-            phase += 1.7;
-        }
+    for (int i = 0; i < POINT_COUNT; i++) {
+        vec2 pt = uPoints[i];
+        float r = length(s - pt);
+        float w = pointInfluence(r);
+        lensOff += pointLensOffsetAt(s, pt, time, phase) * w;
+        wSum += w;
+        phase += 1.7;
     }
 
     return lensOff / max(wSum, 1e-5);

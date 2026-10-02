@@ -5,11 +5,16 @@ precision highp float;
 #pragma glslify: noise = require('glsl-noise/simplex/3d')
 #pragma glslify: cosinePalettePreset = require('../../utilities/shaders/colorPalettePresets.glsl')
 
-// Straight vertical glass line-field + shared cosine palette (gold)
+// Straight vertical glass line-field + shared cosine palette (gold).
+// The lines move apart around the pointer, staying straight, so the strips
+// under it grow wider. Each line's shift is simulated on the CPU (waves.ts).
+
+#define LINE_COUNT 16
 
 uniform vec2 uResolution;
 uniform float uTime;
 uniform float uAspectRatio;
+uniform float uLineShift[LINE_COUNT];
 
 varying vec2 vUv;
 
@@ -80,17 +85,16 @@ void main() {
     s *= zoom;
     s = rot2(s, TILT); // 90° — horizontal line math in rotated space → vertical on screen
 
-    float lineCount = 16.0;
+    float lineCount = float(LINE_COUNT);
     float spacing = 0.4;
     float sz = 1.0;
     float strength = 2.5;
 
     float phi = 0.5;
 
-    for (float i = 0.0; i < 32.0; i++) {
-        if (i >= floor(lineCount)) break;
-
-        float yoff = (i - (lineCount - 1.0) * 0.5) * spacing;
+    for (int line = 0; line < LINE_COUNT; line++) {
+        float i = float(line);
+        float yoff = (i - (lineCount - 1.0) * 0.5) * spacing + uLineShift[line];
 
         vec2 a = vec2(s.x - sz, s.y - yoff);
         vec2 b = vec2(s.x + sz, s.y - yoff);

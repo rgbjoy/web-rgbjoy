@@ -6,8 +6,15 @@ precision highp float;
 // https://twitter.com/SamuelAnn0924
 // https://www.instagram.com/samuel_yan_1990/
 
+// The lines bulge away from the pointer. Each line's sideways shift is
+// simulated on the CPU (lines.ts) and applied around the pointer's position
+// along the lines, so they bend around it rather than jumping whole.
+#define LINE_COUNT 16
+
 uniform vec2 uResolution;
 uniform float uTime;
+uniform float uLineShift[LINE_COUNT];
+uniform float uBumpAlong;
 
 varying vec2 vUv;
 
@@ -20,6 +27,7 @@ const float DISTORT = 1.05;
 const float LINE_WAVE = 0.7;
 const float REFRACT_SCALE = 0.45;
 const float CHROMA_SHIFT = 1.35;
+const float BUMP_WIDTH = 0.45;
 const float FRAME_HALF_Y = 0.62;
 const float FRAME_BLEED = 0.06;
 const float FRAME_FEATHER = 0.012;
@@ -58,17 +66,18 @@ void main() {
     s *= zoom;
     s = rot2(s, TILT);
 
-    float lineCount = 16.0 + 0.0 * sin(time * 0.3);
+    float lineCount = float(LINE_COUNT);
     float spacing = 0.1;
     float sz = 1.0;
     float strength = 2.5;
 
     float phi = 0.5;
+    float alongGap = (s.y - uBumpAlong) / BUMP_WIDTH;
+    float bump = exp(-alongGap * alongGap);
 
-    for (float i = 0.0; i < 32.0; i++) {
-        if (i >= floor(lineCount)) break;
-
-        float xoff = (i - (lineCount - 1.0) * 0.5) * spacing;
+    for (int line = 0; line < LINE_COUNT; line++) {
+        float i = float(line);
+        float xoff = (i - (lineCount - 1.0) * 0.5) * spacing + uLineShift[line] * bump;
 
         vec2 a = vec2(s.x - xoff, s.y - sz);
         vec2 b = vec2(s.x - xoff, s.y + sz);
