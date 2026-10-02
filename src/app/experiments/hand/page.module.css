@@ -1,0 +1,72 @@
+.main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: #8a8a8a;
+  /* Matches the grade's lifted black floor, so the fade-in has no seam. */
+  background: #090909;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  /* The white arrow in the scene is the cursor. */
+  cursor: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Marks the real pointer while the hand is holding the cursor. */
+.ring {
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.ring[data-held='true'] {
+  opacity: 1;
+}
+
+.stage canvas {
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+.stage[data-ready='true'] canvas {
+  opacity: 1;
+}
+.main:has(.stage > .fallback) .loading {
+  display: none;
+}
+
+.loading,
+.fallback {
+  position: absolute;
+  inset: 45% 20px auto;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+}
+
+/* Frames the debug top-down inset, which the renderer draws underneath it. */
+.topView {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  pointer-events: none;
+}
+.topView span {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  color: rgb(255 255 255 / 0.6);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}

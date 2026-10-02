@@ -25,6 +25,17 @@ export const EXPERIMENT_GROUPS = [
 
 export const EXPERIMENTS: Experiment[] = [
   {
+    href: "/experiments/hand",
+    title: "Hand",
+    description:
+      "A sculpted hand in grainy black and white, fingers rolling in a seamless loop. Bring the cursor into its grasp and the hand catches it.",
+    group: "3D & Spatial",
+    date: "2026-10",
+    status: "wip",
+    tech: ["Three.js", "R3F", "GLSL", "glTF"],
+    keywords: ["hand", "fingers", "loop", "black and white", "monochrome", "film grain", "skinned", "rig", "sculpture", "cursor", "grab", "marble", "depth"],
+  },
+  {
     href: "/experiments/endless-scroll",
     title: "Endless Scroll",
     description:
