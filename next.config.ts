@@ -5,7 +5,7 @@ const shaderLoaders = ["raw-loader", "glslify-loader"]
 const nextConfig: NextConfig = {
   reactCompiler: true,
   devIndicators: false,
-  allowedDevOrigins: ['10.0.0.232'],
+  allowedDevOrigins: ['10.0.0.232', '10.0.0.14'],
 
   turbopack: {
     rules: {
