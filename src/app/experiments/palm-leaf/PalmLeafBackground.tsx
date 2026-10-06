@@ -1,7 +1,7 @@
 "use client"
 
 import { OrbitControls } from "@react-three/drei"
-import { Canvas, useThree } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import type { RefObject } from "react"
 import {
   memo,
@@ -12,7 +12,7 @@ import {
   useState,
 } from "react"
 import type { Group, Material, Mesh } from "three"
-import { PCFShadowMap, PlaneGeometry } from "three"
+import { MathUtils, PCFShadowMap, PlaneGeometry, Vector2, Vector3 } from "three"
 
 import { PALM_STEM_BASE_LIFT_Y, PalmFrond } from "./PalmFrond"
 import styles from "./PalmLeafBackground.module.css"
@@ -37,6 +37,202 @@ const CAMERA_TARGET: [number, number, number] = [-4.73, 0.16, 3.52]
 
 /** Uniform scale for palm geometry and frond layout spacing only. */
 const PALM_FROND_SCALE = 2
+
+const MOUSE_REPEL_RADIUS = 0.48
+const MOUSE_REPEL_MAX_RAD = 0.13
+const PALM_LIGHT_POSITION: [number, number, number] = [3, 14, 2]
+
+// Rachis samples relative to the shared base, before the crown's pitch/roll.
+const PALM_REPEL_POINTS = [
+  [0.2, 0.9, 0],
+  [0.8, 1.85, 0],
+  [1.84, 2.9, 0],
+  [3.2, 3.85, 0],
+] as const
+
+type InteractiveFrond = {
+  pivot: Group | null
+  anchor: Group | null
+  strength: number
+  response: number
+}
+
+/** Each frond tilts away from nearby mouse positions, then eases back to rest. */
+function PalmMouseRepulsion({
+  fronds,
+  palmsHidden,
+}: {
+  fronds: InteractiveFrond[]
+  palmsHidden: boolean
+}) {
+  const canvas = useThree((state) => state.gl.domElement)
+  const pointer = useRef({ x: 0, y: 0, active: false, reducedMotion: false })
+  const scratch = useMemo(
+    () => ({
+      world: new Vector3(),
+      projected: new Vector3(),
+      probe: new Vector3(),
+      start: new Vector2(),
+      end: new Vector2(),
+      rest: new Vector2(),
+      xTilt: new Vector2(),
+      zTilt: new Vector2(),
+    }),
+    [],
+  )
+
+  useEffect(() => {
+    const state = pointer.current
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const resetPointer = () => {
+      state.active = false
+    }
+    const syncPreference = () => {
+      state.reducedMotion = preference.matches
+      resetPointer()
+    }
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse" || state.reducedMotion) return
+      // Camera dragging should not push the fronds around.
+      if (event.buttons !== 0) {
+        resetPointer()
+        return
+      }
+      const bounds = canvas.getBoundingClientRect()
+      if (!bounds.width || !bounds.height) return
+      state.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1
+      state.y = 1 - ((event.clientY - bounds.top) / bounds.height) * 2
+      state.active = true
+    }
+
+    syncPreference()
+    canvas.addEventListener("pointermove", onPointerMove)
+    canvas.addEventListener("pointerdown", resetPointer)
+    canvas.addEventListener("pointerleave", resetPointer)
+    canvas.addEventListener("pointercancel", resetPointer)
+    window.addEventListener("blur", resetPointer)
+    preference.addEventListener("change", syncPreference)
+    return () => {
+      canvas.removeEventListener("pointermove", onPointerMove)
+      canvas.removeEventListener("pointerdown", resetPointer)
+      canvas.removeEventListener("pointerleave", resetPointer)
+      canvas.removeEventListener("pointercancel", resetPointer)
+      window.removeEventListener("blur", resetPointer)
+      preference.removeEventListener("change", syncPreference)
+    }
+  }, [canvas])
+
+  useFrame(({ camera, size }, delta) => {
+    const state = pointer.current
+    const dt = Math.min(delta, 0.05)
+    const aspect = size.width / Math.max(size.height, 1)
+    const mouseX = state.x * aspect
+    const { world, projected, probe, start, end, rest, xTilt, zTilt } = scratch
+    const projectPoint = (point: Vector3, screen: Vector2) => {
+      projected.copy(point)
+      if (palmsHidden) {
+        // Interact with each frond's visible shadow in the opening view.
+        const height = projected.y - FLOOR_Y
+        projected.x -=
+          (height * PALM_LIGHT_POSITION[0]) / PALM_LIGHT_POSITION[1]
+        projected.z -=
+          (height * PALM_LIGHT_POSITION[2]) / PALM_LIGHT_POSITION[1]
+        projected.y = FLOOR_Y
+      }
+      projected.project(camera)
+      screen.set(projected.x * aspect, projected.y)
+    }
+
+    fronds.forEach(({ pivot, anchor, strength, response }, index) => {
+      if (!pivot || !anchor) return
+      let pushX = 0
+      let pushY = 0
+
+      if (state.active && !state.reducedMotion) {
+        anchor.updateWorldMatrix(true, false)
+        let nearestDistanceSq = Infinity
+        let nearestX = 0
+        let nearestY = 0
+
+        PALM_REPEL_POINTS.forEach((point, pointIndex) => {
+          world.set(point[0], point[1], point[2]).applyMatrix4(anchor.matrixWorld)
+          projectPoint(world, end)
+
+          if (pointIndex > 0) {
+            const segmentX = end.x - start.x
+            const segmentY = end.y - start.y
+            const lengthSq = segmentX * segmentX + segmentY * segmentY
+            const t =
+              lengthSq > 0
+                ? MathUtils.clamp(
+                    ((mouseX - start.x) * segmentX +
+                      (state.y - start.y) * segmentY) /
+                      lengthSq,
+                    0,
+                    1,
+                  )
+                : 0
+            const dx = start.x + segmentX * t - mouseX
+            const dy = start.y + segmentY * t - state.y
+            const distanceSq = dx * dx + dy * dy
+            if (distanceSq < nearestDistanceSq) {
+              nearestDistanceSq = distanceSq
+              nearestX = dx
+              nearestY = dy
+            }
+          }
+          start.copy(end)
+        })
+
+        const distance = Math.sqrt(nearestDistanceSq)
+        if (distance < MOUSE_REPEL_RADIUS) {
+          const falloff =
+            1 - MathUtils.smoothstep(0, MOUSE_REPEL_RADIUS, distance)
+          const amount = falloff * MOUSE_REPEL_MAX_RAD * strength
+          // Blend a tiny per-frond direction at the center to avoid a dead spot
+          // or an abrupt direction flip directly under the cursor.
+          const bias = Math.max(0, 1 - distance / 0.06) * 0.02
+          const dx = nearestX + Math.cos(index * 2.4) * bias
+          const dy = nearestY + Math.sin(index * 2.4) * bias
+          const length = Math.max(Math.hypot(dx, dy), 0.02)
+          pushX = (dx / length) * amount
+          pushY = (dy / length) * amount
+        }
+      }
+
+      let tiltX = 0
+      let tiltZ = 0
+      const amount = Math.hypot(pushX, pushY)
+      if (amount > 0) {
+        // Measure how each base tilt moves this frond on screen. This also
+        // accounts for shadow movement caused by changes in leaf height.
+        world.set(...PALM_REPEL_POINTS[2]).applyMatrix4(anchor.matrixWorld)
+        projectPoint(world, rest)
+        probe.copy(world)
+        probe.y -= world.z * 0.01
+        probe.z += world.y * 0.01
+        projectPoint(probe, xTilt)
+        xTilt.sub(rest)
+        probe.copy(world)
+        probe.x -= world.y * 0.01
+        probe.y += world.x * 0.01
+        projectPoint(probe, zTilt)
+        zTilt.sub(rest)
+        const alignmentX = pushX * xTilt.x + pushY * xTilt.y
+        const alignmentZ = pushX * zTilt.x + pushY * zTilt.y
+        const length = Math.hypot(alignmentX, alignmentZ)
+        if (length > 1e-8) {
+          tiltX = (alignmentX / length) * amount
+          tiltZ = (alignmentZ / length) * amount
+        }
+      }
+      pivot.rotation.x = MathUtils.damp(pivot.rotation.x, tiltX, response, dt)
+      pivot.rotation.z = MathUtils.damp(pivot.rotation.z, tiltZ, response, dt)
+    })
+  })
+
+  return null
+}
 
 /**
  * Crown layout. Every frond starts on the same pivot (that is what
@@ -99,8 +295,8 @@ function createUndulatingFloorGeometry() {
     const n =
       Math.sin(x * FLOOR_MOUND_FREQ) * Math.cos(y * FLOOR_MOUND_FREQ * 0.92) +
       0.42 *
-      Math.sin(x * FLOOR_MOUND_FREQ * 2.1 + 0.7) *
-      Math.cos(y * FLOOR_MOUND_FREQ * 2.03 + 0.35)
+        Math.sin(x * FLOOR_MOUND_FREQ * 2.1 + 0.7) *
+        Math.cos(y * FLOOR_MOUND_FREQ * 2.03 + 0.35)
     pos.setZ(i, n * FLOOR_MOUND_AMPLITUDE)
   }
   pos.needsUpdate = true
@@ -253,6 +449,16 @@ export const ShaderPalmLeafCanvas = memo(function ShaderPalmLeafCanvas() {
   const [palmsHidden, setPalmsHidden] = useState(true)
   const [wireframe, setWireframe] = useState(false)
   const palmRootRef = useRef<Group>(null)
+  const interactiveFronds = useMemo<InteractiveFrond[]>(
+    () =>
+      PALM_CROWN_FRONDS.map((_, index) => ({
+        pivot: null,
+        anchor: null,
+        strength: 0.85 + index * 0.08,
+        response: (5 + index * 0.65) / 3,
+      })),
+    [],
+  )
 
   const floorGeometry = useMemo(() => createUndulatingFloorGeometry(), [])
 
@@ -306,7 +512,7 @@ export const ShaderPalmLeafCanvas = memo(function ShaderPalmLeafCanvas() {
       */}
       <directionalLight
         castShadow
-        position={[3, 14, 2]}
+        position={PALM_LIGHT_POSITION}
         intensity={2.4}
         color="#fffaf0"
         shadow-mapSize={[2048, 2048]}
@@ -328,19 +534,36 @@ export const ShaderPalmLeafCanvas = memo(function ShaderPalmLeafCanvas() {
 
       {/* Crown axis is +Y. Fronds share this group's origin, which is world 0,0,0. */}
       <group ref={palmRootRef} scale={PALM_FROND_SCALE}>
-        {PALM_CROWN_FRONDS.map(({ azimuth, pitch, windTimeOffset }) => (
-          <group key={windTimeOffset} rotation={[0, azimuth, 0]}>
-            <group rotation={[0, 0, pitch]}>
-              <group rotation={[0, PALM_FROND_ROLL, 0]}>
-                <PalmFrond
-                  position={[0, PALM_STEM_BASE_LIFT_Y, 0]}
-                  windTimeOffset={windTimeOffset}
-                />
+        {PALM_CROWN_FRONDS.map(({ azimuth, pitch, windTimeOffset }, index) => (
+          <group
+            key={windTimeOffset}
+            ref={(group) => {
+              interactiveFronds[index].pivot = group
+            }}
+          >
+            <group rotation={[0, azimuth, 0]}>
+              <group rotation={[0, 0, pitch]}>
+                <group
+                  rotation={[0, PALM_FROND_ROLL, 0]}
+                  ref={(group) => {
+                    interactiveFronds[index].anchor = group
+                  }}
+                >
+                  <PalmFrond
+                    position={[0, PALM_STEM_BASE_LIFT_Y, 0]}
+                    windTimeOffset={windTimeOffset}
+                  />
+                </group>
               </group>
             </group>
           </group>
         ))}
       </group>
+
+      <PalmMouseRepulsion
+        fronds={interactiveFronds}
+        palmsHidden={palmsHidden}
+      />
 
       <PalmSurfaceHiddenSync
         palmsHidden={palmsHidden}

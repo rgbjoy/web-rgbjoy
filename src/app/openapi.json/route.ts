@@ -91,7 +91,6 @@ export function GET() {
                                   'Projects only: year or authored status label such as Coming soon or Ongoing.',
                               },
                               category: string,
-                              publishedMonth: { type: 'string', pattern: '^\\d{4}-\\d{2}$' },
                               status: { type: 'string', enum: ['live', 'wip', 'archived'] },
                               technologies: strings,
                               keywords: strings,

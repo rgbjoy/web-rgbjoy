@@ -18,7 +18,6 @@ export const EXPERIMENT_CATALOG = [
     url: new URL(experiment.href, SITE.url).href,
     description: experiment.description,
     category: experiment.group,
-    publishedMonth: experiment.date,
     status: experiment.status,
     technologies: experiment.tech,
     keywords: experiment.keywords ?? [],
@@ -62,7 +61,7 @@ export function catalogMarkdown(entries: CatalogEntry[], description: string = S
     '',
     '## About this directory',
     '',
-    "This directory contains the projects and interactive experiments listed on rgbjoy.com. Descriptions and technologies come from the portfolio's authored content. Missing descriptions are not inferred. Project year labels may include Coming soon or Ongoing; experiment dates are publication months, not last-modified dates.",
+    "This directory contains the projects and interactive experiments listed on rgbjoy.com. Descriptions and technologies come from the portfolio's authored content. Missing descriptions are not inferred. Project year labels may include Coming soon or Ongoing.",
     '',
     '## Read and explore',
     '',
@@ -80,7 +79,7 @@ export function catalogMarkdown(entries: CatalogEntry[], description: string = S
       '',
       entry.kind === 'project'
         ? `Type: project. Year / status: ${entry.year}.`
-        : `Type: experiment. Category: ${entry.category}. Published: ${entry.publishedMonth}. Status: ${entry.status}.`,
+        : `Type: experiment. Category: ${entry.category}. Status: ${entry.status}.`,
       ...(entry.technologies.length ? [`Technologies: ${entry.technologies.join(', ')}.`] : []),
       '',
     ]),

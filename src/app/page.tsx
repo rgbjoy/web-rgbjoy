@@ -63,27 +63,6 @@ const COLLAPSIBLE = ["projects", "experiments", "links", ...EXPERIMENT_GROUPS]
 // Projects start open on a first visit; a restored session overrides this.
 seedCollapsed(COLLAPSIBLE, ["projects"])
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-]
-
-function formatDate(date: string): string {
-  const [year, month] = date.split("-")
-  const label = MONTHS[parseInt(month, 10) - 1] ?? ""
-  return `${label} ’${year.slice(2)}`
-}
-
 function pad2(n: number): string {
   return String(n).padStart(2, "0")
 }
@@ -725,13 +704,12 @@ export default function Home() {
   const allExpanded = collapsedCount === 0
   const allCollapsed = collapsedCount === COLLAPSIBLE.length
 
+  // Experiments carry no dates, so date order is their authored order, newest first.
   const filtered = useMemo(
     () =>
-      experiments.slice().sort((a, b) =>
-        sort === "date"
-          ? b.date.localeCompare(a.date)
-          : a.title.localeCompare(b.title),
-      ),
+      sort === "name"
+        ? experiments.slice().sort((a, b) => a.title.localeCompare(b.title))
+        : experiments,
     [sort, experiments],
   )
 
@@ -1057,7 +1035,6 @@ function ExperimentRow({ experiment }: { experiment: Experiment }) {
         <div className={styles.itemDesc}>{experiment.description}</div>
         <TechTags tech={experiment.tech} />
       </div>
-      <span className={styles.itemDate}>{formatDate(experiment.date)}</span>
     </Link>
   )
 }

@@ -35,7 +35,7 @@ export default async function DirectoryPage() {
               <p className={styles.details}>
                 {entry.kind === 'project'
                   ? entry.year
-                  : `${entry.category} · ${entry.publishedMonth} · ${entry.status}`}
+                  : `${entry.category} · ${entry.status}`}
                 {entry.technologies.length > 0 && ` · ${entry.technologies.join(', ')}`}
               </p>
             </article>

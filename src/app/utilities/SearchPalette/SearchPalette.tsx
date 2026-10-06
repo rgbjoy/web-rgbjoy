@@ -22,16 +22,6 @@ type Entry = {
   haystack: string
 }
 
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-]
-
-function formatDate(date: string): string {
-  const [year, month] = date.split("-")
-  return `${MONTHS[parseInt(month, 10) - 1] ?? ""} ’${year.slice(2)}`
-}
-
 /**
  * One flat index from the CMS portfolio and authored experiment/link metadata.
  * Rebuilt when the portfolio changes, rather than on every search keystroke.
@@ -51,7 +41,7 @@ function makeIndex(projects: PortfolioProject[], experiments: Experiment[]): Ent
     href: experiment.href,
     title: experiment.title,
     description: experiment.description,
-    meta: formatDate(experiment.date),
+    meta: "experiment",
     external: false,
     haystack: experimentSearchText(experiment),
   })),
