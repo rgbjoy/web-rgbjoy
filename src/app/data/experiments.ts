@@ -24,6 +24,33 @@ export const EXPERIMENT_GROUPS = [
 /** Newest first. There are no dates, so the index's date sort is this order. */
 export const EXPERIMENTS: Experiment[] = [
   {
+    href: "/experiments/global-illumination",
+    title: "Global Illumination",
+    description:
+      "A concrete box in the sky: sun shafts through one window, lit a second time by its own bounce light — one blue-noise ray a pixel, averaged frame over frame until the grain settles. Orbit in and out through the walls.",
+    group: "3D & Spatial",
+    status: "wip",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
+    keywords: [
+      "global illumination",
+      "gi",
+      "bounce",
+      "indirect light",
+      "raymarch",
+      "sdf",
+      "blue noise",
+      "accumulation",
+      "path tracing",
+      "emissive",
+      "soft shadows",
+      "volumetric",
+      "god rays",
+      "bloom",
+      "aces",
+      "orbit",
+    ],
+  },
+  {
     href: "/experiments/hand",
     title: "Hand",
     description:

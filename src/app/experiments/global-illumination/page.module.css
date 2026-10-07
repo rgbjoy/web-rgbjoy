@@ -1,0 +1,23 @@
+.main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* Close to the room's shadowed walls, so the fade-in has nothing to jump from. */
+  background: #1b1b1c;
+}
+
+.stage {
+  width: 100%;
+  height: 100%;
+  /* The blue noise is generated before the first frame; fade over that. */
+  transition: opacity 0.8s ease-out;
+}
+
+.stage canvas {
+  cursor: grab;
+  touch-action: none;
+}
+
+.stage canvas:active {
+  cursor: grabbing;
+}
