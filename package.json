@@ -15,7 +15,7 @@
     "cf:types": "wrangler types --env-file .env.example"
   },
   "dependencies": {
-    "@aws-sdk/client-sesv2": "^3.1146.0",
+    "@aws-sdk/client-sesv2": "^3.1147.0",
     "@lexical/link": "^0.52.0",
     "@lexical/react": "^0.52.0",
     "@radix-ui/react-accordion": "^1.2.21",
@@ -41,7 +41,7 @@
     "lexical": "^0.52.0",
     "lil-gui": "^0.21.0",
     "lucide-react": "^1.52.0",
-    "next": "16.3.8",
+    "next": "16.4.0",
     "postprocessing": "^6.39.5",
     "raw-loader": "^4.0.2",
     "react": "19.3.0",
@@ -51,7 +51,7 @@
     "vinext": "^1.0.1"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.62.5",
+    "@cloudflare/vite-plugin": "^1.63.0",
     "@types/bun": "1.4.2",
     "@types/node": "^26.6.4",
     "@types/pngjs": "^6.0.5",
@@ -59,14 +59,14 @@
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "@vitejs/plugin-rsc": "^0.5.35",
+    "@vitejs/plugin-rsc": "^0.5.36",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.0",
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
     "vite": "^8.3.3",
-    "wrangler": "^4.147.0",
+    "wrangler": "^4.148.0",
     "pngjs": "^7.0.0"
   },
   "type": "module"
