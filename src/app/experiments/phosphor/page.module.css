@@ -1,0 +1,12 @@
+.main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* The tube before the first frame lands on it. */
+  background: #080709;
+}
+
+.main canvas {
+  cursor: pointer;
+  touch-action: manipulation;
+}

@@ -24,6 +24,35 @@ export const EXPERIMENT_GROUPS = [
 /** Newest first. There are no dates, so the index's date sort is this order. */
 export const EXPERIMENTS: Experiment[] = [
   {
+    href: "/experiments/phosphor",
+    title: "Phosphor",
+    description:
+      "Soft blocks of colour, crisp in one place and smeared in the next, ghosted like a video starved of bitrate and seen through a CRT's slot mask. Click for a new frame, R to roll the dice on every setting, S to save it at 4K.",
+    group: "Generative & Visual",
+    status: "wip",
+    tech: ["Three.js", "R3F", "GLSL", "lil-gui"],
+    keywords: [
+      "crt",
+      "slot mask",
+      "aperture grille",
+      "phosphor",
+      "scanlines",
+      "grain",
+      "glitch",
+      "compression",
+      "codec",
+      "macroblocks",
+      "ghosting",
+      "color field",
+      "blocks",
+      "abstract",
+      "generative",
+      "oklch",
+      "palette",
+      "png",
+    ],
+  },
+  {
     href: "/experiments/global-illumination",
     title: "Global Illumination",
     description:
