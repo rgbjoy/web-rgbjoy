@@ -4,12 +4,11 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import Link from "next/link"
 
 import menu from "../utilities/settings/SettingsMenu.module.css"
-import { setMotion, setTheme, useMotion, useTheme } from "../utilities/settings/useSettings"
+import { setMotion, useMotion } from "../utilities/settings/useSettings"
 import styles from "./StudioNav.module.css"
 
 /** The site menu's hamburger and rows, in the studio menu's glass. */
 export function StudioMenu({ links, active }: { links: { label: string; id: string }[]; active: string | null }) {
-  const theme = useTheme()
   const motion = useMotion()
 
   return (
@@ -55,17 +54,6 @@ export function StudioMenu({ links, active }: { links: { label: string; id: stri
               <DropdownMenu.ItemIndicator>—</DropdownMenu.ItemIndicator>
             </span>
             reduced motion
-          </DropdownMenu.CheckboxItem>
-
-          <DropdownMenu.CheckboxItem
-            className={menu.item}
-            checked={theme === "light"}
-            onCheckedChange={(checked) => setTheme(checked ? "light" : "dark")}
-          >
-            <span className={menu.mark} aria-hidden="true">
-              <DropdownMenu.ItemIndicator>—</DropdownMenu.ItemIndicator>
-            </span>
-            light mode
           </DropdownMenu.CheckboxItem>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

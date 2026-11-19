@@ -5,8 +5,7 @@ import { getPageSeo } from "./server/page-seo"
 import { PortfolioProvider } from "./utilities/PortfolioProvider"
 import type { Metadata } from "next"
 import { headers } from "next/headers"
-import { Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
-import localFont from "next/font/local"
+import { Geist, Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google"
 
 import { SITE } from "./data/site"
 import { serializeJsonLd, SITE_STRUCTURED_DATA } from "./data/structured-data"
@@ -17,6 +16,13 @@ import "./globals.css"
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+})
+
+// Reading text on the index: descriptions and the intro. The mono stays for
+// labels, Instrument Serif for titles.
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 })
 
@@ -33,14 +39,14 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 })
 
-/* Display face for the masthead only. The file is the italic cut and the only
-   one in the family, so it is declared upright: asking for a normal style from
-   a family that has none invites a synthesised upright on some engines. */
-const redaction = localFont({
-  src: "./fonts/Redaction35-Italic.woff2",
-  variable: "--font-redaction",
-  display: "swap",
+/* Display face for titles: a narrow, high-contrast serif in the manner of
+   book jackets. One weight; the italic is loaded too so it is never faked. */
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
   weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
 })
 
 // Keep HTML and RSC fresh; the shared content snapshot is cached separately.
@@ -108,7 +114,7 @@ export default async function RootLayout({
   const seo = await getSeo()
   const structuredData = { ...SITE_STRUCTURED_DATA, "@graph": SITE_STRUCTURED_DATA["@graph"].map(node => ({ ...node, ...(node["@type"] === "Person" ? { name: info.author } : {}), ...(node["@type"] === "Organization" ? {} : { description: seo.description }) })) }
   return (
-    // The boot script stamps data-theme / data-motion before React hydrates.
+    // The boot script stamps data-motion before React hydrates.
     // data-scroll-behavior lets the router drop the studio's smooth scrolling
     // while it resets to the top, so a new page doesn't visibly glide up.
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
@@ -139,7 +145,7 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${geistMono.variable} ${geistMono.className} ${plexSans.variable} ${plexMono.variable} ${redaction.variable}`}
+        className={`${geistMono.variable} ${geistMono.className} ${geistSans.variable} ${plexSans.variable} ${plexMono.variable} ${instrumentSerif.variable}`}
       >
         <PortfolioProvider entries={entries} info={info}>
         <SearchPalette />

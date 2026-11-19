@@ -4,6 +4,7 @@ import gsap from "gsap"
 import Lenis from "lenis"
 import { useEffect, useRef } from "react"
 
+import { registerScroller } from "./scrollShift"
 import { useReducedMotion } from "./settings/useSettings"
 
 /**
@@ -33,6 +34,8 @@ export function SmoothScroll({ paused = false }: { paused?: boolean }) {
       naiveDimensions: true,
     })
     lenisRef.current = lenis
+    // The endless index shifts the page through this instance (see scrollShift).
+    registerScroller(lenis)
 
     // GSAP already runs a ticker for the intro, so Lenis rides that instead of
     // opening a second rAF loop beside it and the background sim.
@@ -41,6 +44,7 @@ export function SmoothScroll({ paused = false }: { paused?: boolean }) {
 
     return () => {
       gsap.ticker.remove(drive)
+      registerScroller(null)
       lenis.destroy()
       lenisRef.current = null
     }

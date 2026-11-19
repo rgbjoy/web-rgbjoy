@@ -44,7 +44,7 @@
 }
 
 .titleBlock h1 {
-  font-family: var(--font-redaction), var(--font-geist-mono), ui-monospace, monospace;
+  font-family: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
   font-size: clamp(40px, 6vw, 76px);
   font-weight: 400;
   line-height: 0.9;

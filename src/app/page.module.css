@@ -1,4 +1,17 @@
 .page {
+  /* Three faces, one job each: mono for labels, Instrument Serif for titles, Geist
+     for anything read as a sentence. */
+  --font-label: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-text: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Block rules carry more weight than the dotted rules between rows. */
+  --rule: color-mix(in srgb, var(--fg) 42%, transparent);
+  --dot: color-mix(in srgb, var(--fg) 34%, transparent);
+  /* Title column | text column, shared by the intro and every row so the
+     descriptions line up with the intro all the way down. */
+  --columns: minmax(0, 5fr) minmax(0, 7fr);
+  --column-gap: 40px;
+
   position: relative;
   z-index: 1;
   min-height: 100vh;
@@ -6,10 +19,25 @@
   padding: 0;
   background: transparent;
   color: var(--fg);
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-family: var(--font-text);
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   pointer-events: none;
+  /* The loop and the description toggle both move the page deliberately and
+     pay the difference back themselves; browser scroll anchoring would correct
+     the same change a second time. */
+  overflow-anchor: none;
+}
+
+/* No scrollbar on the index: the list never ends, so the thumb could only
+   ever report a position in a loop. Scoped by :has so it leaves with the page
+   on a client-side navigation; other pages keep theirs. */
+:global(html):has(.page) {
+  scrollbar-width: none;
+}
+
+:global(html):has(.page)::-webkit-scrollbar {
+  display: none;
 }
 
 .page a,
@@ -19,7 +47,6 @@
 .page select,
 .page label,
 .page .main,
-.page .controls,
 .page .lockupStuck {
   pointer-events: auto;
 }
@@ -35,9 +62,11 @@
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 2;
   color: var(--faint);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 11px;
   line-height: 1.4;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   pointer-events: none;
 }
 
@@ -46,14 +75,12 @@
   left: max(var(--gutter), env(safe-area-inset-left));
 }
 
-/* Hide search + section headers until the intro timeline reveals them. */
-.introPending .controls,
-.introPending .footer,
-.introPending .availability,
-.introPending .studioLink,
-.introPending [data-intro="toggle"],
-.introPending [data-intro="name"],
-.introPending [data-intro="count"] {
+/* Held back until the intro timeline reveals them. Only the first copy is
+   animated; the rest of the loop is far below and simply appears with it. */
+.introPending [data-intro="label"],
+.introPending [data-intro="row"],
+.introPending [data-intro="studio"],
+.introPending .availability {
   opacity: 0;
   visibility: hidden;
 }
@@ -67,13 +94,69 @@
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  /* Height of the pinned title row. The controls bar parks directly beneath it,
-     so the two must agree — hence one number rather than two. */
-  --lockup-h: 112px;
+  /* Height of the pinned title row. */
+  --lockup-h: 76px;
   width: 100%;
   /* Breathing room above the lockup that scrolls away, leaving it flush to the
      top edge once pinned. */
   padding: 40px var(--gutter) 0;
+}
+
+/* Labels: the mono caps that head every block. */
+
+.label {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.count {
+  font-family: var(--font-label);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+}
+
+.labelLink {
+  text-decoration: none;
+  transition: color var(--rollover-fade);
+}
+
+@media (hover: hover) {
+  .labelLink:hover {
+    color: var(--rollover-seed, var(--muted));
+  }
+}
+
+.labelLink:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 3px;
+}
+
+/* A rule across the top, then the label and its count on one line. */
+.blockHead {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 12px 0 20px;
+}
+
+.rule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--rule);
+  transform-origin: left center;
 }
 
 /* Masthead */
@@ -82,7 +165,7 @@
 .lockup {
   position: sticky;
   top: 0;
-  /* Over the controls bar (5) and the background, under the menu and dialogs. */
+  /* Over the list and the background, under the menu and dialogs. */
   z-index: 7;
   display: flex;
   align-items: center;
@@ -91,28 +174,86 @@
   height: var(--lockup-h);
   margin: 0 calc(var(--gutter) * -1);
   padding: 0 var(--gutter);
-  border-bottom: 1px solid transparent;
   isolation: isolate;
+  /* Where the glass sits inside the bar: a floating capsule, clear of the
+     edges, with the mark and menu just inside its rounded ends. */
+  --glass-inset: 10px max(8px, calc(var(--gutter) - 18px));
 }
 
-.lockupStuck {
-  border-bottom-color: var(--hairline);
-}
-
-.lockupStuck::before {
+/* Glass, in the manner of macOS's: a capsule that floats over the page once
+   the bar pins. Two layers behind the content. This one is the body — a thin
+   milky fill over a blurred, saturated backdrop, a bright lip along the top and
+   a softer one along the bottom where the edge catches light, and a lift
+   shadow under it. */
+.lockup::before,
+.lockup::after {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: 0;
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  backdrop-filter: blur(24px) saturate(140%);
+  inset: var(--glass-inset);
+  border-radius: 999px;
+  opacity: 0;
+  transform: scale(0.97);
+  /* A touch of overshoot as it settles, so it lands like liquid, not a card. */
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.2);
   pointer-events: none;
 }
 
-.masthead {
-  max-width: 560px;
-  padding: 4px 0 28px;
+.lockup::before {
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.5) 0%,
+    rgb(255 255 255 / 0.18) 50%,
+    rgb(255 255 255 / 0.32) 100%
+  );
+  -webkit-backdrop-filter: blur(12px) saturate(180%) brightness(1.05);
+  backdrop-filter: blur(12px) saturate(180%) brightness(1.05);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.95),
+    inset 0 -1px 0.5px rgb(255 255 255 / 0.55),
+    inset 0 12px 20px -16px rgb(255 255 255 / 0.9),
+    inset 0 -10px 18px -14px rgb(255 255 255 / 0.7),
+    0 0 0 0.5px rgb(30 30 60 / 0.1),
+    0 2px 6px -2px rgb(30 30 60 / 0.12),
+    0 12px 32px -12px rgb(30 30 60 / 0.28);
+}
+
+/* The rim: a one-pixel ring, brightest at the top left and bottom right, as
+   light wraps round a curved edge. Cut to a ring with a mask. */
+.lockup::after {
+  padding: 1px;
+  background: linear-gradient(
+    125deg,
+    rgb(255 255 255 / 1) 0%,
+    rgb(255 255 255 / 0.25) 22%,
+    rgb(255 255 255 / 0) 45%,
+    rgb(255 255 255 / 0) 60%,
+    rgb(255 255 255 / 0.3) 80%,
+    rgb(255 255 255 / 0.9) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.lockupStuck::before,
+.lockupStuck::after {
+  opacity: 1;
+  transform: none;
+}
+
+/* No backdrop blur: frost it instead, so the title still reads over text. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lockup::before {
+    background: rgb(255 255 255 / 0.86);
+  }
 }
 
 /* Mark and wordmark travel together; the lockup pushes this against the menu. */
@@ -125,24 +266,89 @@
 
 .title {
   margin: 0;
-  min-height: 1.3em;
-  /* Redaction is wider and sits smaller on the body than the mono, so it needs
-     its own size and tracking rather than inheriting the old numbers. */
-  font-family: var(--font-redaction), var(--font-geist-mono), ui-monospace,
-    monospace;
-  font-size: 68px;
-  line-height: 1.3;
+  min-height: 1.1em;
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 1.1;
   font-weight: 400;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
-.subtitle {
+.lockupActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lockupSearch {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--fg);
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--rollover-fade);
+}
+
+.lockupHint {
+  margin-left: 8px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+
+@media (hover: hover) {
+  .lockupSearch:hover {
+    color: var(--rollover-seed, var(--muted));
+  }
+}
+
+.lockupSearch:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.masthead {
+  padding: 28px 0 0;
+}
+
+/* The intro sits in the text column, over the descriptions below it. */
+.split {
+  display: grid;
+  grid-template-columns: var(--columns);
+  column-gap: var(--column-gap);
+}
+
+.splitMain {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.intro {
   position: relative;
-  margin: 0;
-  max-width: 480px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--muted);
+  max-width: 34em;
+  font-size: 20px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+}
+
+.intro p {
+  margin: 0 0 0.8em;
+}
+
+.intro p:last-child {
+  margin-bottom: 0;
+}
+
+/* A book's first line, set in. */
+.intro p:first-child {
+  text-indent: 2.5em;
 }
 
 /* Each character lands on a red, green, or blue seed and resolves to whatever
@@ -162,18 +368,18 @@
 }
 
 /* Invisible full copy holds layout so typing does not shift the page. */
-.subtitleMeasure {
+.introMeasure {
   visibility: hidden;
 }
 
-.subtitleLive {
+.introLive {
   position: absolute;
   inset: 0;
 }
 
 /* Also worn by a <button>: the live invite opens the contact dialog, while the
    hidden measure copy stays an <a>. Both must render identically. */
-.subtitleLink {
+.introLink {
   padding: 0;
   border: none;
   font: inherit;
@@ -183,107 +389,267 @@
      character in its own span, and a text underline is painted per span,
      which leaves seams between the letters. */
   text-decoration: none;
-  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(50% + 0.5em) / 100% 1px;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(50% + 0.55em) / 100% 1px;
   transition: color var(--rollover-fade);
 }
 
 @media (hover: hover) {
-  .subtitleLink:hover {
+  .introLink:hover,
+  .introLink:active {
     color: var(--rollover-seed, var(--muted));
   }
 }
 
-@media (hover: hover) {
-  .subtitleLink:active {
-    color: var(--rollover-seed, var(--muted));
-  }
-}
-
-.subtitleLink:focus-visible {
+.introLink:focus-visible {
   outline: 1px solid var(--fg);
   outline-offset: 2px;
 }
 
-/* Points from the intro to the studio page. */
-.studioLink {
+/* The studio link, as a pill. */
+.pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 16px;
-  font-size: 13px;
+  margin-top: 28px;
+  padding: 8px 16px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
   color: var(--fg);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  font-size: 15px;
+  line-height: 1.2;
+  text-decoration: none;
   transition: color var(--rollover-fade);
 }
 
 @media (hover: hover) {
-  .studioLink:hover {
+  .pill:hover {
     color: var(--rollover-seed, var(--muted));
   }
 }
 
-.studioLink:focus-visible {
+.pill:focus-visible {
   outline: 1px solid var(--fg);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-/* Controls */
-
-.controls {
-  --control-pad-y: 8px;
-  --control-line: 1.25;
-  position: sticky;
-  top: var(--lockup-h);
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 2px;
-  flex-wrap: nowrap;
-  margin: 0 calc(var(--gutter) * -1);
-  padding: 8px var(--gutter);
-  background: transparent;
-  border-bottom: 1px solid transparent;
-  isolation: isolate;
-}
-
-.controlsStuck {
-  border-bottom-color: var(--hairline);
-}
-
-.controlsStuck::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  backdrop-filter: blur(24px) saturate(140%);
-  pointer-events: none;
-}
+/* The loop */
 
 .main {
   flex: 1 0 auto;
-  padding-bottom: 32px;
+  padding-top: 88px;
 }
 
-.footer {
+/* One pass of the index. Padding rather than margin, so the space between
+   passes belongs to a pass and every pass measures the same. */
+.cycle {
+  display: flow-root;
+  padding-bottom: 120px;
+}
+
+.block + .block {
+  margin-top: 88px;
+}
+
+/* Rows */
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--columns);
+  column-gap: var(--column-gap);
+  align-items: baseline;
+  padding: 20px 0 22px;
+  color: inherit;
+}
+
+/* Dotted between rows; the block's own rule heads the first. */
+.row + .row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--dot) 1px, transparent 1px);
+  background-size: 3px 1px;
+  pointer-events: none;
+}
+
+.rowHead {
+  min-width: 0;
+}
+
+/* The title, as its link, stretched over the whole row. */
+.rowLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rowLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.rowLink:focus-visible {
+  outline: none;
+}
+
+.rowLink:focus-visible::after {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.rowTitle {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  transition: color var(--rollover-fade);
+}
+
+/* On its own line under the title, small, like a book's format note. */
+.rowNote {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: var(--faint);
+}
+
+.rowExternal {
+  position: relative;
+  top: -0.9em;
+  margin-left: 4px;
+  vertical-align: baseline;
+  color: var(--faint);
+  transition: color var(--rollover-fade);
+}
+
+/* Only the title answers, the way the labels do. The description belongs to
+   the row, not to the thing being clicked. */
+@media (hover: hover) {
+  .row:hover:not(:has(.more:hover)) .rowTitle,
+  .row:hover:not(:has(.more:hover)) .rowExternal {
+    color: var(--rollover-seed, var(--fg));
+  }
+}
+
+.rowLink:focus-visible .rowTitle,
+.rowLink:focus-visible .rowExternal {
+  color: var(--rollover-seed, var(--fg));
+}
+
+.rowBody {
+  min-width: 0;
+  max-width: 40em;
+}
+
+.desc {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.descText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* Two lines to catch the eye; the rest on asking. */
+.descClamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* A small ring with a + in it. Raised above the row's stretched link so a
+   press opens the text instead of following the link. */
+.more {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  /* Centres the ring on the first line of text. */
+  margin-top: 1px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+  transition:
+    color var(--rollover-fade),
+    border-color var(--rollover-fade);
+}
+
+/* A finger-sized target around a ring that stays small. */
+.more::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+@media (hover: hover) {
+  .more:hover {
+    color: var(--rollover-seed, var(--fg));
+    border-color: currentColor;
+  }
+}
+
+.more:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.rowDetail {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 12px;
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.rowTech {
+  margin: 12px 0 0;
+  font-family: var(--font-label);
+  font-size: 10.5px;
+  line-height: 1.6;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.rowTechSep {
+  color: var(--hairline);
+}
+
+/* The seam between one pass and the next. */
+.colophon {
+  position: relative;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 80px;
-  padding: 20px 0 max(24px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--hairline);
-  color: var(--muted);
-  font-size: 12px;
+  gap: var(--gap);
+  margin-top: 120px;
+  padding: 12px 0 0;
 }
 
-.footerWithAvailability {
-  padding-bottom: max(88px, calc(72px + env(safe-area-inset-bottom)));
-}
+/* Availability */
 
 .availability {
   position: fixed;
@@ -310,7 +676,7 @@
   box-shadow: 0 8px 24px #0003;
   color: inherit;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
   transition: background-color var(--rollover-fade);
@@ -352,474 +718,24 @@
   outline-offset: 3px;
 }
 
-.footer a {
-  color: inherit;
-  text-decoration: none;
-  text-underline-offset: 4px;
-}
-
-.footer a:hover { color: var(--fg); text-decoration: underline; }
-.footer a:focus-visible { outline: 2px solid var(--fg); outline-offset: 5px; }
-
-
-/* Every control in the bar shares one size: 28px tall, icon or text. */
-.controlButton,
-.sortButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 28px;
-  padding: 0 8px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-  color: var(--fg);
-  transition: color var(--rollover-fade);
-}
-
-/* Pulls the first icon, not its touch padding, into line with the gutter. */
-.controls .controlButton:first-child {
-  margin-left: -8px;
-}
-
-.controlsRule {
-  width: 1px;
-  height: 14px;
-  margin: 0 8px;
-  background: var(--hairline);
-}
-
-/* Pulls the icon, not the touch padding, into line with the toggle column. */
-/* Dimmed once its action would do nothing — everything already open, or already
-   closed. The one place dimming is right: it marks unavailable, not secondary. */
-.controlButton:disabled {
-  color: var(--faint);
-  cursor: default;
-}
-
-@media (hover: hover) {
-  .controlButton:hover:not(:disabled) {
-    color: var(--rollover-seed, var(--fg));
-  }
-}
-
-@media (hover: hover) {
-  .controlButton:active:not(:disabled) {
-    color: var(--rollover-seed, var(--fg));
-  }
-}
-
-.controlButton:focus-visible, .sortButton:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-.sortButton:not(.sortButtonActive) {
-  color: var(--faint);
-}
-
-.sortButtonActive {
-  color: var(--fg);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-/* Pushed to the right end of the toolbar. */
-.searchField {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  margin-left: auto;
-  padding: 0 8px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  color: var(--faint);
-  transition: color var(--rollover-fade);
-}
-
-.searchHint {
-  font-size: 11px;
-}
-
-@media (hover: hover) {
-  .searchField:hover {
-    color: var(--rollover-seed, var(--fg));
-  }
-}
-
-.searchField:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-@media (max-width: 640px) {
-  .searchHint {
-    display: none;
-  }
-}
-
-/* Sort dropdown (narrow screens) */
-
-/* Parent category */
-
-.category {
-  margin-top: 20px;
-}
-
-.categoryHeading {
-  margin: 0;
-  font-weight: inherit;
-}
-
-.categoryHeader {
-  display: flex;
-  align-items: baseline;
-  gap: var(--gap);
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 4px 0;
-  border: none;
-  background: none;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.categoryName {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: var(--fg);
-  transition: color var(--rollover-fade);
-}
-
-.categoryRule {
-  flex: 1;
-  align-self: center;
-  height: 1px;
-  background: var(--hairline);
-  transform-origin: left center;
-  transition: background var(--rollover-fade);
-}
-
-.categoryCount {
-  font-size: 16px;
-  color: var(--faint);
-}
-
-.categoryToggle {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-self: center;
-  color: var(--faint);
-  transition: color var(--rollover-fade);
-}
-
-@media (hover: hover) {
-  .categoryHeader:hover .categoryName,
-  .categoryHeader:hover .categoryToggle {
-    color: var(--rollover-seed, var(--fg));
-  }
-
-  /* The rule is decoration, so it sits at --hairline until the row is picked
-     out; then it takes the same seed at full strength as the name beside it. */
-  .categoryHeader:hover .categoryRule {
-    background: var(--rollover-seed, var(--fg));
-  }
-}
-
-@media (hover: hover) {
-  .categoryHeader:active .categoryName,
-  .categoryHeader:active .categoryToggle {
-    color: var(--rollover-seed, var(--fg));
-  }
-
-  .categoryHeader:active .categoryRule {
-    background: var(--rollover-seed, var(--fg));
-  }
-}
-
-.categoryHeader:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-/* Prevent a first child's top margin from changing the measured content height
-   when the outer reveal removes its temporary overflow clipping. */
-.collapsibleInner {
-  display: flow-root;
-}
-
-/* Groups */
-
-.group {
-  --inset: calc(var(--toggle) + var(--gap));
-  margin-top: 28px;
-}
-
-.groupHeading {
-  margin: 0;
-  font-weight: inherit;
-}
-
-.groupHeader {
-  display: flex;
-  align-items: baseline;
-  gap: var(--gap);
-  width: 100%;
-  margin-bottom: 4px;
-  padding: 4px 0 4px var(--inset);
-  border: none;
-  background: none;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.groupName {
-  margin: 0;
-  /* Smaller and indented relative to a parent category, but not dimmer — the
-     nesting is the hierarchy. */
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: var(--fg);
-  transition: color var(--rollover-fade);
-}
-
-.groupRule {
-  flex: 1;
-  align-self: center;
-  height: 1px;
-  background: var(--hairline);
-  transition: background var(--rollover-fade);
-}
-
-.groupCount {
-  font-size: 16px;
-  color: var(--faint);
-}
-
-.groupToggle {
-  flex-shrink: 0;
-  align-self: center;
-  color: var(--faint);
-  transition: color var(--rollover-fade);
-}
-
-@media (hover: hover) {
-  .groupHeader:hover .groupName,
-  .groupHeader:hover .groupToggle {
-    color: var(--rollover-seed, var(--fg));
-  }
-
-  .groupHeader:hover .groupRule {
-    background: var(--rollover-seed, var(--fg));
-  }
-}
-
-@media (hover: hover) {
-  .groupHeader:active .groupName,
-  .groupHeader:active .groupToggle {
-    color: var(--rollover-seed, var(--fg));
-  }
-
-  .groupHeader:active .groupRule {
-    background: var(--rollover-seed, var(--fg));
-  }
-}
-
-.groupHeader:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-/* Item */
-
-.item {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px;
-  gap: var(--gap);
-  align-items: baseline;
-  margin: 0 calc(var(--gutter) * -1);
-  padding: 14px var(--gutter);
-  color: inherit;
-  text-decoration: none;
-}
-
-/* A row's title, as its link, stretched over the whole row: anywhere on it
-   follows the link, as when the row itself was one. */
-.itemLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-tight);
-  color: inherit;
-  text-decoration: none;
-}
-
-.itemLink::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-
-.itemLink:focus-visible {
-  outline: none;
-}
-
-.itemLink:focus-visible::after {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-.item:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-.group .item {
-  padding-left: calc(var(--gutter) + var(--inset));
-}
-
-.itemBody {
-  min-width: 0;
-}
-
-.itemTitleRow {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-tight);
-  margin-bottom: 4px;
-}
-
-.itemTitle {
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color var(--rollover-fade);
-}
-
-.itemExternal {
-  flex-shrink: 0;
-  color: var(--faint);
-  transition: color var(--rollover-fade);
-}
-
-/* Only the link itself answers, the same way the section headers do. The
-   description and date belong to the row, not to the thing being clicked. */
-@media (hover: hover) {
-  .item:hover:not(:has(.itemMore:hover)) .itemTitle,
-  .item:hover:not(:has(.itemMore:hover)) .itemExternal {
-    color: var(--rollover-seed, var(--fg));
-  }
-}
-
-@media (hover: hover) {
-  .item:active:not(:has(.itemMore:active)) .itemTitle,
-  .item:active:not(:has(.itemMore:active)) .itemExternal {
-    color: var(--rollover-seed, var(--fg));
-  }
-}
-
-.item:focus-visible .itemTitle,
-.item:focus-visible .itemExternal,
-.itemLink:focus-visible .itemTitle,
-.itemLink:focus-visible .itemExternal {
-  color: var(--rollover-seed, var(--fg));
-}
-
-.itemDesc {
-  max-width: 560px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--muted);
-}
-
-/* Two lines to catch the eye; the rest on asking. */
-.itemDescClamped {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-/* Faint, like the tags: there when you want the rest, quiet otherwise.
-   Raised above the row's stretched link so a press opens the text. */
-.itemMore {
-  position: relative;
-  z-index: 1;
-  margin-top: 2px;
-  padding: 2px 0;
-  border: 0;
-  background: none;
-  color: var(--faint);
-  font: inherit;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: color var(--rollover-fade);
-}
-
-@media (hover: hover) {
-  .itemMore:hover {
-    color: var(--fg);
-  }
-}
-
-.itemMore:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 2px;
-}
-
-/* Sits at the faint level, like the date: present when you look for it, quiet
-   when you are scanning titles. */
-.itemTech {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap-tight);
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.itemTechTag {
-  padding: 2px 8px;
-  border: 1px solid var(--hairline);
-  border-radius: 2px;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  color: var(--faint);
-}
-
-.itemDate {
-  padding-top: 2px;
-  font-size: 16px;
-  letter-spacing: 0.02em;
-  text-align: right;
-  white-space: nowrap;
-  color: var(--faint);
-}
-
-/* Empty state */
-
 @media (pointer: coarse), (hover: none) {
   .page {
     touch-action: pan-y;
+  }
+}
+
+/* One column: titles over their text. */
+@media (max-width: 860px) {
+  .page {
+    --columns: minmax(0, 1fr);
+  }
+
+  .splitMain {
+    grid-column: 1;
+  }
+
+  .row {
+    row-gap: 10px;
   }
 }
 
@@ -829,37 +745,73 @@
     padding-top: 64px;
   }
 
-  .masthead {
-    padding: 4px 0 16px;
+  .lockup {
+    --glass-inset: 8px max(6px, calc(var(--gutter) - 12px));
   }
 
   .title {
-    font-size: 36px;
+    font-size: 28px;
   }
 
-  .page { font-size: 13px; }
-  .subtitle, .itemDesc { font-size: 13px; line-height: 1.5; }
-  .categoryName, .itemTitle { font-size: 15px; }
-  .categoryCount, .groupName, .groupCount, .itemDate { font-size: 12px; }
-  .itemTechTag { font-size: 10px; padding: 2px 6px; }
-  .itemMore { font-size: 12px; }
-  .controlButton, .sortButton { font-size: 11px; min-height: 36px; }
-  .category { margin-top: 14px; }
-  .group { margin-top: 18px; }
-  .footer { font-size: 11px; }
-  .availabilityAction { font-size: 11px; }
-  .item {
-    grid-template-columns: minmax(0, 1fr);
-    padding-top: 10px;
-    padding-bottom: 10px;
-    row-gap: 4px;
+  .lockupHint {
+    display: none;
   }
 
-  .itemDate {
-    grid-column: 1;
-    padding-top: 0;
-    text-align: left;
+  .masthead {
+    padding-top: 16px;
+  }
+
+  .intro {
+    font-size: 17px;
+  }
+
+  .pill {
+    margin-top: 22px;
+    font-size: 14px;
+  }
+
+  .main {
+    padding-top: 64px;
+  }
+
+  .block + .block {
+    margin-top: 64px;
+  }
+
+  .cycle {
+    padding-bottom: 88px;
+  }
+
+  .colophon {
+    margin-top: 88px;
+  }
+
+  .blockHead {
+    padding-bottom: 14px;
+  }
+
+  .row {
+    padding: 16px 0 18px;
+    row-gap: 8px;
+  }
+
+  .rowTitle {
+    font-size: 27px;
+  }
+
+  .descText {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .availabilityAction {
+    font-size: 12px;
   }
 }
-.subtitle p { margin: 0 0 1em; }
-.subtitle p:last-child { margin-bottom: 0; }
+
+/* No room beside the wordmark; the menu still has Search. */
+@media (max-width: 480px) {
+  .lockupSearch {
+    display: none;
+  }
+}

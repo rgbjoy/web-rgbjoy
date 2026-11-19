@@ -4,7 +4,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import Link from "next/link"
 import { useRef } from "react"
 
-import { setMotion, setTheme, useMotion, useTheme } from "./useSettings"
+import { setMotion, useMotion } from "./useSettings"
 import styles from "./SettingsMenu.module.css"
 
 export function SettingsMenu({
@@ -16,7 +16,6 @@ export function SettingsMenu({
   onSearch: () => void
   onAiPrompt: () => void
 }) {
-  const theme = useTheme()
   const motion = useMotion()
   const openingPromptRef = useRef(false)
 
@@ -89,17 +88,6 @@ export function SettingsMenu({
               <DropdownMenu.ItemIndicator>—</DropdownMenu.ItemIndicator>
             </span>
             reduced motion
-          </DropdownMenu.CheckboxItem>
-
-          <DropdownMenu.CheckboxItem
-            className={styles.item}
-            checked={theme === "light"}
-            onCheckedChange={(checked) => setTheme(checked ? "light" : "dark")}
-          >
-            <span className={styles.mark} aria-hidden="true">
-              <DropdownMenu.ItemIndicator>—</DropdownMenu.ItemIndicator>
-            </span>
-            light mode
           </DropdownMenu.CheckboxItem>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

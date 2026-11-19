@@ -4,15 +4,7 @@ import { usePortfolio, useInfo, type PortfolioProject } from "./utilities/Portfo
 import gsap from "gsap"
 import { infoDocument, infoText } from "./data/info-document"
 import { InfoBody } from "./utilities/InfoBody"
-import {
-  ArrowUpRight,
-  ChevronsDownUp,
-  ChevronsUpDown,
-  Minus,
-  Plus,
-  Search,
-  X,
-} from "lucide-react"
+import { ArrowUpRight, Minus, Plus, X } from "lucide-react"
 import Link from "next/link"
 import {
   useEffect,
@@ -22,36 +14,24 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type ReactNode,
 } from "react"
+import { flushSync } from "react-dom"
 
-import {
-  EXPERIMENT_GROUPS,
-  type Experiment,
-} from "./data/experiments"
+import type { Experiment } from "./data/experiments"
 import { LINKS, type SiteLink } from "./data/links"
 import { SITE } from "./data/site"
 import { AskAboutWork } from "./utilities/AskAboutWork/AskAboutWork"
 import { useDismissed } from "./utilities/useDismissed"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
-import {
-  collapseAll,
-  expandAll,
-  seedCollapsed,
-  setSort,
-  toggleCollapsed,
-  useIndexState,
-} from "./utilities/useIndexState"
-import { FluidVelocityBackground } from "./utilities/FluidVelocityBackground"
+import { HoloBackground } from "./utilities/HoloBackground"
 import { openPalette } from "./utilities/SearchPalette/paletteState"
 import { SettingsMenu } from "./utilities/settings/SettingsMenu"
 import { RgbLogo } from "./utilities/RgbLogo/RgbLogo"
-import { SmileIcon } from "./utilities/SmileIcon"
+import { isSmoothScrolling, shiftScroll, virtualScrollY } from "./utilities/scrollShift"
 import { SmoothScroll } from "./utilities/SmoothScroll"
-import { useReducedMotion, useTheme } from "./utilities/settings/useSettings"
+import { useReducedMotion } from "./utilities/settings/useSettings"
 import styles from "./page.module.css"
 
-/** Every section that can be opened or closed, parents and groups alike. */
 // Keep the automatic AI prompt off small screens, including the first paint.
 const desktopPromptQuery = '(min-width: 641px)'
 function subscribeDesktopPrompt(callback: () => void) {
@@ -62,11 +42,6 @@ function subscribeDesktopPrompt(callback: () => void) {
 const desktopPromptSnapshot = () => window.matchMedia(desktopPromptQuery).matches
 const serverPromptSnapshot = () => false
 
-const COLLAPSIBLE = ["projects", "experiments", "links", ...EXPERIMENT_GROUPS]
-
-// Projects start open on a first visit; a restored session overrides this.
-seedCollapsed(COLLAPSIBLE, ["projects"])
-
 function pad2(n: number): string {
   return String(n).padStart(2, "0")
 }
@@ -74,7 +49,6 @@ function pad2(n: number): string {
 const TITLE_TEXT = SITE.name
 function introText(info: ReturnType<typeof useInfo>) {
   return { INTRO_TOTAL: infoText(infoDocument(info).root).length }
-
 }
 
 /** ~ms per character, before INTRO_TIME_SCALE. The title is short, so it types
@@ -91,8 +65,8 @@ const TITLE_FONT_WAIT_MS = 1500
 /**
  * The intro is a greeting, not a page transition: arriving should play it,
  * coming back should not. Back-navigation remounts this component, which
- * replayed the whole timeline — and until it finished the controls were hidden
- * and the title empty, so the page read as frozen.
+ * replayed the whole timeline — and until it finished the list was hidden and
+ * the title empty, so the page read as frozen.
  *
  * Two signals, because a return trip can arrive two different ways. A
  * client-side route change keeps this module loaded, so the flag survives it. A
@@ -153,6 +127,51 @@ function readRememberedIndexScroll(): number {
     return 0
   }
 }
+
+/**
+ * The index never ends: it is rendered as a run of identical copies, and once
+ * the visitor is into the second, the page jumps back exactly one copy. Same
+ * content, same place on screen, so the jump cannot be seen.
+ *
+ * The server sends one copy, which is a complete page on its own; the rest are
+ * added before the first client paint. Three covers a hard touch fling, which
+ * is left to land before the page is moved (see scrollShift), and more are
+ * added if one copy is ever shorter than the viewport.
+ */
+const MIN_COPIES = 3
+/** Quiet time after a native scroll before it is safe to wrap. */
+const LOOP_IDLE_MS = 140
+
+/** False on the server and through hydration, true after. */
+const subscribeNothing = () => () => {}
+const clientSnapshot = () => true
+const serverSnapshot = () => false
+
+/**
+ * Which descriptions are open, by row, shared by every copy. A row opened in
+ * one copy has to be open in all of them, or the wrap would land on a twin
+ * that is a different height and visibly jump.
+ */
+let expandedRows: ReadonlySet<string> = new Set()
+const expandedListeners = new Set<() => void>()
+
+function subscribeExpanded(listener: () => void) {
+  expandedListeners.add(listener)
+  return () => {
+    expandedListeners.delete(listener)
+  }
+}
+
+const expandedSnapshot = () => expandedRows
+
+function toggleExpanded(key: string) {
+  const next = new Set(expandedRows)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  expandedRows = next
+  for (const listener of expandedListeners) listener()
+}
+
 /** One per character, picked once per mount. */
 const CHAR_SEEDS = ["var(--seed-r)", "var(--seed-g)", "var(--seed-b)"]
 
@@ -195,6 +214,31 @@ function TypedText({
   )
 }
 
+/** A rule, a label and an optional count: the head of every block. */
+function BlockHead({
+  label,
+  count,
+  as: Heading = "h2",
+}: {
+  label: string
+  count?: number
+  as?: "h2" | "span"
+}) {
+  return (
+    <div className={styles.blockHead}>
+      <span className={styles.rule} data-intro="rule" aria-hidden="true" />
+      <Heading className={styles.label} data-intro="label">
+        {label}
+      </Heading>
+      {count != null && (
+        <span className={styles.count} data-intro="label">
+          {pad2(count)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function Masthead({
   titleCount,
   introCount,
@@ -203,6 +247,7 @@ function Masthead({
   onAiPrompt,
   lockupRef,
   lockupStuck,
+  mastheadRef,
 }: {
   titleCount: number
   introCount: number
@@ -211,6 +256,7 @@ function Masthead({
   onAiPrompt: () => void
   lockupRef: React.RefObject<HTMLDivElement | null>
   lockupStuck: boolean
+  mastheadRef: React.RefObject<HTMLElement | null>
 }) {
   const info = useInfo()
   const { INTRO_TOTAL } = introText(info)
@@ -225,7 +271,7 @@ function Masthead({
     <>
       {/* A sibling of the list, not a child of the header — a sticky element
           only stays pinned while its own parent is in view, and the header
-          scrolls away with the subtitle. */}
+          scrolls away with the intro. */}
       <div
         ref={lockupRef}
         className={`${styles.lockup} ${lockupStuck ? styles.lockupStuck : ""}`}
@@ -241,202 +287,39 @@ function Masthead({
             />
           </h1>
         </div>
-        {/* Deliberately outside the intro timeline: someone who needs reduced
-            motion should not have to sit through an animation to reach it. */}
-        <SettingsMenu onContact={onContact} onSearch={onSearch} onAiPrompt={onAiPrompt} />
+        <div className={styles.lockupActions}>
+          {/* The same palette as the menu and ⌘F, named where it can be seen. */}
+          <button type="button" className={styles.lockupSearch} onClick={onSearch}>
+            Search
+            <span className={styles.lockupHint} aria-hidden="true">⌘F</span>
+          </button>
+          {/* Deliberately outside the intro timeline: someone who needs reduced
+              motion should not have to sit through an animation to reach it. */}
+          <SettingsMenu onContact={onContact} onSearch={onSearch} onAiPrompt={onAiPrompt} />
+        </div>
       </div>
 
-      <header className={styles.masthead}>
-        <div className={styles.subtitle}>
-          <div className={styles.subtitleMeasure} aria-hidden="true" inert>
-            <InfoBody node={document.root} linkClass={styles.subtitleLink} />
-          </div>
-          <div className={styles.subtitleLive}>
-            <InfoBody node={document.root} count={introCount} onContact={onContact} linkClass={styles.subtitleLink}
-              renderText={(text, offset) => <TypedText text={text} seeds={introSeeds} offset={offset} />} />
+      <header ref={mastheadRef} className={styles.masthead}>
+        <BlockHead label="About" as="span" />
+        <div className={styles.split}>
+          <div className={styles.splitMain}>
+            <div className={styles.intro}>
+              <div className={styles.introMeasure} aria-hidden="true" inert>
+                <InfoBody node={document.root} linkClass={styles.introLink} />
+              </div>
+              <div className={styles.introLive}>
+                <InfoBody node={document.root} count={introCount} onContact={onContact} linkClass={styles.introLink}
+                  renderText={(text, offset) => <TypedText text={text} seeds={introSeeds} offset={offset} />} />
+              </div>
+            </div>
+            {/* Fades in right after the intro has typed out; the load choreography finds it by data-intro. */}
+            <Link href="/studio" className={styles.pill} data-intro="studio">
+              Learn about the studio
+            </Link>
           </div>
         </div>
-        {/* Fades in right after the intro has typed out; the load choreography finds it by data-intro. */}
-        <Link href="/studio" className={styles.studioLink} data-intro="studio">
-          learn about the studio
-          <SmileIcon />
-        </Link>
       </header>
     </>
-  )
-}
-
-function CategoryHeader({
-  name,
-  count,
-  open,
-  onToggle,
-}: {
-  name: string
-  count: number
-  open: boolean
-  onToggle: () => void
-}) {
-  return (
-    <h2 className={styles.categoryHeading}>
-      <button
-        type="button"
-        className={styles.categoryHeader}
-        data-category={name}
-        aria-expanded={open}
-        onClick={onToggle}
-      >
-        {/* Keep the GSAP target mounted when session restoration swaps icons. */}
-        <span
-          className={styles.categoryToggle}
-          data-intro="toggle"
-          aria-hidden="true"
-        >
-          {open ? (
-            <Minus size={14} strokeWidth={1.75} />
-          ) : (
-            <Plus size={14} strokeWidth={1.75} />
-          )}
-        </span>
-        <span className={styles.categoryName} data-intro="name">
-          {name}
-        </span>
-        <span className={styles.categoryRule} data-intro="rule" />
-        <span className={styles.categoryCount} data-intro="count">
-          {pad2(count)}
-        </span>
-      </button>
-    </h2>
-  )
-}
-
-/**
- * Keeps a section's children mounted so opening and closing both have something
- * to animate. The outer element owns the height reveal; its direct inner
- * children get a small stagger so rows arrive as rows rather than one block.
- *
- * `instant` is for back-navigation: the intro gate flips ready without the
- * visitor having toggled anything, and animating that open leaves the page
- * short at the moment scroll restoration runs — so the list lands at the top.
- */
-function CollapsibleContent({
-  open,
-  ready,
-  instant = false,
-  children,
-}: {
-  open: boolean
-  ready: boolean
-  instant?: boolean
-  children: ReactNode
-}) {
-  const shown = open && ready
-  const outerRef = useRef<HTMLDivElement>(null)
-  const innerRef = useRef<HTMLDivElement>(null)
-  const previousShownRef = useRef(shown)
-  const [present, setPresent] = useState(shown)
-  const reducedMotion = useReducedMotion()
-
-  useLayoutEffect(() => {
-    const outer = outerRef.current
-    const inner = innerRef.current
-    if (!outer || !inner) return
-
-    const items = Array.from(inner.children)
-    gsap.killTweensOf([outer, ...items])
-
-    const snap = () => {
-      gsap.set(outer, {
-        clearProps: "overflow",
-        display: shown ? "block" : "none",
-        height: shown ? "auto" : 0,
-      })
-      gsap.set(items, { clearProps: "opacity,visibility" })
-      setPresent(shown)
-    }
-
-    // The intro keeps restored content closed until its heading has arrived.
-    // Strict Mode's second setup pass sees the same value and simply preserves
-    // that pose rather than replaying the animation.
-    if (previousShownRef.current === shown) {
-      snap()
-      return
-    }
-    previousShownRef.current = shown
-
-    if (reducedMotion || instant) {
-      snap()
-      return
-    }
-
-    const timeline = gsap.timeline()
-
-    if (shown) {
-      const wasHidden = window.getComputedStyle(outer).display === "none"
-      gsap.set(outer, { display: "block" })
-      const startHeight = wasHidden ? 0 : outer.offsetHeight
-      gsap.set(outer, { height: startHeight, overflow: "hidden" })
-      if (wasHidden) gsap.set(items, { autoAlpha: 0 })
-
-      timeline
-        .call(() => setPresent(true), undefined, 0)
-        .to(outer, {
-          height: "auto",
-          duration: 0.26,
-          ease: "power3.out",
-        })
-        .to(
-          items,
-          {
-            autoAlpha: 1,
-            duration: 0.2,
-            stagger: 0.02,
-            ease: "power2.out",
-          },
-          0.04,
-        )
-        .set(outer, { clearProps: "height,overflow" })
-        .set(items, { clearProps: "opacity,visibility" })
-    } else {
-      gsap.set(outer, { height: outer.offsetHeight, overflow: "hidden" })
-
-      timeline
-        .to(items, {
-          autoAlpha: 0,
-          duration: 0.14,
-          stagger: { each: 0.012, from: "end" },
-          ease: "power2.in",
-        })
-        .to(
-          outer,
-          {
-            height: 0,
-            duration: 0.2,
-            ease: "power3.inOut",
-          },
-          0,
-        )
-        .set(outer, { display: "none", clearProps: "height,overflow" })
-        .set(items, { clearProps: "opacity,visibility" })
-        .call(() => setPresent(false))
-    }
-
-    return () => {
-      timeline.kill()
-    }
-  }, [shown, reducedMotion, instant])
-
-  return (
-    <div
-      ref={outerRef}
-      aria-hidden={!shown}
-      inert={!shown ? true : undefined}
-      style={{ display: present ? undefined : "none" }}
-    >
-      <div ref={innerRef} className={styles.collapsibleInner}>
-        {children}
-      </div>
-    </div>
   )
 }
 
@@ -445,15 +328,14 @@ export default function Home() {
   const { INTRO_TOTAL } = introText(info)
   const availableForWork = Boolean(info.available_for_work)
   const { projects, experiments } = usePortfolio()
-  const controlsRef = useRef<HTMLDivElement>(null)
-  const footerRef = useRef<HTMLElement>(null)
   const availabilityRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
+  const mastheadRef = useRef<HTMLElement>(null)
   const lockupRef = useRef<HTMLDivElement>(null)
   const [lockupStuck, setLockupStuck] = useState(false)
   const introPlayedRef = useRef(false)
-  // Fixed for this mount: a return trip snaps open sections so scroll can
-  // restore against the real page height; a first visit still animates them.
+  // Fixed for this mount: a return trip skips the intro so scroll can restore
+  // against the finished page; a first visit plays it.
   const [resumeVisit] = useState(shouldSkipIntro)
   const [contactOpen, setContactOpen] = useState(false)
   // Each pill stays closed for a day once its close button is pressed.
@@ -464,31 +346,33 @@ export default function Home() {
   // The menu can still open it after it's been closed.
   const promptOpen = promptOverride ?? (desktopPrompt && !promptDismissed)
   const reducedMotion = useReducedMotion()
-  const theme = useTheme()
-  const [controlsStuck, setControlsStuck] = useState(false)
-  const { collapsed, sort } = useIndexState()
   const [titleCount, setTitleCount] = useState(
     resumeVisit ? TITLE_TEXT.length : 0,
   )
   const [introCount, setIntroCount] = useState(resumeVisit ? INTRO_TOTAL : 0)
   const [introPending, setIntroPending] = useState(!resumeVisit)
-  // Categories whose heading the intro has drawn. An open one unfurls as its
-  // heading lands, rather than every section waiting on the whole intro.
-  const [arrived, setArrived] = useState<ReadonlySet<string>>(() => new Set())
-  const hasArrived = (name: string) => !introPending || arrived.has(name)
+  // One on the server, so the HTML is a single complete index; the rest of
+  // the loop arrives right after hydration, far below the fold.
+  const hydrated = useSyncExternalStore(subscribeNothing, clientSnapshot, serverSnapshot)
+  const [fitCopies, setFitCopies] = useState(MIN_COPIES)
+  const copyCount = hydrated ? fitCopies : 1
+  const restoredRef = useRef(false)
 
-  // Load choreography: headline → desc → search → each category (+ name, line, count).
+  // Newest first. Stable, so projects from the same year keep the order the
+  // dashboard gives them.
+  const orderedProjects = useMemo(
+    () => projects.slice().sort((a, b) => b.year.localeCompare(a.year)),
+    [projects],
+  )
+
+  // Load choreography: title → about → intro → studio → each block of the
+  // first copy (rule, label, rows). The other copies sit below the fold.
   useLayoutEffect(() => {
-    const controls = controlsRef.current
     const main = mainRef.current
-    const footer = footerRef.current
+    const masthead = mastheadRef.current
     const availability = availabilityRef.current
-    const studioLink = document.querySelector<HTMLElement>('[data-intro="studio"]')
-    if (!controls || !main || !footer) return
-
-    const categories = Array.from(
-      main.querySelectorAll<HTMLElement>("[data-category]"),
-    )
+    const studioLink = masthead?.querySelector<HTMLElement>('[data-intro="studio"]') ?? null
+    if (!main || !masthead) return
 
     // Toggling the setting re-runs this, and back-navigation remounts it. Either
     // way, snap to the finished state rather than replaying the intro at someone
@@ -502,29 +386,32 @@ export default function Home() {
       return
     }
 
-    // Headings only. The rows below them sit inside CollapsibleContent, which
-    // owns their reveal and kills tweens on its own wrapper — an autoAlpha the
-    // intro set there would be stranded hidden when that kill lands.
-    const parts = categories.map((category) => {
-      return {
-        name: category.dataset.category ?? "",
-        lead: [
-          category.querySelector('[data-intro="toggle"]'),
-          category.querySelector('[data-intro="name"]'),
-        ].filter(Boolean),
-        rule: category.querySelector('[data-intro="rule"]'),
-        count: category.querySelector('[data-intro="count"]'),
-      }
+    const blockParts = (block: Element) => ({
+      rule: block.querySelector<HTMLElement>('[data-intro="rule"]'),
+      labels: Array.from(block.querySelectorAll<HTMLElement>('[data-intro="label"]')),
+      rows: Array.from(block.querySelectorAll<HTMLElement>('[data-intro="row"]')),
     })
+    const about = blockParts(masthead)
+    const firstCopy = main.querySelector('[data-loop-copy="0"]')
+    const blocks = firstCopy
+      ? Array.from(firstCopy.querySelectorAll("[data-intro-block]"), blockParts)
+      : []
+
+    const rules = [about.rule, ...blocks.map((block) => block.rule)].filter(
+      (rule): rule is HTMLElement => rule !== null,
+    )
+    const faded = [
+      ...about.labels,
+      ...blocks.flatMap((block) => block.labels),
+      ...(studioLink ? [studioLink] : []),
+      ...(availability ? [availability] : []),
+    ]
+    const rows = blocks.flatMap((block) => block.rows)
 
     // CSS already hides these; lock matching GSAP state before the timeline runs.
-    const revealed = [controls, footer, ...(availability ? [availability] : []), ...(studioLink ? [studioLink] : [])]
-    gsap.set(revealed, { autoAlpha: 0 })
-    for (const part of parts) {
-      gsap.set(part.lead, { autoAlpha: 0 })
-      gsap.set(part.count, { autoAlpha: 0 })
-      gsap.set(part.rule, { scaleX: 0, transformOrigin: "left center" })
-    }
+    gsap.set(faded, { autoAlpha: 0 })
+    gsap.set(rows, { autoAlpha: 0, y: 10 })
+    gsap.set(rules, { scaleX: 0, transformOrigin: "left center" })
 
     const title = { i: 0 }
     const intro = { i: 0 }
@@ -540,50 +427,38 @@ export default function Home() {
     })
     timeline.timeScale(INTRO_TIME_SCALE)
 
-    timeline
-      .to(title, {
-        i: TITLE_TEXT.length,
-        duration: (TITLE_TEXT.length * TITLE_CHAR_MS) / 1000,
-        onUpdate: () => setTitleCount(Math.floor(title.i)),
-        onComplete: () => setTitleCount(TITLE_TEXT.length),
-      })
-      .to(intro, {
-        i: INTRO_TOTAL,
-        duration: (INTRO_TOTAL * INTRO_CHAR_MS) / 1000,
-        onUpdate: () => setIntroCount(Math.floor(intro.i)),
-        onComplete: () => setIntroCount(INTRO_TOTAL),
-      })
-      .to(studioLink, { autoAlpha: 1, duration: 0.35 }, "+=0.1")
-      .to(controls, {
-        autoAlpha: 1,
-        duration: 0.35,
-      })
+    timeline.to(title, {
+      i: TITLE_TEXT.length,
+      duration: (TITLE_TEXT.length * TITLE_CHAR_MS) / 1000,
+      onUpdate: () => setTitleCount(Math.floor(title.i)),
+      onComplete: () => setTitleCount(TITLE_TEXT.length),
+    })
+    if (about.rule) timeline.to(about.rule, { scaleX: 1, duration: 0.6 })
+    if (about.labels.length) timeline.to(about.labels, { autoAlpha: 1, duration: 0.25 }, "<0.1")
+    timeline.to(intro, {
+      i: INTRO_TOTAL,
+      duration: (INTRO_TOTAL * INTRO_CHAR_MS) / 1000,
+      onUpdate: () => setIntroCount(Math.floor(intro.i)),
+      onComplete: () => setIntroCount(INTRO_TOTAL),
+    })
+    if (studioLink) timeline.to(studioLink, { autoAlpha: 1, duration: 0.35 }, "+=0.1")
 
-    for (const part of parts) {
-      timeline
-        .to(
-          part.lead,
-          {
-            autoAlpha: 1,
-            duration: 0.22,
-          },
-          "+=0.06",
+    for (const block of blocks) {
+      if (block.rule) timeline.to(block.rule, { scaleX: 1, duration: 0.6 }, "+=0.04")
+      if (block.labels.length) timeline.to(block.labels, { autoAlpha: 1, duration: 0.25 }, "<0.1")
+      if (block.rows.length) {
+        timeline.to(
+          block.rows,
+          { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.04 },
+          "<0.08",
         )
-        // Opens alongside the rule, so an expanded section has unfurled by the
-        // time the next heading lands beneath it.
-        .call(() => setArrived((names) => new Set(names).add(part.name)))
-        .to(part.rule, {
-          scaleX: 1,
-          duration: 0.45,
-        })
-        .to(part.count, {
-          autoAlpha: 1,
-          duration: 0.2,
-        })
+      }
     }
 
+    if (availability) timeline.to(availability, { autoAlpha: 1, duration: 0.9 }, "+=0.15")
+
     // Hold the typing until the display face is ready; otherwise the headline
-    // types in the mono fallback and visibly swaps partway through.
+    // types in the fallback and visibly swaps partway through.
     let waiting = true
     const start = () => {
       if (!waiting) return
@@ -597,25 +472,17 @@ export default function Home() {
       document.fonts.load(`${fontSize} ${fontFamily}`, TITLE_TEXT).then(start, start)
     } else start()
 
-    // Once the index is drawn, reveal the footer and then the fixed contact link.
-    timeline.to(footer, { autoAlpha: 1, duration: 0.35 }, "+=0.1")
-    if (availability) timeline.to(availability, { autoAlpha: 1, duration: 0.9 }, "+=0.15")
-
     return () => {
       waiting = false
       window.clearTimeout(fontTimer)
       timeline.kill()
-      gsap.set(revealed, { clearProps: "opacity,visibility" })
-      for (const part of parts) {
-        gsap.set(part.lead, { clearProps: "opacity,visibility" })
-        gsap.set(part.count, { clearProps: "opacity,visibility" })
-        gsap.set(part.rule, { clearProps: "transform,transformOrigin" })
-      }
+      gsap.set([...faded, ...rows], { clearProps: "opacity,visibility,transform" })
+      gsap.set(rules, { clearProps: "transform,transformOrigin" })
     }
   }, [reducedMotion, resumeVisit, INTRO_TOTAL, availableForWork])
 
-  // Keep a restore point while the index is up, then put it back once open
-  // sections have their real height (see CollapsibleContent's `instant`).
+  // Keep a restore point while the index is up, then put it back once the
+  // loop's copies exist, so the page is tall enough to land there.
   useEffect(() => {
     const onScroll = () => {
       // A route change can reset scroll before this page's effect cleans up.
@@ -634,8 +501,9 @@ export default function Home() {
   }, [])
 
   useLayoutEffect(() => {
-    if (introPending) return
+    if (restoredRef.current || introPending || copyCount < 2) return
     if (!resumeVisit && !shouldSkipIntro()) return
+    restoredRef.current = true
 
     const y = readRememberedIndexScroll()
     if (y <= 0) return
@@ -645,24 +513,73 @@ export default function Home() {
     // later re-asserts the index position once the document height is final.
     const frame = window.requestAnimationFrame(() => window.scrollTo(0, y))
     return () => window.cancelAnimationFrame(frame)
-  }, [introPending, resumeVisit])
+  }, [introPending, resumeVisit, copyCount])
 
-  // The bar is pinned exactly when its own top reaches the pin point, so read
-  // that rather than watching a sentinel: IntersectionObserver never fires here
-  // in Chrome, most likely because of the overflow-x: clip on html and body.
+  // The loop itself. Wraps on every frame while Lenis is easing a wheel fling —
+  // scrollShift carries the fling across — and otherwise once a native scroll
+  // has gone quiet, so touch momentum is never cut off mid-flight.
   useEffect(() => {
-    const controls = controlsRef.current
-    if (!controls) return
+    const main = mainRef.current
+    if (!main) return
 
+    let idleTimer = 0
+
+    const measure = () => {
+      const copies = main.querySelectorAll<HTMLElement>("[data-loop-copy]")
+      if (copies.length < 2) return null
+      const first = copies[0].getBoundingClientRect().top
+      const second = copies[1].getBoundingClientRect().top
+      const cycle = second - first
+      return cycle > 0 ? { second, cycle } : null
+    }
+
+    const wrap = () => {
+      window.clearTimeout(idleTimer)
+      const loop = measure()
+      // Still above the second copy: nothing to do.
+      if (!loop || loop.second > 0) return
+      const cycles = Math.floor(-loop.second / loop.cycle) + 1
+      shiftScroll(-cycles * loop.cycle)
+    }
+
+    const onScroll = () => {
+      if (isSmoothScrolling()) {
+        wrap()
+        return
+      }
+      window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(wrap, LOOP_IDLE_MS)
+    }
+
+    // Enough copies that the viewport plus a fling never reaches the end.
+    const fit = () => {
+      const loop = measure()
+      if (!loop) return
+      setFitCopies(Math.max(MIN_COPIES, Math.ceil(window.innerHeight / loop.cycle) + 2))
+    }
+
+    const observer = new ResizeObserver(fit)
+    observer.observe(main)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("scrollend", wrap)
+
+    return () => {
+      window.clearTimeout(idleTimer)
+      observer.disconnect()
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("scrollend", wrap)
+    }
+  }, [])
+
+  // The bar is pinned exactly when its own top reaches zero, so read that
+  // rather than watching a sentinel: IntersectionObserver never fires here in
+  // Chrome, most likely because of the overflow-x: clip on html and body.
+  useEffect(() => {
     let frame = 0
 
     const measure = () => {
       frame = 0
       const lockup = lockupRef.current
-      // The controls park below the lockup rather than at the viewport edge, so
-      // "pinned" is measured against the lockup's height, not against zero.
-      const offset = lockup?.offsetHeight ?? 0
-      setControlsStuck(controls.getBoundingClientRect().top <= offset + 1)
       if (lockup) setLockupStuck(lockup.getBoundingClientRect().top <= 0)
     }
 
@@ -682,111 +599,12 @@ export default function Home() {
     }
   }, [])
 
-  const toggleGroup = toggleCollapsed
-
-  // Counted against the known list rather than the set's size, so a stale name
-  // restored from a previous session cannot make "all collapsed" unreachable.
-  const collapsedCount = COLLAPSIBLE.filter((name) => collapsed.has(name)).length
-  const allExpanded = collapsedCount === 0
-  const allCollapsed = collapsedCount === COLLAPSIBLE.length
-
-  // Experiments carry no dates, so date order is their authored order, newest first.
-  const filtered = useMemo(
-    () =>
-      sort === "name"
-        ? experiments.slice().sort((a, b) => a.title.localeCompare(b.title))
-        : experiments,
-    [sort, experiments],
-  )
-
-  const filteredProjects = useMemo(
-    () =>
-      projects.slice().sort((a, b) =>
-        sort === "date"
-          ? b.year.localeCompare(a.year)
-          : a.title.localeCompare(b.title),
-      ),
-    [sort, projects],
-  )
-
-  // No dates to sort on, so date order is the order they are authored in.
-  const filteredLinks = useMemo(
-    () =>
-      sort === "name"
-        ? LINKS.slice().sort((a, b) => a.title.localeCompare(b.title))
-        : LINKS,
-    [sort],
-  )
-
-  const groups = useMemo(
-    () =>
-      EXPERIMENT_GROUPS.map((name) => ({
-        name,
-        items: filtered.filter((experiment) => experiment.group === name),
-      })).filter((group) => group.items.length > 0),
-    [filtered],
-  )
-
-  const experimentsOpen = !collapsed.has("experiments")
-  const projectsOpen = !collapsed.has("projects")
-  const linksOpen = !collapsed.has("links")
-
-  const renderGroup = (group: { name: string; items: Experiment[] }) => {
-    const isOpen = !collapsed.has(group.name)
-
-    return (
-      <section key={group.name} className={styles.group}>
-        <h3 className={styles.groupHeading}>
-          <button
-            type="button"
-            className={styles.groupHeader}
-            aria-expanded={isOpen}
-            onClick={() => toggleGroup(group.name)}
-          >
-            {isOpen ? (
-              <Minus
-                className={styles.groupToggle}
-                size={14}
-                strokeWidth={1.75}
-                aria-hidden
-              />
-            ) : (
-              <Plus
-                className={styles.groupToggle}
-                size={14}
-                strokeWidth={1.75}
-                aria-hidden
-              />
-            )}
-            <span className={styles.groupName}>{group.name}</span>
-            <span className={styles.groupRule} />
-            <span className={styles.groupCount}>
-              {pad2(group.items.length)}
-            </span>
-          </button>
-        </h3>
-
-        {/* Opens with its parent category. Snapped while the intro runs so the
-            parent's unfurl measures this group at full height, not at zero. */}
-        <CollapsibleContent
-          open={isOpen}
-          ready={hasArrived("experiments")}
-          instant={resumeVisit || introPending}
-        >
-          {group.items.map((experiment) => (
-            <ExperimentRow key={experiment.href} experiment={experiment} />
-          ))}
-        </CollapsibleContent>
-      </section>
-    )
-  }
-
   return (
     <>
       {/* Index only. Experiments own their own scrolling. */}
       <SmoothScroll paused={contactOpen} />
-      {/* Unmounting is the teardown: the effect cleanup disposes the GPU state. */}
-      {!reducedMotion && <FluidVelocityBackground theme={theme} />}
+      {/* Drifts idle and travels with scroll; under reduced motion, one still frame. */}
+      <HoloBackground scroll={virtualScrollY} still={reducedMotion} />
       <div
         className={`${styles.page} ${introPending ? styles.introPending : ""}`}
       >
@@ -799,130 +617,29 @@ export default function Home() {
             onAiPrompt={() => setPromptOpen(true)}
             lockupRef={lockupRef}
             lockupStuck={lockupStuck}
+            mastheadRef={mastheadRef}
           />
 
-          <div
-            ref={controlsRef}
-            className={`${styles.controls} ${controlsStuck ? styles.controlsStuck : ""}`}
-          >
-            <button
-              type="button"
-              className={styles.controlButton}
-              onClick={expandAll}
-              disabled={allExpanded}
-              aria-label="Expand all"
-              title="Expand all"
-            >
-              <ChevronsUpDown size={14} strokeWidth={1.75} aria-hidden />
-            </button>
-            <button
-              type="button"
-              className={styles.controlButton}
-              onClick={collapseAll}
-              disabled={allCollapsed}
-              aria-label="Collapse all"
-              title="Collapse all"
-            >
-              <ChevronsDownUp size={14} strokeWidth={1.75} aria-hidden />
-            </button>
-
-            <span className={styles.controlsRule} aria-hidden="true" />
-
-            {/* Search moved to a dialog, so sort fits inline at every width and
-                no longer needs a narrow-screen dropdown. */}
-            <button
-              type="button"
-              className={`${styles.sortButton} ${sort === "date" ? styles.sortButtonActive : ""}`}
-              onClick={() => setSort("date")}
-            >
-              date
-            </button>
-            <button
-              type="button"
-              className={`${styles.sortButton} ${sort === "name" ? styles.sortButtonActive : ""}`}
-              onClick={() => setSort("name")}
-            >
-              a–z
-            </button>
-
-            {/* A text button that opens the same search palette as the menu and ⌘F. */}
-            <button type="button" className={styles.searchField} onClick={openPalette}>
-              <Search size={14} strokeWidth={1.75} aria-hidden />
-              search
-              <span className={styles.searchHint} aria-hidden="true">⌘F</span>
-            </button>
-          </div>
-
           <main ref={mainRef} className={styles.main}>
-            {filteredProjects.length > 0 && (
-              <section className={styles.category}>
-                <CategoryHeader
-                  name="projects"
-                  count={filteredProjects.length}
-                  open={projectsOpen}
-                  onToggle={() => toggleGroup("projects")}
-                />
-
-                <CollapsibleContent
-                  open={projectsOpen}
-                  ready={hasArrived("projects")}
-                  instant={resumeVisit}
-                >
-                  {filteredProjects.map((project) => (
-                    <ProjectRow key={project.href} project={project} />
-                  ))}
-                </CollapsibleContent>
-              </section>
-            )}
-
-            {filtered.length > 0 && (
-              <section className={styles.category}>
-                <CategoryHeader
-                  name="experiments"
-                  count={filtered.length}
-                  open={experimentsOpen}
-                  onToggle={() => toggleGroup("experiments")}
-                />
-
-                <CollapsibleContent
-                  open={experimentsOpen}
-                  ready={hasArrived("experiments")}
-                  instant={resumeVisit}
-                >
-                  {groups.map(renderGroup)}
-                </CollapsibleContent>
-              </section>
-            )}
-
-            {filteredLinks.length > 0 && (
-              <section className={styles.category}>
-                <CategoryHeader
-                  name="links"
-                  count={filteredLinks.length}
-                  open={linksOpen}
-                  onToggle={() => toggleGroup("links")}
-                />
-
-                <CollapsibleContent
-                  open={linksOpen}
-                  ready={hasArrived("links")}
-                  instant={resumeVisit}
-                >
-                  {filteredLinks.map((link) => (
-                    <LinkRow key={link.href} link={link} />
-                  ))}
-                </CollapsibleContent>
-              </section>
-            )}
-
+            {Array.from({ length: copyCount }, (_, index) => (
+              <IndexCycle
+                key={index}
+                index={index}
+                projects={orderedProjects}
+                experiments={experiments}
+                links={LINKS}
+              />
+            ))}
           </main>
-          <footer ref={footerRef} className={`${styles.footer} ${availableForWork ? styles.footerWithAvailability : ""}`}>
-            <span>{SITE.name}</span>
-            <Link href="/directory">directory &amp; API</Link>
-          </footer>
         </div>
         {availableForWork && (
-          <div ref={availabilityRef} className={styles.availability} hidden={availabilityDismissed}>
+          <div
+            ref={availabilityRef}
+            className={styles.availability}
+            hidden={availabilityDismissed}
+            // The AI prompt stacks above this on phones (see its stylesheet).
+            data-availability
+          >
             <Link href="/studio" className={styles.availabilityAction}>
               <span className={styles.availabilityDot} aria-hidden="true" />
               Available for new work
@@ -945,32 +662,200 @@ export default function Home() {
   )
 }
 
-/** Stack tags for a row. Sits below the description so the title row stays the
- *  thing you scan, and the tags are what you check once something catches. */
-function TechTags({ tech }: { tech?: string[] }) {
-  if (!tech || tech.length === 0) return null
+/**
+ * One full pass of the index. Every copy after the first is a twin kept for the
+ * loop: hidden from assistive tech and out of the tab order, so a screen reader
+ * hears the index once and Tab never runs on forever. Still clickable, since a
+ * twin is often what is under the pointer.
+ */
+function IndexCycle({
+  index,
+  projects,
+  experiments,
+  links,
+}: {
+  index: number
+  projects: PortfolioProject[]
+  experiments: Experiment[]
+  links: SiteLink[]
+}) {
+  const clone = index > 0
+  const Footer = clone ? "div" : "footer"
 
   return (
-    <ul className={styles.itemTech}>
-      {tech.map((name) => (
-        <li key={name} className={styles.itemTechTag}>
-          {name}
-        </li>
-      ))}
-    </ul>
+    <div
+      className={styles.cycle}
+      data-loop-copy={index}
+      aria-hidden={clone || undefined}
+    >
+      {projects.length > 0 && (
+        <section className={styles.block} data-intro-block>
+          <BlockHead label="Projects" count={projects.length} />
+          {projects.map((project) => (
+            <IndexRow
+              key={project.href}
+              rowKey={project.href}
+              clone={clone}
+              href={project.href}
+              title={project.title}
+              note={project.year}
+              description={project.description}
+              tech={project.tech}
+            />
+          ))}
+        </section>
+      )}
+
+      {experiments.length > 0 && (
+        <section className={styles.block} data-intro-block>
+          <BlockHead label="Experiments" count={experiments.length} />
+          {experiments.map((experiment) => (
+            <IndexRow
+              key={experiment.href}
+              rowKey={experiment.href}
+              clone={clone}
+              href={experiment.href}
+              title={experiment.title}
+              note={experiment.group}
+              description={experiment.description}
+              tech={experiment.tech}
+            />
+          ))}
+        </section>
+      )}
+
+      {links.length > 0 && (
+        <section className={styles.block} data-intro-block>
+          <BlockHead label="Links" count={links.length} />
+          {links.map((link) => (
+            <IndexRow
+              key={link.href}
+              rowKey={link.href}
+              clone={clone}
+              href={link.href}
+              title={link.title}
+              detail={link.href.replace(/^[a-z]+:(\/\/)?(www\.)?/, "").replace(/\/$/, "")}
+            />
+          ))}
+        </section>
+      )}
+
+      {/* The seam between one pass and the next. */}
+      <Footer className={styles.colophon} data-intro-block>
+        <span className={styles.rule} data-intro="rule" aria-hidden="true" />
+        <span className={styles.label} data-intro="label">{SITE.name}</span>
+        <Link
+          href="/directory"
+          className={`${styles.label} ${styles.labelLink}`}
+          data-intro="label"
+          tabIndex={clone ? -1 : undefined}
+        >
+          Directory &amp; API
+        </Link>
+      </Footer>
+    </div>
+  )
+}
+
+/** The rows are a box with the title as its link, stretched over the whole
+ *  row, so anywhere on it follows the link — while the description's toggle,
+ *  which can't sit inside a link, sits above. Off-site links open a new tab;
+ *  experiments stay in the app. */
+function IndexRow({
+  rowKey,
+  clone,
+  href,
+  title,
+  note,
+  description,
+  detail,
+  tech,
+}: {
+  rowKey: string
+  clone: boolean
+  href: string
+  title: string
+  /** Set beside the title, small: a project's year, an experiment's group. */
+  note?: string
+  description?: string
+  /** Plain one-line text where a row has no description to open. */
+  detail?: string
+  tech?: string[]
+}) {
+  const descriptionId = useId()
+  const external = /^[a-z]+:/i.test(href)
+  const internal = href.startsWith("/")
+
+  const label = (
+    <>
+      <span className={styles.rowTitle}>{title}</span>
+      {external ? (
+        <ArrowUpRight className={styles.rowExternal} size={16} strokeWidth={1.5} aria-hidden />
+      ) : null}
+      {note ? <span className={styles.rowNote}>{note}</span> : null}
+    </>
+  )
+  const linkProps = {
+    className: styles.rowLink,
+    "aria-describedby": description ? descriptionId : undefined,
+    tabIndex: clone ? -1 : undefined,
+  }
+
+  return (
+    <div className={styles.row} data-intro="row">
+      <div className={styles.rowHead}>
+        {internal ? (
+          <Link href={href} {...linkProps} onNavigate={() => rememberIndexScroll()}>
+            {label}
+          </Link>
+        ) : (
+          // mailto: opens a mail client rather than a tab, so it skips target/rel.
+          <a href={href} {...linkProps} {...(href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}>
+            {label}
+          </a>
+        )}
+      </div>
+      <div className={styles.rowBody}>
+        {description ? (
+          <Description id={descriptionId} rowKey={rowKey} text={description} clone={clone} />
+        ) : detail ? (
+          <p className={styles.rowDetail}>{detail}</p>
+        ) : null}
+        {tech && tech.length > 0 ? (
+          <p className={styles.rowTech}>
+            {tech.map((name, index) => (
+              <span key={name}>
+                {index > 0 ? <span className={styles.rowTechSep} aria-hidden="true"> / </span> : null}
+                {name}
+              </span>
+            ))}
+          </p>
+        ) : null}
+      </div>
+    </div>
   )
 }
 
 /** Roughly what two lines hold at full width; a first guess at whether a
  *  description needs its toggle, before the browser has measured it. */
-const CLAMP_GUESS = 140
+const CLAMP_GUESS = 160
 
-/** A description held to two lines, with a toggle for the rest when it runs
- *  longer. The toggle sits above the row's link, so it opens the text
- *  instead of following the link. */
-function Description({ id, text }: { id: string; text: string }) {
-  const textRef = useRef<HTMLDivElement>(null)
-  const [open, setOpen] = useState(false)
+/** A description held to two lines, with a + for the rest when it runs longer.
+ *  The toggle sits above the row's link, so it opens the text instead of
+ *  following the link. */
+function Description({
+  id,
+  rowKey,
+  text,
+  clone,
+}: {
+  id: string
+  rowKey: string
+  text: string
+  clone: boolean
+}) {
+  const textRef = useRef<HTMLParagraphElement>(null)
+  const open = useSyncExternalStore(subscribeExpanded, expandedSnapshot, expandedSnapshot).has(rowKey)
   const [overflows, setOverflows] = useState(text.length > CLAMP_GUESS)
 
   // Measured while clamped, and again whenever the width changes: whether
@@ -983,105 +868,39 @@ function Description({ id, text }: { id: string; text: string }) {
     return () => observer.disconnect()
   }, [open, text])
 
+  // Every copy of this row opens together, so the twins above the pressed one
+  // grow as well. Pay that growth back in scroll and the button stays put
+  // under the pointer, rather than the page sliding away from it.
+  const toggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget
+    const before = button.getBoundingClientRect().top
+    flushSync(() => toggleExpanded(rowKey))
+    shiftScroll(button.getBoundingClientRect().top - before)
+  }
+
   return (
-    <>
-      <div id={id} ref={textRef} className={`${styles.itemDesc} ${open ? "" : styles.itemDescClamped}`}>
+    <div className={styles.desc}>
+      <p id={id} ref={textRef} className={`${styles.descText} ${open ? "" : styles.descClamped}`}>
         {text}
-      </div>
+      </p>
       {(overflows || open) && (
         <button
           type="button"
-          className={styles.itemMore}
+          className={styles.more}
           aria-expanded={open}
           aria-controls={id}
-          onClick={() => setOpen(!open)}
+          aria-label={open ? "Show less" : "Show the full description"}
+          title={open ? "Show less" : "Show more"}
+          tabIndex={clone ? -1 : undefined}
+          onClick={toggle}
         >
-          {open ? "Show less" : "Read more"}
+          {open ? (
+            <Minus size={12} strokeWidth={1.75} aria-hidden />
+          ) : (
+            <Plus size={12} strokeWidth={1.75} aria-hidden />
+          )}
         </button>
       )}
-    </>
-  )
-}
-
-function LinkRow({ link }: { link: SiteLink }) {
-  // mailto: opens a mail client rather than a tab, so it skips target/rel.
-  const external = link.href.startsWith("http")
-
-  return (
-    <a
-      href={link.href}
-      className={styles.item}
-      {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
-    >
-      <div className={styles.itemBody}>
-        <div className={styles.itemTitleRow}>
-          <span className={styles.itemTitle}>{link.title}</span>
-          <ArrowUpRight
-            className={styles.itemExternal}
-            size={14}
-            strokeWidth={1.75}
-            aria-hidden
-          />
-        </div>
-      </div>
-    </a>
-  )
-}
-
-// The rows below are a box with the title as its link, and the link
-// stretched over the whole row, so anywhere on it still follows the link —
-// while the description's toggle, which can't sit inside a link, sits above.
-
-function ProjectRow({ project }: { project: PortfolioProject }) {
-  const descriptionId = useId()
-
-  return (
-    <div className={styles.item}>
-      <div className={styles.itemBody}>
-        <div className={styles.itemTitleRow}>
-          <a
-            href={project.href}
-            className={styles.itemLink}
-            target="_blank"
-            rel="noreferrer"
-            aria-describedby={project.description ? descriptionId : undefined}
-          >
-            <span className={styles.itemTitle}>{project.title}</span>
-            <ArrowUpRight
-              className={styles.itemExternal}
-              size={14}
-              strokeWidth={1.75}
-              aria-hidden
-            />
-          </a>
-        </div>
-        {project.description ? <Description id={descriptionId} text={project.description} /> : null}
-        <TechTags tech={project.tech} />
-      </div>
-      <span className={styles.itemDate}>{project.year}</span>
-    </div>
-  )
-}
-
-function ExperimentRow({ experiment }: { experiment: Experiment }) {
-  const descriptionId = useId()
-
-  return (
-    <div className={styles.item}>
-      <div className={styles.itemBody}>
-        <div className={styles.itemTitleRow}>
-          <Link
-            href={experiment.href}
-            className={styles.itemLink}
-            aria-describedby={descriptionId}
-            onNavigate={() => rememberIndexScroll()}
-          >
-            <span className={styles.itemTitle}>{experiment.title}</span>
-          </Link>
-        </div>
-        <Description id={descriptionId} text={experiment.description} />
-        <TechTags tech={experiment.tech} />
-      </div>
     </div>
   )
 }

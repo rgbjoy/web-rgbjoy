@@ -1,7 +1,7 @@
 # rgbjoy.com
 
 Personal site for Tom Fletcher — an index of client work, shader and 3D
-experiments, and links, over a live fluid-simulation background.
+experiments, and links — an endless, looping list over a drifting pastel wash.
 
 [vinext](https://github.com/cloudflare/vinext) (Next.js App Router APIs on Vite),
 React 19, TypeScript, and Bun. Deployment uses Cloudflare Workers and Wrangler.
@@ -99,13 +99,13 @@ src/app/
   api/contact/          Contact form → Amazon SES
   experiments/          One directory per experiment, self-contained
   utilities/
-    FluidVelocityBackground/  GPU fluid sim behind the index
+    HoloBackground/           Pastel wash behind the index; drifts, follows scroll
     SearchPalette/            Cmd+F search over every kind of entry
-    settings/                 Theme + reduced-motion store and menu
+    settings/                 Reduced-motion store and the site menu
     contact/                  Contact dialog
     SmoothScroll.tsx          Lenis, index only
+    scrollShift.ts            Moves the page invisibly (the endless loop's wrap)
     RolloverChroma.tsx        Cycles rollovers through red/green/blue
-    useIndexState.ts          Open sections + sort, per session
   page.tsx              The index
   globals.css           Design tokens
 ```
@@ -117,10 +117,10 @@ entry in `experiments.ts`.
 ## Things worth knowing before editing
 
 - **Reduced motion is a real setting**, not just a media query. It follows the OS
-  until the settings menu overrides it, unmounts the fluid background, disables
+  until the settings menu overrides it, holds the background on one still frame, disables
   smooth scrolling, and snaps the intro to its finished state.
-- **Dark is the default and light is opt-in.** The system colour preference is
-  deliberately ignored; `prefers-color-scheme` does not flip the theme.
+- **The site is light only.** There is no dark theme or toggle, and
+  `prefers-color-scheme` is deliberately ignored.
 - **Hover states belong in `@media (hover: hover)`.** So do `:active` states —
   on touch, `:active` latches at touch-down and holds through a drag, lighting
   up everything a scrolling finger passes.

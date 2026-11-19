@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react"
 
-import { MOTION_KEY, THEME_KEY, type Motion, type Theme } from "./constants"
+import { MOTION_KEY, type Motion } from "./constants"
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)"
 
@@ -41,10 +41,6 @@ function persist(key: string, value: string) {
   }
 }
 
-function themeSnapshot(): Theme {
-  return document.documentElement.dataset.theme === "light" ? "light" : "dark"
-}
-
 function motionSnapshot(): Motion {
   return document.documentElement.dataset.motion === "reduced"
     ? "reduced"
@@ -52,23 +48,12 @@ function motionSnapshot(): Motion {
 }
 
 // Server render has no DOM to read, and matches the boot script's defaults.
-const serverTheme = (): Theme => "dark"
 const serverMotion = (): Motion => "full"
-
-export function setTheme(next: Theme) {
-  document.documentElement.dataset.theme = next
-  persist(THEME_KEY, next)
-  emit()
-}
 
 export function setMotion(next: Motion) {
   document.documentElement.dataset.motion = next
   persist(MOTION_KEY, next)
   emit()
-}
-
-export function useTheme(): Theme {
-  return useSyncExternalStore(subscribe, themeSnapshot, serverTheme)
 }
 
 export function useMotion(): Motion {

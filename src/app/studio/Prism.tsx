@@ -95,7 +95,7 @@ function followPointer(canvas: HTMLCanvasElement) {
   }
 }
 
-/** Light split by a prism, falling in from the top right corner, leaning toward the mouse. Still under reduced motion. */
+/** Foil-coloured light falling in from the top right corner, leaning toward the mouse. Still under reduced motion. */
 export function Prism({ className, still }: { className?: string; still: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 

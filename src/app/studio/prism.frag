@@ -64,6 +64,14 @@ float rays(float a, float r, float t, float aim, float pull) {
   return light / sqrt(spread);
 }
 
+// Holographic foil: a full turn of the spectrum, the way thin film throws
+// colour, from cyan through violet and magenta to gold and back.
+vec3 foil(float hue) {
+  vec3 colour = 0.5 + 0.5 * cos(6.28318 * (hue + vec3(0.0, 0.33, 0.67)));
+  // A touch of white, so the colours read as metal catching light, not paint.
+  return mix(colour, vec3(1.0), 0.08);
+}
+
 void main() {
   // Origin just past the top right corner, measured in heights so rays keep their shape at any width.
   // Starting off canvas means the rays arrive already spread, not pinched to a point.
@@ -77,21 +85,24 @@ void main() {
   float aim = atan(cursor.y, cursor.x);
   float pull = uPull * smoothstep(2.6, 0.8, length(cursor));
 
-  // Each colour bends a little differently, and more the further out it goes, so ray edges split into a rainbow.
-  float split = 0.008 + 0.014 * r;
-  vec3 light = vec3(
-    rays(a - split, r, t, aim, pull),
-    rays(a, r, t, aim, pull),
-    rays(a + split, r, t, aim, pull)
-  );
-
+  float light = rays(a, r, t, aim, pull);
   // Brightest near the corner, gone before it reaches the content.
   light *= smoothstep(2.3, 0.6, r);
-  // Rolled off rather than clipped, so overlapping swells glow brighter without blowing out to white.
+  // Rolled off rather than clipped, so overlapping swells glow brighter without blowing out.
   light = 0.85 * (1.0 - exp(-light));
-  // Film grain, fresh every frame: stronger in the light, and a faint speckle in the dark between rays.
+  // A faint sheen around the source, so the foil is there between the rays too.
+  light += 0.22 * exp(-r * 1.7);
+
+  // Colour runs in bands along each ray and across them, drifting, like
+  // light sliding over foil. The cursor tips the sheet: rays turned toward it
+  // shift further round the wheel.
+  float hue = r * 1.35 + a * 1.2 + t * 0.025 + 0.12 * sin(r * 6.0 - t * 0.4);
+  hue += 0.25 * pull * cos(a - aim);
+  vec3 colour = foil(hue);
+
+  // Film grain, fresh every frame: stronger in the light, and a faint speckle between rays.
   float noise = grain(gl_FragCoord.xy, t);
-  light = max(light + noise * 0.07 * (0.35 + light), 0.0);
-  float alpha = clamp(max(max(light.r, max(light.g, light.b)), abs(noise) * 0.05), 0.0, 1.0);
-  gl_FragColor = vec4(min(light, alpha), alpha);
+  float alpha = clamp(light * 0.78 + noise * 0.05 * (0.3 + light), 0.0, 1.0);
+  // Premultiplied, as the canvas is: tinted colour over the paper beneath.
+  gl_FragColor = vec4(colour * alpha, alpha);
 }

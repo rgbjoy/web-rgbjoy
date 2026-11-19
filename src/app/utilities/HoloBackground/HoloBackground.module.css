@@ -1,0 +1,32 @@
+/* Sized to the large viewport, so a phone's toolbar sliding in and out never
+   resizes the wash mid-scroll. The gradient is the fallback, and what shows
+   until the first frame is drawn: the same stops as the shader. */
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;
+  pointer-events: none;
+  background: linear-gradient(
+    172deg,
+    #c6d6e3 0%,
+    #f2eee4 32%,
+    #f7d9a8 64%,
+    #f5bfbd 100%
+  );
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.canvas[data-ready="true"] {
+  opacity: 1;
+}

@@ -1,19 +1,18 @@
 :root {
-  --bg: #000000;
-  --fg: #ffffff;
-  /* Tertiary text, not decoration: --faint has gone #555 (2.8:1) -> #7d7d7d
-     (4.9:1) -> here, 7.5:1. It stays just under --muted so the three-step
-     hierarchy holds, but the gap is now tone rather than legibility. */
-  --muted: #a6a6a6;
-  --faint: #9a9a9a;
-  --hairline: #333333;
-  /* Hover fill is the foreground extreme, not a tint: pure white on the dark
-     theme, pure black on the light one. Resolves per theme via --fg. */
+  /* Light only: ink on paper. Native controls and scrollbars follow. */
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --muted: #4a4a4a;
+  --faint: #565656;
+  --hairline: #d6d6d6;
+  /* Hover fill is the foreground extreme, not a tint. */
   --hover: var(--fg);
-  /* Chroma seeds: typed characters fade in from these, and rollovers pick one. */
-  --seed-r: #ff4d4d;
-  --seed-g: #4dff88;
-  --seed-b: #4d8bff;
+  /* Chroma seeds: typed characters fade in from these, and rollovers pick one.
+     Dark enough to read on paper — #4dff88 on white is invisible. */
+  --seed-r: #d81b1b;
+  --seed-g: #10883a;
+  --seed-b: #2450c8;
   --background: var(--bg);
   --foreground: var(--fg);
 
@@ -30,20 +29,6 @@
   --transition: 0.09s cubic-bezier(0.2, 0, 0, 1);
   /* Rollover colour specifically, given slightly longer to travel. */
   --rollover-fade: 0.16s cubic-bezier(0.2, 0, 0, 1);
-}
-
-/* Opt-in only: dark is the site's look, not a fallback, so the system's colour
-   preference does not flip this on its own. Set by the settings gear. */
-[data-theme="light"] {
-  --bg: #ffffff;
-  --fg: #0a0a0a;
-  --muted: #4a4a4a;
-  --faint: #565656;
-  --hairline: #d6d6d6;
-  /* Darkened so the seeds read on paper — #4dff88 on white is invisible. */
-  --seed-r: #d81b1b;
-  --seed-g: #10883a;
-  --seed-b: #2450c8;
 }
 
 /* Follows the OS until the gear overrides it. Zeroing --transition catches every

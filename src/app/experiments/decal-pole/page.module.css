@@ -137,7 +137,7 @@
 .drawerContent h1 {
   margin-bottom: var(--gap-tight);
   padding-right: 48px;
-  font-family: var(--font-redaction), var(--font-geist-mono), ui-monospace, monospace;
+  font-family: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
   font-size: 34px;
   font-weight: 400;
   letter-spacing: -0.03em;
@@ -192,9 +192,9 @@
   background: rgb(255 255 255 / 14%);
 }
 
-/* The drawer is dark regardless of the site theme, since it sits over a lit 3D
+/* The drawer is dark although the site is light, since it sits over a lit 3D
    scene rather than the page. */
-[data-theme="light"] .drawer {
+.drawer {
   --fg: #ffffff;
   --muted: #b4b4b4;
   --faint: #8c8c8c;

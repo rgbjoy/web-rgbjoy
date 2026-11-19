@@ -132,6 +132,21 @@
   .copy {
     font-size: 11px;
   }
+
+  /* A phone is too narrow for this and the homepage's availability pill side
+     by side. While both are up, this one stacks directly above it, on the same
+     right edge so the two close buttons line up. 44px is that pill's row: a
+     36px button and an 8px gap. */
+  :global(body):has([data-availability]:not([hidden])) .content {
+    right: max(var(--gutter), env(safe-area-inset-right));
+    bottom: calc(max(24px, env(safe-area-inset-bottom)) + 44px);
+    left: auto;
+  }
+
+  :global(body):has([data-availability]:not([hidden])) .preview {
+    right: 0;
+    left: auto;
+  }
 }
 
 @media (hover: none) {
