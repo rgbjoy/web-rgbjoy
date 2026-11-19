@@ -215,21 +215,13 @@ function TypedText({
 }
 
 /** A rule, a label and an optional count: the head of every block. */
-function BlockHead({
-  label,
-  count,
-  as: Heading = "h2",
-}: {
-  label: string
-  count?: number
-  as?: "h2" | "span"
-}) {
+function BlockHead({ label, count }: { label: string; count?: number }) {
   return (
     <div className={styles.blockHead}>
       <span className={styles.rule} data-intro="rule" aria-hidden="true" />
-      <Heading className={styles.label} data-intro="label">
+      <h2 className={styles.label} data-intro="label">
         {label}
-      </Heading>
+      </h2>
       {count != null && (
         <span className={styles.count} data-intro="label">
           {pad2(count)}
@@ -300,7 +292,6 @@ function Masthead({
       </div>
 
       <header ref={mastheadRef} className={styles.masthead}>
-        <BlockHead label="About" as="span" />
         <div className={styles.split}>
           <div className={styles.splitMain}>
             <div className={styles.intro}>
@@ -365,7 +356,7 @@ export default function Home() {
     [projects],
   )
 
-  // Load choreography: title → about → intro → studio → each block of the
+  // Load choreography: title → intro → studio → each block of the
   // first copy (rule, label, rows). The other copies sit below the fold.
   useLayoutEffect(() => {
     const main = mainRef.current
@@ -391,17 +382,15 @@ export default function Home() {
       labels: Array.from(block.querySelectorAll<HTMLElement>('[data-intro="label"]')),
       rows: Array.from(block.querySelectorAll<HTMLElement>('[data-intro="row"]')),
     })
-    const about = blockParts(masthead)
     const firstCopy = main.querySelector('[data-loop-copy="0"]')
     const blocks = firstCopy
       ? Array.from(firstCopy.querySelectorAll("[data-intro-block]"), blockParts)
       : []
 
-    const rules = [about.rule, ...blocks.map((block) => block.rule)].filter(
+    const rules = blocks.map((block) => block.rule).filter(
       (rule): rule is HTMLElement => rule !== null,
     )
     const faded = [
-      ...about.labels,
       ...blocks.flatMap((block) => block.labels),
       ...(studioLink ? [studioLink] : []),
       ...(availability ? [availability] : []),
@@ -433,8 +422,6 @@ export default function Home() {
       onUpdate: () => setTitleCount(Math.floor(title.i)),
       onComplete: () => setTitleCount(TITLE_TEXT.length),
     })
-    if (about.rule) timeline.to(about.rule, { scaleX: 1, duration: 0.6 })
-    if (about.labels.length) timeline.to(about.labels, { autoAlpha: 1, duration: 0.25 }, "<0.1")
     timeline.to(intro, {
       i: INTRO_TOTAL,
       duration: (INTRO_TOTAL * INTRO_CHAR_MS) / 1000,
