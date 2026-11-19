@@ -34,6 +34,17 @@
    on a client-side navigation; other pages keep theirs. */
 :global(html):has(.page) {
   scrollbar-width: none;
+  /* What shows wherever the wash cannot reach: under Safari's status bar and
+     floating toolbar on iOS, and the rubber band past the top. HoloBackground
+     sets this to the solid colour both its ends fade into, so the wash meets
+     it without a seam; this mid-tone is only the fallback until it has drawn.
+     No transition: the shader and this must change in the same frame. */
+  background: #ece4e6;
+}
+
+/* Out of the way, so that tone is what any gap shows, not the body's white. */
+:global(html):has(.page) :global(body) {
+  background: transparent;
 }
 
 :global(html):has(.page)::-webkit-scrollbar {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import styles from "./HoloBackground.module.css"
 
@@ -46,6 +46,10 @@ uniform float u_saturation;
 uniform vec2 u_pointer;
 /** 0..1: eases in while the mouse is over the page, out when it leaves. */
 uniform float u_presence;
+/** The solid colour both ends fade into, and how much of the height each fade takes. */
+uniform vec3 u_edge;
+uniform float u_fade;
+uniform float u_fadeTop;
 
 out vec4 outColor;
 
@@ -151,6 +155,15 @@ void main() {
   float grain = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;
   color += grain * u_grain;
 
+  // Both ends fade to one flat colour, grain and all: the same colour the
+  // page's own background is set to, so the wash runs on under Safari's
+  // status bar and toolbar, past where it can be drawn, without a seam at
+  // either end. The first and last rows are that colour exactly.
+  float inset = 1.5 / u_resolution.y;
+  float fadeBottom = 1.0 - smoothstep(inset, u_fade, v_uv.y);
+  float fadeTop = smoothstep(1.0 - u_fadeTop, 1.0 - inset, v_uv.y);
+  color = mix(clamp(color, 0.0, 1.0), u_edge, max(fadeBottom, fadeTop));
+
   outColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }`
 
@@ -183,6 +196,18 @@ const MOUSE_STIR_FULL = 6
  *  per second. Slow enough to feel like liquid catching up. */
 const POINTER_EASE = 4
 const PRESENCE_EASE = 2.5
+/** Shares of the height over which the bottom and the top fade to one solid
+ *  colour. */
+const FADE = 0.22
+const FADE_TOP = 0.14
+/** How often that colour is read back from the wash where the fades begin,
+ *  and how quickly it drifts toward what it reads, per second. Slow, so the
+ *  flat ends follow the gradient without flickering. */
+const EDGE_INTERVAL_MS = 500
+const EDGE_EASE = 1.5
+/** Least time between changes to the page's background: each one repaints
+ *  the page's root. */
+const EDGE_APPLY_MS = 100
 
 function stopsToFloats(): Float32Array {
   return new Float32Array(
@@ -217,6 +242,8 @@ export function HoloBackground({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const scrollRef = useRef(scroll)
+  // Bumped when a lost WebGL context comes back, to build everything again on it.
+  const [contextGeneration, setContextGeneration] = useState(0)
 
   useEffect(() => {
     scrollRef.current = scroll
@@ -270,6 +297,9 @@ export function HoloBackground({
     gl.uniform1f(gl.getUniformLocation(program, "u_saturation"), SATURATION)
     const uPointer = gl.getUniformLocation(program, "u_pointer")
     const uPresence = gl.getUniformLocation(program, "u_presence")
+    const uEdge = gl.getUniformLocation(program, "u_edge")
+    gl.uniform1f(gl.getUniformLocation(program, "u_fade"), FADE)
+    gl.uniform1f(gl.getUniformLocation(program, "u_fadeTop"), FADE_TOP)
 
     // A soft gradient gains nothing from device pixels, and the grain reads as
     // paper at one dot per CSS pixel. Keeps the per-pixel noise cheap.
@@ -295,7 +325,132 @@ export function HoloBackground({
     let pointerSeen = false
     let pointerTravel = 0
 
+    /*
+     * Safari on iOS draws the page past the viewport, under its status bar and
+     * floating toolbar, where no fixed element reaches and only the page's own
+     * background shows. So both ends of the wash fade to one solid colour, and
+     * the page's background is set to exactly that colour: the wash meets it
+     * without a seam at either end. The colour is the mean of the two rows
+     * where the fades begin, eased toward each new reading.
+     *
+     * Reading pixels back makes the CPU wait for the GPU to finish drawing, a
+     * stall every time. So after the first frame the read is queued into a
+     * buffer behind a fence, and collected on a later frame once the fence
+     * has passed — never waited on.
+     */
+    const root = document.documentElement
+    const edgeTarget = [0, 0, 0]
+    const edgeNow = [0, 0, 0]
+    let edgeReady = false
+    let edgeReadAt = -Infinity
+    let edgeAppliedAt = -Infinity
+    let appliedR = -1
+    let appliedG = -1
+    let appliedB = -1
+    let rows = new Uint8Array(0)
+    const packBuffer = gl.createBuffer()
+    let pending: WebGLSync | null = null
+    let pendingWidth = 0
+    let lost = false
+
+    /** The rows where the bottom and top fades begin, counted from the bottom
+     *  as GL counts them: the wash itself, untouched by either fade. */
+    const edgeRows = () => {
+      const height = canvas.height
+      return [
+        Math.min(height - 1, Math.floor(height * FADE)),
+        Math.max(0, height - 1 - Math.floor(height * FADE_TOP)),
+      ]
+    }
+
+    const ensureRows = (width: number) => {
+      if (rows.length < width * 8) rows = new Uint8Array(width * 8)
+    }
+
+    /** Averages two read rows into the target. A read from a dead context
+     *  comes back as zeros, alpha included, and is ignored rather than easing
+     *  the page toward black. */
+    const averageRows = (width: number) => {
+      let r = 0
+      let g = 0
+      let b = 0
+      let a = 0
+      const count = width * 2
+      for (let i = 0; i < count; i++) {
+        r += rows[i * 4]
+        g += rows[i * 4 + 1]
+        b += rows[i * 4 + 2]
+        a += rows[i * 4 + 3]
+      }
+      if (a / count < 128) return false
+      edgeTarget[0] = r / count / 255
+      edgeTarget[1] = g / count / 255
+      edgeTarget[2] = b / count / 255
+      return true
+    }
+
+    /** Reads straight back, waiting on the GPU. Only where a frame cannot show
+     *  without the colour: the first, and a still one. */
+    const readNow = () => {
+      if (gl.isContextLost()) return false
+      const width = canvas.width
+      const [bottom, top] = edgeRows()
+      ensureRows(width)
+      gl.readPixels(0, bottom, width, 1, gl.RGBA, gl.UNSIGNED_BYTE, rows, 0)
+      gl.readPixels(0, top, width, 1, gl.RGBA, gl.UNSIGNED_BYTE, rows, width * 4)
+      return averageRows(width)
+    }
+
+    /** Queues the same read into a buffer the GPU fills in its own time. */
+    const requestRead = () => {
+      if (pending || gl.isContextLost()) return
+      const width = canvas.width
+      const [bottom, top] = edgeRows()
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, packBuffer)
+      gl.bufferData(gl.PIXEL_PACK_BUFFER, width * 8, gl.STREAM_READ)
+      gl.readPixels(0, bottom, width, 1, gl.RGBA, gl.UNSIGNED_BYTE, 0)
+      gl.readPixels(0, top, width, 1, gl.RGBA, gl.UNSIGNED_BYTE, width * 4)
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null)
+      pending = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)
+      pendingWidth = width
+      gl.flush()
+    }
+
+    /** Collects a queued read if the GPU has finished it. Never blocks: a zero
+     *  timeout only asks. */
+    const collectRead = () => {
+      if (!pending || gl.isContextLost()) return
+      const status = gl.clientWaitSync(pending, 0, 0)
+      if (status !== gl.ALREADY_SIGNALED && status !== gl.CONDITION_SATISFIED) return
+      gl.deleteSync(pending)
+      pending = null
+      ensureRows(pendingWidth)
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, packBuffer)
+      gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, rows, 0, pendingWidth * 8)
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null)
+      averageRows(pendingWidth)
+    }
+
+    /** The shader's solid colour and the page's background, set together to
+     *  the same rounded value so they are never a shade apart. */
+    const applyEdge = (force = false) => {
+      if (gl.isContextLost()) return
+      const now = performance.now()
+      if (!force && now - edgeAppliedAt < EDGE_APPLY_MS) return
+      const r = Math.round(edgeNow[0] * 255)
+      const g = Math.round(edgeNow[1] * 255)
+      const b = Math.round(edgeNow[2] * 255)
+      if (r === appliedR && g === appliedG && b === appliedB) return
+      edgeAppliedAt = now
+      appliedR = r
+      appliedG = g
+      appliedB = b
+      gl.uniform3f(uEdge, r / 255, g / 255, b / 255)
+      root.style.backgroundColor = `rgb(${r} ${g} ${b})`
+    }
+
     const draw = () => {
+      if (gl.isContextLost()) return
       resize()
       gl.uniform2f(uResolution, canvas.width, canvas.height)
       gl.uniform1f(uDrift, drift * DRIFT_RATE)
@@ -303,7 +458,27 @@ export function HoloBackground({
       gl.uniform1f(uStir, stir)
       gl.uniform2f(uPointer, pointer.x, pointer.y)
       gl.uniform1f(uPresence, pointer.presence)
+      if (edgeReady) applyEdge()
       gl.drawArrays(gl.TRIANGLES, 0, 3)
+
+      if (!edgeReady || still) {
+        // Take the colour as read and draw again with it, rather than showing
+        // a frame that fades into nothing.
+        if (readNow()) {
+          edgeReady = true
+          edgeNow[0] = edgeTarget[0]
+          edgeNow[1] = edgeTarget[1]
+          edgeNow[2] = edgeTarget[2]
+          applyEdge(true)
+          gl.drawArrays(gl.TRIANGLES, 0, 3)
+        }
+      } else {
+        const now = performance.now()
+        if (now - edgeReadAt >= EDGE_INTERVAL_MS) {
+          edgeReadAt = now
+          requestRead()
+        }
+      }
       canvas.dataset.ready = "true"
     }
 
@@ -335,6 +510,10 @@ export function HoloBackground({
         Math.abs(target.x - pointer.x) + Math.abs(target.y - pointer.y) > 0.001 ||
         Math.abs(target.presence - pointer.presence) > 0.002
 
+      collectRead()
+      const toward = 1 - Math.exp(-EDGE_EASE * dt)
+      for (let i = 0; i < 3; i++) edgeNow[i] += (edgeTarget[i] - edgeNow[i]) * toward
+
       // Idle, the drift is slow enough that every other frame is plenty.
       tick += 1
       if (!moved && !settling && stir < 0.01 && tick % 2 === 1) return
@@ -345,9 +524,11 @@ export function HoloBackground({
     // already answers that.
     const onPointerMove = (event: PointerEvent) => {
       if (event.pointerType === "touch") return
-      const height = Math.max(1, canvas.clientHeight)
-      const x = event.clientX / height
-      const y = event.clientY / height
+      // From the canvas's own corner, in case it ever stops sitting at 0,0.
+      const box = canvas.getBoundingClientRect()
+      const height = Math.max(1, box.height)
+      const x = (event.clientX - box.left) / height
+      const y = (event.clientY - box.top) / height
       if (!pointerSeen) {
         // First sighting: start the eased cursor here, so the swirl fades in
         // where the mouse is instead of sliding over from the corner.
@@ -364,6 +545,21 @@ export function HoloBackground({
     const onPointerGone = () => {
       target.presence = 0
     }
+
+    // A lost context draws nothing and reads back nothing. Stop, hand the
+    // page back its own background and let the CSS gradient show, and ask for
+    // the context back; when it returns, everything is built again on it.
+    const onContextLost = (event: Event) => {
+      event.preventDefault()
+      lost = true
+      cancelAnimationFrame(frame)
+      pending = null
+      delete canvas.dataset.ready
+      root.style.removeProperty("background-color")
+    }
+    const onContextRestored = () => setContextGeneration((generation) => generation + 1)
+    canvas.addEventListener("webglcontextlost", onContextLost)
+    canvas.addEventListener("webglcontextrestored", onContextRestored)
 
     const observer = new ResizeObserver(() => {
       if (still) draw()
@@ -382,15 +578,24 @@ export function HoloBackground({
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
+      canvas.removeEventListener("webglcontextlost", onContextLost)
+      canvas.removeEventListener("webglcontextrestored", onContextRestored)
+      // Other pages keep their own background.
+      root.style.removeProperty("background-color")
       window.removeEventListener("pointermove", onPointerMove)
       document.documentElement.removeEventListener("mouseleave", onPointerGone)
       window.removeEventListener("blur", onPointerGone)
-      gl.deleteBuffer(buffer)
-      gl.deleteProgram(program)
+      // Objects from a lost context belong to nothing now; leave them be.
+      if (!lost && !gl.isContextLost()) {
+        if (pending) gl.deleteSync(pending)
+        gl.deleteBuffer(packBuffer)
+        gl.deleteBuffer(buffer)
+        gl.deleteProgram(program)
+      }
       // No WEBGL_lose_context: it is permanent for the canvas, so StrictMode's
       // second mount would inherit a context that can never draw.
     }
-  }, [still])
+  }, [still, contextGeneration])
 
   return (
     <div className={styles.container} aria-hidden="true">
