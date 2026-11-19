@@ -1,5 +1,3 @@
-/* Proportions carried over from the old shader: each bar is 21% of the mark
-   wide and 70% tall, 8% apart, centred. */
 .logo {
   --mark: 34px;
   /* Full-strength primaries for the mark alone. The site's --seed-* colours are
@@ -12,7 +10,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--mark) * 0.08);
+  gap: 6%;
   width: var(--mark);
   height: var(--mark);
   /* The bars sit inside the mark's box, so this closes the optical gap to the

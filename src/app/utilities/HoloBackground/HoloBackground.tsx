@@ -180,13 +180,11 @@ const SATURATION = 1.22
 /** Screen heights the field travels per screen of page scrolled: it moves with
  *  the page, a little behind it. */
 const PARALLAX = 0.35
-/** Idle drift, in noise units per second. Slow enough to notice only if you
- *  watch for it. */
-const DRIFT_RATE = 0.035
+/** Drift speeds in noise units per second, blended by scroll and pointer activity. */
+const IDLE_DRIFT_RATE = 0.07
+const FULL_STIR_DRIFT_RATE = 0.28
 /** Scroll speed, px per second, that counts as stirring it as hard as it goes. */
 const STIR_FULL = 2400
-/** How many times faster the field churns at full stir. */
-const STIR_SPEEDUP = 7
 /** How quickly the stir follows the scroll speed, per second. */
 const STIR_EASE = 5
 /** Mouse speed, in screen heights per second, that stirs it as hard as it goes.
@@ -314,7 +312,7 @@ export function HoloBackground({
     }
 
     // A random start, so every visit opens on a slightly different wash.
-    let drift = Math.random() * 40
+    let drift = Math.random() * 1.4
     let stir = 0
     let scrollY = scrollRef.current()
 
@@ -453,7 +451,7 @@ export function HoloBackground({
       if (gl.isContextLost()) return
       resize()
       gl.uniform2f(uResolution, canvas.width, canvas.height)
-      gl.uniform1f(uDrift, drift * DRIFT_RATE)
+      gl.uniform1f(uDrift, drift)
       gl.uniform1f(uScroll, (scrollY / Math.max(1, canvas.clientHeight)) * PARALLAX)
       gl.uniform1f(uStir, stir)
       gl.uniform2f(uPointer, pointer.x, pointer.y)
@@ -500,7 +498,7 @@ export function HoloBackground({
       pointerTravel = 0
       const stirTarget = Math.min(1, Math.max(speed / STIR_FULL, mouseSpeed / MOUSE_STIR_FULL))
       stir += (stirTarget - stir) * (1 - Math.exp(-STIR_EASE * dt))
-      drift += dt * (1 + stir * STIR_SPEEDUP)
+      drift += dt * (IDLE_DRIFT_RATE + stir * (FULL_STIR_DRIFT_RATE - IDLE_DRIFT_RATE))
 
       const follow = 1 - Math.exp(-POINTER_EASE * dt)
       pointer.x += (target.x - pointer.x) * follow
