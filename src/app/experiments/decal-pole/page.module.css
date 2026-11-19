@@ -140,7 +140,8 @@
   font-family: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
   font-size: 34px;
   font-weight: 400;
-  letter-spacing: -0.03em;
+  /* Instrument Serif is already narrow; tight tracking would crowd it. */
+  letter-spacing: -0.01em;
 }
 
 .drawerContent h2 {

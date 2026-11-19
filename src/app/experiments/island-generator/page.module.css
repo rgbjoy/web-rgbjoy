@@ -48,7 +48,8 @@
   font-size: clamp(40px, 6vw, 76px);
   font-weight: 400;
   line-height: 0.9;
-  letter-spacing: -0.035em;
+  /* Instrument Serif is already narrow; tight tracking would crowd it. */
+  letter-spacing: -0.01em;
 }
 
 .titleBlock p {
