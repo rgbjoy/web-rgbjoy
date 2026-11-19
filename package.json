@@ -8,6 +8,8 @@
     "start": "wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state",
     "lint": "eslint",
     "ts:check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "update": "bun update --latest -i",
     "deploy": "bun run build && wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
@@ -52,7 +54,6 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.70.1",
-    "@types/bun": "1.4.4",
     "@types/node": "^26.6.6",
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.3.0",
@@ -63,11 +64,12 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.4.6",
+    "pngjs": "^7.0.0",
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
-    "wrangler": "^4.165.0",
-    "pngjs": "^7.0.0"
+    "vitest": "^5.1.1",
+    "wrangler": "^4.165.0"
   },
   "type": "module"
 }

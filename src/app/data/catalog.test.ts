@@ -1,5 +1,7 @@
 import { infoDocument, validateInfoDocument, infoText } from './info-document'
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, test, vi } from 'vitest'
+// The same module the server code gets for `cloudflare:workers` (see vitest.config.ts).
+import { cacheEntries, cacheStats, database, mediaObjects, mediaState, testEnv } from '../../../tests/cloudflare-env'
 import { GET } from '../api/catalog/route'
 import { GET as getText } from '../llms.txt/route'
 import { GET as getSchema } from '../openapi.json/route'
@@ -12,7 +14,6 @@ import { serializeJsonLd } from './structured-data'
 const initialCatalog = await getPublicCatalog()
 
 test('an empty CMS project table publishes no fallback projects', async () => {
-  const { database } = await import('../../../tests/cloudflare-env')
   const projects = database.query('SELECT * FROM projects').all() as {
     id: string; title: string; url: string; year: string; description: string;
     technologies: string; hidden: number; position: number; updated_at: string
@@ -108,7 +109,6 @@ describe('public portfolio discovery', () => {
 })
 
 test('D1 visibility and text overrides propagate to every discovery format', async () => {
-  const { database } = await import('../../../tests/cloudflare-env')
   const hidden = initialCatalog.find(entry => entry.kind === 'experiment')!
   const edited = initialCatalog.find(entry => entry.kind === 'project')!
   database.query('INSERT INTO content_settings (id, hidden) VALUES (?, 1)').run(hidden.id)
@@ -137,7 +137,6 @@ test('dashboard rejects anonymous and forged identity requests', async () => {
 })
 
 test('password login issues a protected session and rejects forged sessions, origins and excessive attempts', async () => {
-  const { testEnv } = await import('../../../tests/cloudflare-env')
   const { createHash } = await import('node:crypto')
   const { POST: login } = await import('../dashboard/login/route')
   const { POST: logout } = await import('../dashboard/logout/route')
@@ -171,7 +170,6 @@ test('password login issues a protected session and rejects forged sessions, ori
 })
 
 test('dashboard creates, edits, hides and deletes D1 projects and saves Info', async () => {
-  const { testEnv, database } = await import('../../../tests/cloudflare-env')
   const { POST: save, GET: dashboard } = await import('../dashboard/api/route')
   const { createSession, SESSION_COOKIE } = await import('../server/dashboard-auth')
   const { getInfo } = await import('../server/content')
@@ -203,7 +201,7 @@ test('dashboard creates, edits, hides and deletes D1 projects and saves Info', a
     expect((await write({ ...project, id })).status).toBe(404)
     expect(oldInfo.available_for_work).toBe(1)
     expect((await write({ type: 'info', document: infoDocument({ ...oldInfo, body: null, lead: 'Updated introduction.' }), availableForWork: false })).status).toBe(200)
-    expect((await getInfo()).lead).toStartWith('Updated introduction.')
+    expect((await getInfo()).lead).toMatch(/^Updated introduction\./)
     expect((await getInfo()).author).toBe(oldInfo.author)
     expect((await getInfo()).available_for_work).toBe(0)
     expect((await write({ type: 'info', document: infoDocument(oldInfo), availableForWork: 'yes' })).status).toBe(400)
@@ -219,7 +217,6 @@ test('dashboard creates, edits, hides and deletes D1 projects and saves Info', a
 })
 
 test('SEO reads only the single site-wide record', async () => {
-  const { database } = await import('../../../tests/cloudflare-env')
   const { getSeo, getSettings } = await import('../server/content')
   const original = await getSeo()
   try {
@@ -273,7 +270,6 @@ test('Lexical can reopen the migrated and validated bio document', async () => {
 })
 
 test('shared cache reuses snapshots and rotates after every content table changes', async () => {
-  const { database, cacheEntries, cacheStats } = await import('../../../tests/cloudflare-env')
   const { getSettings } = await import('../server/content')
   cacheEntries.clear()
   const batches = cacheStats.batches
@@ -304,11 +300,18 @@ test('shared cache reuses snapshots and rotates after every content table change
 })
 
 test('cache failures fall back to D1 and rolled-back writes do not invalidate', async () => {
-  const { database, cacheStats } = await import('../../../tests/cloudflare-env')
   const { getSettings } = await import('../server/content')
   const original = await getSettings()
+  // An outage the app is meant to ride out: it warns and reads D1 instead.
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
   cacheStats.fail = true
-  try { expect(await getSettings()).toEqual(original) } finally { cacheStats.fail = false }
+  try {
+    expect(await getSettings()).toEqual(original)
+    expect(warn).toHaveBeenCalledWith('Content cache read unavailable; reading D1')
+  } finally {
+    cacheStats.fail = false
+    warn.mockRestore()
+  }
   const before = cacheStats.batches
   database.exec("BEGIN; UPDATE site_info SET lead='Rolled back'; ROLLBACK;")
   expect(await getSettings()).toEqual(original)
@@ -316,7 +319,6 @@ test('cache failures fall back to D1 and rolled-back writes do not invalidate', 
 })
 
 test('Projects tab saves edits together and rejects invalid batches without partial writes', async () => {
-  const { testEnv, database } = await import('../../../tests/cloudflare-env')
   const { POST } = await import('../dashboard/api/route')
   const { createSession, SESSION_COOKIE } = await import('../server/dashboard-auth')
   testEnv.DASHBOARD_PASSWORD_HASH = 'test-configured'
@@ -344,7 +346,6 @@ test('Projects tab saves edits together and rejects invalid batches without part
 })
 
 test('SEO tab saves text and both images together, preserving published data on upload failure', async () => {
-  const { testEnv, database, mediaObjects, mediaState } = await import('../../../tests/cloudflare-env')
   const { POST } = await import('../dashboard/media/route')
   const { createSession, SESSION_COOKIE } = await import('../server/dashboard-auth')
   const { IMAGE_VARIANTS } = await import('./media')
@@ -362,8 +363,15 @@ test('SEO tab saves text and both images together, preserving published data on 
       const png = new PNG({ width: variant.width, height: variant.height }); png.data.fill(255)
       data.set(`${kind}:${variant.file}`, new Blob([Uint8Array.from(PNG.sync.write(png))], {type:'image/png'}), variant.file)
     }
+    // A storage outage mid-save: the app logs it and keeps what was published.
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
     mediaState.fail = true
-    expect((await save(data)).status).toBe(500)
+    try {
+      expect((await save(data)).status).toBe(500)
+      expect(logged).toHaveBeenCalledWith('Image upload failed', expect.any(Error))
+    } finally {
+      logged.mockRestore()
+    }
     expect(database.query("SELECT title,description FROM seo_settings WHERE path='/'").get()).toEqual(original)
     expect(database.query('SELECT kind,version FROM site_media').all()).toEqual(originalMedia)
     mediaState.fail = false

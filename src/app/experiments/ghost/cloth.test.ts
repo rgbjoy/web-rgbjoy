@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'vitest'
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three'
 
 import { GhostCloth, HEAD_Y } from './cloth'

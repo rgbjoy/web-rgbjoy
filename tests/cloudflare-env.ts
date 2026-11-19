@@ -1,8 +1,45 @@
-import { mock } from 'bun:test'
-import { Database } from 'bun:sqlite'
+// Stands in for `cloudflare:workers` under Vitest (aliased in vitest.config.ts):
+// D1 on Node's built-in SQLite, plus the cache and R2 the server code touches.
+// Tests import the handles below to inspect state and inject failures.
 import { readFileSync } from 'node:fs'
+import { DatabaseSync, type SQLInputValue } from 'node:sqlite'
 
-export const database = new Database(':memory:')
+type Row = Record<string, unknown>
+
+/** Node's SQLite behind the small query/transaction API the tests are written
+ *  against. Rows come back as plain objects, and a missing row as null, the
+ *  way D1's first() reports it. */
+function openDatabase() {
+  const db = new DatabaseSync(':memory:')
+  return {
+    exec: (sql: string) => db.exec(sql),
+    query: (sql: string) => {
+      const statement = db.prepare(sql)
+      return {
+        get: (...values: SQLInputValue[]) => {
+          const row = statement.get(...values) as Row | undefined
+          return row ? { ...row } : null
+        },
+        all: (...values: SQLInputValue[]) => (statement.all(...values) as Row[]).map((row) => ({ ...row })),
+        run: (...values: SQLInputValue[]) => statement.run(...values),
+      }
+    },
+    /** Wraps fn so a call runs it in one transaction, rolled back if it throws. */
+    transaction: <T>(fn: () => T) => () => {
+      db.exec('BEGIN')
+      try {
+        const result = fn()
+        db.exec('COMMIT')
+        return result
+      } catch (error) {
+        db.exec('ROLLBACK')
+        throw error
+      }
+    },
+  }
+}
+
+export const database = openDatabase()
 database.exec(readFileSync(new URL('../migrations/0001_content.sql', import.meta.url), 'utf8'))
 database.exec(readFileSync(new URL('../migrations/0002_projects_and_info.sql', import.meta.url), 'utf8'))
 database.exec(readFileSync(new URL('../migrations/0003_site_media.sql', import.meta.url), 'utf8'))
@@ -33,4 +70,5 @@ export const testEnv = {
     batch: async (statements: { sql: string; values?: (string | number | null)[] }[]) => { cacheStats.batches++; return database.transaction(() => statements.map(({ sql, values = [] }) => ({ results: database.query(sql).all(...values) })))() },
   },
 }
-mock.module('cloudflare:workers', () => ({ env: testEnv }))
+/** What the server code imports as `env` from `cloudflare:workers`. */
+export const env = testEnv

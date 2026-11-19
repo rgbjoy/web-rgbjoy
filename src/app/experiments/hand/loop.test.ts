@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test'
+import { expect, test } from 'vitest'
 
 import { FINGERS, LOOP_SECONDS, sampleLoop } from './loop'
 

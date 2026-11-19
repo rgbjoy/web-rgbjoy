@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, test } from "vitest"
 
 import { rotateAxis } from "./simulation"
 import type { b3Quat, b3Vec3 } from "box3d.js"

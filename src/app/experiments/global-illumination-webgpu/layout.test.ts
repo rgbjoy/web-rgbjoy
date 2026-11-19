@@ -1,12 +1,11 @@
-import { expect, test } from 'bun:test'
+import { expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { Matrix3 } from 'three'
 
 import { PROBE_COUNT } from './probes'
 import { FrameUniforms, ProbeUpdateUniforms, SceneUniforms, wgslConstants } from './layout'
 
-const wgsl = (name: string) => readFileSync(join(import.meta.dir, name), 'utf8')
+const wgsl = (name: string) => readFileSync(new URL(name, import.meta.url), 'utf8')
 
 test('the scene uniforms land where WGSL lays out Scene', () => {
   const scene = new SceneUniforms()

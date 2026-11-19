@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, test } from "vitest"
 
 import { createIslandHeightfield, DEFAULT_ISLAND_SETTINGS } from "./terrain"
 

@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test'
+import { expect, test } from 'vitest'
 
 import { BLOCK_FLOATS, compose, partition, settle, writeBlocks, type Cut } from './frames'
 import { mutedPalette, oklch, random, vividPalette } from './palette'

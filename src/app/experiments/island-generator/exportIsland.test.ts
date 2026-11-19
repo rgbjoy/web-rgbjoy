@@ -1,4 +1,4 @@
-import { expect, spyOn, test } from "bun:test"
+import { expect, test, vi } from "vitest"
 
 import { exportIslandGlb } from "./exportIsland"
 import { createIslandGeometry, DEFAULT_ISLAND_SETTINGS } from "./terrain"
@@ -37,14 +37,14 @@ test("GLB contains the softened preview mesh and still respects all water/biome 
   const link = { href: "", download: "", click() {}, remove() {} }
   const restoreGlobals = [
     replaceGlobal("FileReader", BlobReader),
-    replaceGlobal("document", { createElement: () => link, body: { append() {} } }),
+    replaceGlobal("document", { createElement: () => link, body: { appendChild() {} } }),
     replaceGlobal("window", { setTimeout: (callback: () => void) => callback() }),
   ]
-  const createUrl = spyOn(URL, "createObjectURL").mockImplementation((blob) => {
+  const createUrl = vi.spyOn(URL, "createObjectURL").mockImplementation((blob) => {
     downloads.push(blob as Blob)
     return "blob:island-export-test"
   })
-  const revokeUrl = spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
+  const revokeUrl = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
   const settings = {
     ...DEFAULT_ISLAND_SETTINGS, resolution: 64, shoreSoftness: 0.75,
     smoothing: 0.5, waterLevel: 0.3,

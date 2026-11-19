@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, test } from "vitest"
 import { PerspectiveCamera } from "three"
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 

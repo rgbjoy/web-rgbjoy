@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test'
+import { expect, test } from 'vitest'
 import { Matrix3, Matrix4, Vector3 } from 'three'
 
 import { PLUS_BAR, PLUS_CENTER, plusHit, plusTurn } from './plus'

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, test } from "vitest"
 
 import { SHORE_BLEND_HEIGHT, softenShoreHeight } from "./shore"
 import {

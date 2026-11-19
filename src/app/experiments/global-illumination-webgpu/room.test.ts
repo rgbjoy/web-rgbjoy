@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'bun:test'
+import { afterEach, expect, test } from 'vitest'
 import { Quaternion, Vector3 } from 'three'
 
 import { allPoses, inverseTurn, keepInRoom, OBJECTS, pickObject, resetObjects, rotatable, torusDistance } from './room'

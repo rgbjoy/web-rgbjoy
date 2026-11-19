@@ -60,6 +60,7 @@ Use **Scriptlet** to run the long-running `dev` or `start` scripts.
 | `build` | Build the Worker and browser assets |
 | `start` | Preview the built Worker with the same local D1 storage |
 | `lint` / `ts:check` | ESLint / TypeScript |
+| `test` / `test:watch` | Vitest, once or watching; `cloudflare:workers` is an in-memory stand-in (`tests/cloudflare-env.ts`) |
 | `cf:types` | Regenerate Worker bindings and runtime types |
 | `db:migrate:local` | Apply migrations to local D1 |
 | `db:migrate:remote` | Apply migrations to the configured production D1 |

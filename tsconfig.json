@@ -16,7 +16,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "types": [
-      "bun"
+      "node"
     ],
     "jsx": "react-jsx",
     "incremental": true,
