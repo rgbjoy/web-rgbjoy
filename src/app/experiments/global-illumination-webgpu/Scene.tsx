@@ -1,6 +1,6 @@
 "use client"
 
-import { GlobalIlluminationViewer } from "../global-illumination/Viewer"
+import { GlobalIlluminationViewer } from "./Viewer"
 import { GlobalIlluminationWebGPUCanvas } from "./GlobalIlluminationWebGPU"
 
 export default function Page() {

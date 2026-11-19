@@ -1,8 +1,7 @@
 // One frame of the building, as a compute shader: a camera ray, the sun, a
 // bounce path of one or two hops per pixel and a march through the sunlit
-// air, each blended into the running mean of every frame before it. The
-// WebGL page's trace.frag, with the four render targets turned into four
-// storage textures written per invocation.
+// air, each blended into the running mean of every frame before it, and
+// written to four storage textures per invocation.
 //
 // The bounce is kept apart from the rest. It is the noisy, costly part, and
 // it is smooth: when the camera moves it is carried over from last frame and

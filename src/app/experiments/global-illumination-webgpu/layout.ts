@@ -1,6 +1,6 @@
 import { Matrix3, Vector2, Vector3 } from "three"
 
-import { PROBE_COUNT, PROBE_GRID, PROBE_ORIGIN, PROBE_SPACING } from "../global-illumination/probes"
+import { PROBE_COUNT, PROBE_GRID, PROBE_ORIGIN, PROBE_SPACING } from "./probes"
 import {
   BLOCK_HALF,
   BLOCK_ROUNDING,
@@ -13,7 +13,7 @@ import {
   TORUS_TUBE,
   WALL,
   WINDOW,
-} from "../global-illumination/room"
+} from "./room"
 import { PLUS_ARM, PLUS_BAR, PLUS_ROUNDING, PLUS_STRIPES } from "./plus"
 
 /**

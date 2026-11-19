@@ -1,28 +1,12 @@
 /**
  * The probe volume's layout: probes through the room's air, half a metre
  * apart and a quarter metre in from every wall. The room's inside runs
- * x −3.5…3.5, y 0…4.5, z −6…6 (scene.glsl), so 14 × 9 × 24 of them.
+ * x −3.5…3.5, y 0…4.5, z −6…6 (room.ts), so 14 × 9 × 24 of them.
  */
 export const PROBE_GRID = [14, 9, 24] as const
 export const PROBE_SPACING = 0.5
 export const PROBE_ORIGIN = [-3.25, 0.25, -5.75] as const
 export const PROBE_COUNT = PROBE_GRID[0] * PROBE_GRID[1] * PROBE_GRID[2]
-
-/** One texel per probe, laid out in rows of this many. */
-export const PROBE_ATLAS_WIDTH = 64
-export const PROBE_ATLAS_HEIGHT = Math.ceil(PROBE_COUNT / PROBE_ATLAS_WIDTH)
-
-/** The layout as shader defines, so scene.glsl and this file can't disagree. */
-export function probeDefines() {
-  const f = (n: number) => n.toFixed(4)
-  return {
-    PROBE_GRID: `ivec3(${PROBE_GRID.join(", ")})`,
-    PROBE_ORIGIN: `vec3(${PROBE_ORIGIN.map(f).join(", ")})`,
-    PROBE_SPACING: f(PROBE_SPACING),
-    PROBE_COUNT: String(PROBE_COUNT),
-    PROBE_ATLAS_WIDTH: String(PROBE_ATLAS_WIDTH),
-  }
-}
 
 /**
  * When the probes update, and how much each update counts. The first frames

@@ -5,7 +5,7 @@ import { type FC, useCallback, useEffect, useState } from "react"
 
 import type { EditMode } from "./Controls"
 import { allPoses, type Pose, rotatable, type SceneObject } from "./room"
-import styles from "./page.module.css"
+import styles from "./Viewer.module.css"
 
 /** What the page hands whichever renderer draws the room. */
 export type CanvasProps = {
@@ -56,8 +56,8 @@ function Readout({ pose: { position, rotation } }: { pose: Pose }) {
 }
 
 /**
- * The room, whichever renderer draws it, with the toolbar that moves what's
- * selected. The WebGL and WebGPU pages differ only in the canvas they pass.
+ * The room, drawn by the canvas passed in, with the toolbar that moves what's
+ * selected.
  */
 export function GlobalIlluminationViewer({ Canvas }: { Canvas: FC<CanvasProps> }) {
   const [ready, setReady] = useState(false)

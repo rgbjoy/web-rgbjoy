@@ -36,22 +36,3 @@
   opacity: 0.8;
 }
 
-.noticeLink {
-  padding: 8px 16px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  color: inherit;
-  text-decoration: none;
-  transition: background-color var(--rollover-fade);
-}
-
-@media (hover: hover) {
-  .noticeLink:hover {
-    background: color-mix(in srgb, var(--fg) 12%, var(--bg));
-  }
-}
-
-.noticeLink:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 2px;
-}

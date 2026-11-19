@@ -33,7 +33,7 @@ type ControlsProps = {
  */
 export function Controls({ gizmo, selected, mode, onSelect, onMove, home, pick = pickObject }: ControlsProps) {
   const camera = useThree((state) => state.camera)
-  // `renderer`, not `gl`: the same controls drive the WebGL page and the WebGPU one.
+  // `renderer`, not `gl`: the overlay canvas renders with WebGPU, not WebGL.
   const gl = useThree((state) => state.renderer)
   const invalidate = useThree((state) => state.invalidate)
 

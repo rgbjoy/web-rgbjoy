@@ -2,15 +2,14 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import GUI from "lil-gui"
-import Link from "next/link"
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type FC } from "react"
 import { Color, Matrix3, Matrix4, Scene, Vector3 } from "three"
 
-import { Accumulator, cameraMoved, type FrameMode } from "../global-illumination/accumulation"
-import { Controls } from "../global-illumination/Controls"
-import { ProbeSchedule, randomRotation } from "../global-illumination/probes"
-import { inverseTurn, OBJECTS, pickHit, resetObjects } from "../global-illumination/room"
-import type { CanvasProps } from "../global-illumination/Viewer"
+import { Accumulator, cameraMoved, type FrameMode } from "./accumulation"
+import { Controls } from "./Controls"
+import { ProbeSchedule, randomRotation } from "./probes"
+import { inverseTurn, OBJECTS, pickHit, resetObjects } from "./room"
+import type { CanvasProps } from "./Viewer"
 import type { SceneUniforms } from "./layout"
 import { GpuPasses, type Timings } from "./passes"
 import { PLUS_CENTER, plusHit, plusTurn } from "./plus"
@@ -88,7 +87,7 @@ const CAMERA = {
   minHorizontalFov: 58,
 }
 
-const UNSUPPORTED = "This version runs on WebGPU, which this browser doesn't offer."
+const UNSUPPORTED = "This experiment runs on WebGPU, which this browser doesn't offer."
 const FAILED = "WebGPU couldn't set the room up on this device."
 
 const emissive = new Color()
@@ -558,9 +557,6 @@ function Notice({ message }: { message: string }) {
   return (
     <div className={styles.notice} role="status">
       <p>{message}</p>
-      <Link href="/experiments/global-illumination" className={styles.noticeLink}>
-        Open the WebGL version
-      </Link>
     </div>
   )
 }

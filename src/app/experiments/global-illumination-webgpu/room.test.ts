@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'bun:test'
 import { Quaternion, Vector3 } from 'three'
 
-import { allPoses, inverseTurn, keepInRoom, OBJECTS, pickObject, resetObjects, rotatable, sceneDefines, torusDistance } from './room'
+import { allPoses, inverseTurn, keepInRoom, OBJECTS, pickObject, resetObjects, rotatable, torusDistance } from './room'
 
 afterEach(resetObjects)
 
@@ -106,15 +106,4 @@ test('only the block and the torus turn', () => {
   expect(rotatable('torus')).toBe(true)
   expect(rotatable('glow')).toBe(false)
   expect(rotatable('pebble')).toBe(false)
-})
-
-test('the shader gets the same shapes', () => {
-  expect(sceneDefines()).toMatchObject({
-    ROOM_CENTER: 'vec3(0.0000, 2.2500, 0.0000)',
-    ROOM_HALF: 'vec3(3.5000, 2.2500, 6.0000)',
-    WINDOW: 'vec4(2.3000, -2.0000, 1.2000, 1.2000)',
-    BLOCK_HALF: 'vec3(1.0000)',
-    TORUS_RADIUS: '0.7200',
-    TORUS_REACH: '1.0000',
-  })
 })

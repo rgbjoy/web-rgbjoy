@@ -1,6 +1,6 @@
-// One update of the probe volume. The WebGL page gives each probe one
-// fragment, which sends all of its rays one after another; here each probe
-// gets a workgroup of 64 invocations that send its rays side by side, then
+// One update of the probe volume. Rather than one thread per probe sending
+// all of its rays one after another, each probe gets a workgroup of 64
+// invocations that send its rays side by side, then
 // add their harmonics up in workgroup memory. A few thousand probes become a
 // couple of hundred thousand rays in flight, which is the work a GPU is
 // built for.

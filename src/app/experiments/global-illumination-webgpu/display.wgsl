@@ -52,7 +52,7 @@ fn hash(p: vec2f) -> f32 {
 }
 
 @fragment fn main(@builtin(position) position: vec4f) -> @location(0) vec4f {
-  // The traced pictures run bottom-up, as WebGL's did; the screen runs top-down.
+  // The traced pictures run bottom-up; the screen runs top-down.
   let coord = vec2f(position.x, display.resolution.y - position.y);
   let hdr = max(textureLoad(image, vec2i(coord), 0).rgb, vec3f(0.0));
   let uv = coord / display.resolution;

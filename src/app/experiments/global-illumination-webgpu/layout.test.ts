@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Matrix3 } from 'three'
 
-import { PROBE_COUNT } from '../global-illumination/probes'
+import { PROBE_COUNT } from './probes'
 import { FrameUniforms, ProbeUpdateUniforms, SceneUniforms, wgslConstants } from './layout'
 
 const wgsl = (name: string) => readFileSync(join(import.meta.dir, name), 'utf8')

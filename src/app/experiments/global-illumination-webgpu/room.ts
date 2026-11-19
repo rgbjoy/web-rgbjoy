@@ -1,8 +1,9 @@
 import { Euler, Matrix3, Matrix4, Object3D, Quaternion, Vector3 } from "three"
 
 /**
- * The room's shape, in one place: fed to scene.glsl as defines, and used here
- * to pick what's under the pointer and to keep things inside the room.
+ * The room's shape, in one place: written into the shaders as constants by
+ * layout.ts, and used here to pick what's under the pointer and to keep
+ * things inside the room.
  */
 export const ROOM_CENTER = [0, 2.25, 0] as const
 export const ROOM_HALF = [3.5, 2.25, 6] as const
@@ -22,24 +23,6 @@ export const TORUS_TUBE = 0.28
 export const TORUS_REACH = TORUS_RADIUS + TORUS_TUBE
 
 export type SceneObject = "glow" | "pebble" | "block" | "torus"
-
-const vec3 = (v: readonly number[]) => `vec3(${v.map((n) => n.toFixed(4)).join(", ")})`
-
-export function sceneDefines() {
-  return {
-    ROOM_CENTER: vec3(ROOM_CENTER),
-    ROOM_HALF: vec3(ROOM_HALF),
-    WALL: WALL.toFixed(4),
-    WINDOW: `vec4(${WINDOW.map((n) => n.toFixed(4)).join(", ")})`,
-    GLOW_RADIUS: GLOW_RADIUS.toFixed(4),
-    PEBBLE_RADIUS: PEBBLE_RADIUS.toFixed(4),
-    BLOCK_HALF: `vec3(${BLOCK_HALF.toFixed(4)})`,
-    BLOCK_ROUNDING: BLOCK_ROUNDING.toFixed(4),
-    TORUS_RADIUS: TORUS_RADIUS.toFixed(4),
-    TORUS_TUBE: TORUS_TUBE.toFixed(4),
-    TORUS_REACH: TORUS_REACH.toFixed(4),
-  }
-}
 
 const DEFAULTS = {
   glow: new Vector3(-1.7, 1.0, -2.7),
@@ -132,7 +115,7 @@ export function inverseTurn(name: SceneObject, target = new Matrix3()) {
   return target.setFromMatrix4(turn.makeRotationFromQuaternion(OBJECTS[name].quaternion)).transpose()
 }
 
-/** Distance to the torus in its own frame, lying flat around its y axis — as scene.glsl has it. */
+/** Distance to the torus in its own frame, lying flat around its y axis — as scene.wgsl has it. */
 export function torusDistance(x: number, y: number, z: number) {
   return Math.hypot(Math.hypot(x, z) - TORUS_RADIUS, y) - TORUS_TUBE
 }

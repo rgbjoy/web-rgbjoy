@@ -1,5 +1,5 @@
-import { BLUE_NOISE_SIZE, blueNoiseRGBA } from "../global-illumination/blueNoise"
-import { PROBE_COUNT } from "../global-illumination/probes"
+import { BLUE_NOISE_SIZE, blueNoiseRGBA } from "./blueNoise"
+import { PROBE_COUNT } from "./probes"
 import { Bloom, BLOOM_LEVELS } from "./bloom"
 import denoiseSource from "./denoise.wgsl"
 import displaySource from "./display.wgsl"

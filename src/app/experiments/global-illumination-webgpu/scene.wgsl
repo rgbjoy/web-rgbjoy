@@ -1,7 +1,6 @@
-// The scene both compute passes share, ported from the WebGL page's
-// scene.glsl: a concrete box in the sky with one window, two spheres, a block
-// and a chrome torus — and, here only, a striped plus tumbling in the sun —
-// as a signed distance field with exact shortcuts for the room's inside; the
+// The scene both compute passes share: a concrete box in the sky with one
+// window, two spheres, a block, a chrome torus and a striped plus tumbling in
+// the sun, as a signed distance field with exact shortcuts for the room's inside; the
 // sun and its shadows; and the probe volume that stores the light bouncing
 // around the room. Joined after the constants layout.ts writes from room.ts,
 // plus.ts and probes.ts, and ahead of trace.wgsl or probe.wgsl.

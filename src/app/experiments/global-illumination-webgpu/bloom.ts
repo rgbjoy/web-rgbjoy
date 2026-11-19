@@ -87,8 +87,8 @@ type Pass = {
 /**
  * Highlight bloom in the Call of Duty / Unreal style: whatever is bright
  * enough is shrunk down a mip chain and blurred back up, and the display
- * adds the glow back over the image. The WebGL page's bloom.ts as render
- * passes, each reading its parameters from its own slot of one buffer.
+ * adds the glow back over the image. Each step is a render pass reading its
+ * parameters from its own slot of one buffer.
  */
 export class Bloom {
   /** Tent spread on the way back up, in texels of the smaller level. */

@@ -2,18 +2,14 @@ import { expect, test } from 'bun:test'
 
 import { mulberry32 } from './blueNoise'
 import {
-  PROBE_ATLAS_HEIGHT,
-  PROBE_ATLAS_WIDTH,
-  PROBE_COUNT,
   PROBE_GRID,
   PROBE_ORIGIN,
   PROBE_SPACING,
   ProbeSchedule,
-  probeDefines,
   randomRotation,
 } from './probes'
 
-// The room's inside, from scene.glsl.
+// The room's inside: ROOM_CENTER ± ROOM_HALF in room.ts.
 const ROOM_MIN = [-3.5, 0, -6]
 const ROOM_MAX = [3.5, 4.5, 6]
 
@@ -24,21 +20,6 @@ test('the grid fills the room evenly, a quarter metre in from every wall', () =>
     expect(first - ROOM_MIN[axis]).toBeCloseTo(0.25, 9)
     expect(ROOM_MAX[axis] - last).toBeCloseTo(0.25, 9)
   }
-})
-
-test('the atlas has a texel for every probe', () => {
-  expect(PROBE_ATLAS_WIDTH * PROBE_ATLAS_HEIGHT).toBeGreaterThanOrEqual(PROBE_COUNT)
-  expect(PROBE_ATLAS_WIDTH * (PROBE_ATLAS_HEIGHT - 1)).toBeLessThan(PROBE_COUNT)
-})
-
-test('the shader gets the same layout', () => {
-  expect(probeDefines()).toEqual({
-    PROBE_GRID: 'ivec3(14, 9, 24)',
-    PROBE_ORIGIN: 'vec3(-3.2500, 0.2500, -5.7500)',
-    PROBE_SPACING: '0.5000',
-    PROBE_COUNT: '3024',
-    PROBE_ATLAS_WIDTH: '64',
-  })
 })
 
 test('updates start as a plain mean, keep a floor, and stop at the limit', () => {
