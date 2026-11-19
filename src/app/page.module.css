@@ -743,7 +743,12 @@
   }
 
   .lockup {
-    --glass-inset: 8px max(6px, calc(var(--gutter) - 12px));
+    /* A narrower capsule than edge to edge, with the mark and menu brought in
+       alongside so they keep their room inside its rounded ends. */
+    --glass-inset: 8px 14px;
+    /* The right side takes more: the menu's bars sit flush to its touch
+       target's edge, so the same inset reads as tighter there. */
+    padding: 0 calc(var(--gutter) + 14px) 0 calc(var(--gutter) + 6px);
   }
 
   .title {
