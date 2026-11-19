@@ -4,9 +4,10 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  /* Light, so the glass panel over it has something to show through. */
+  background: color-mix(in srgb, var(--bg) 28%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
 
 /*
@@ -16,6 +17,8 @@
  */
 .panel {
   position: fixed;
+  /* Over the overlay, which is its sibling rather than its parent. */
+  z-index: 41;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -24,8 +27,11 @@
   width: min(600px, calc(100vw - var(--gutter) * 2));
   max-height: min(560px, calc(100dvh - var(--gutter) * 2));
   padding: 20px;
-  border: 1px solid var(--hairline);
-  background: var(--bg);
+  border-radius: 24px;
+  background: var(--glass-fill-dense);
+  -webkit-backdrop-filter: var(--glass-filter-dense);
+  backdrop-filter: var(--glass-filter-dense);
+  box-shadow: var(--glass-shadow);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 16px;
   color: var(--fg);
@@ -110,22 +116,21 @@
   color: var(--faint);
 }
 
-/* The only growing child, and the only scrolling one. Negative margins let rows
-   run to the panel edge while the pane keeps the panel's padding. */
-/* Full-bleed happens here and only here. The pane widens to the panel's border,
-   and rows carry the 20px inset as padding — so a selected row's fill reaches
-   the border exactly, and its text still lines up with the header above. */
+/* The only growing child, and the only scrolling one. It widens 8px into the
+   panel's padding and rows carry 8px of their own, so a selected row's rounded
+   fill sits just inside the panel while its text still lines up with the
+   header above. */
 .results {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  margin: 0 -20px;
+  margin: 0 -8px;
   padding: 4px 0;
 }
 
 .empty {
   margin: 0;
-  padding: 16px 20px;
+  padding: 16px 8px;
   color: var(--muted);
 }
 
@@ -135,8 +140,9 @@
   gap: var(--gap);
   align-items: baseline;
   width: 100%;
-  padding: 12px 20px;
+  padding: 12px 8px;
   border: none;
+  border-radius: 14px;
   background: none;
   cursor: pointer;
   font: inherit;
@@ -153,35 +159,19 @@
  * keys, so the index just sits at 0 and paints a permanent highlight on the
  * first row — which reads as "this is chosen" when nothing is.
  */
+/* A soft shade, as in the menu, rather than an inversion, and a ring: focus
+   stays in the search field, so this selection is the only cue a keyboard
+   user has, and the shade alone is too faint to find. */
 @media (hover: hover) {
   .resultSelected {
-    background: var(--hover);
-    color: var(--bg);
-  }
-
-  .resultSelected .resultMeta {
-    color: var(--bg);
-  }
-
-  .resultSelected .badge {
-    border-color: var(--bg);
-    color: var(--bg);
+    background: var(--glass-highlight);
+    box-shadow: var(--glass-focus-ring);
   }
 }
 
 /* Touch gets feedback from the press instead, which ends with the finger. */
 .result:active {
-  background: var(--hover);
-  color: var(--bg);
-}
-
-.result:active .resultMeta {
-  color: var(--bg);
-}
-
-.result:active .badge {
-  border-color: var(--bg);
-  color: var(--bg);
+  background: var(--glass-highlight);
 }
 
 .result:focus-visible {

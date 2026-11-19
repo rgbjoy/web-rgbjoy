@@ -156,10 +156,12 @@ function PalettePanel({ pathname }: { pathname: string }) {
   if (!isOpen) return null
 
   return (
-    <div className={styles.overlay} onClick={closePalette}>
+    <>
+      {/* A sibling of the panel, not its parent: a parent with a backdrop
+          filter would be all the panel's own glass could see through. */}
+      <div className={styles.overlay} onClick={closePalette} />
       <div
         className={styles.panel}
-        onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Search"
@@ -233,7 +235,7 @@ function PalettePanel({ pathname }: { pathname: string }) {
           arrows to navigate, enter to open, esc to close
         </p>
       </div>
-    </div>
+    </>
   )
 }
 

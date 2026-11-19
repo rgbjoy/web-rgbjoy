@@ -68,13 +68,17 @@
   transform: translateY(calc(var(--bar-gap) / -2)) rotate(-45deg);
 }
 
-/* Portalled to the body, so it carries the page font explicitly. */
+/* Portalled to the body, so it carries the page font explicitly. The dense
+   glass, rounded, with its rows rounded to sit inside it. */
 .content {
   z-index: 20;
   min-width: 188px;
-  padding: 4px;
-  border: 1px solid var(--hairline);
-  background: var(--bg);
+  padding: 6px;
+  border-radius: 20px;
+  background: var(--glass-fill-dense);
+  -webkit-backdrop-filter: var(--glass-filter-dense);
+  backdrop-filter: var(--glass-filter-dense);
+  box-shadow: var(--glass-shadow);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 16px;
   letter-spacing: 0.04em;
@@ -87,6 +91,7 @@
   align-items: center;
   gap: var(--gap-tight);
   padding: 12px;
+  border-radius: 14px;
   cursor: pointer;
   outline: none;
   text-decoration: none;
@@ -94,13 +99,15 @@
   transition: background var(--transition), color var(--rollover-fade);
 }
 
+/* A soft shade under the row, not an inversion: glass stays glass. */
 .item[data-highlighted] {
-  background: var(--hover);
-  color: var(--bg);
+  background: var(--glass-highlight);
 }
 
-.item[data-highlighted] .mark {
-  color: var(--bg);
+/* Radix moves focus onto the highlighted row, so a row reached by keyboard
+   matches this and a row under the mouse does not. */
+.item:focus-visible {
+  box-shadow: var(--glass-focus-ring);
 }
 
 .mark {
@@ -112,7 +119,7 @@
 .separator {
   height: 1px;
   margin: 4px 12px;
-  background: var(--hairline);
+  background: color-mix(in srgb, var(--fg) 12%, transparent);
 }
 
 /* Keyboard hint, pushed to the trailing edge of the row. Hidden where there is
@@ -130,6 +137,3 @@
   }
 }
 
-.item[data-highlighted] .hint {
-  color: var(--bg);
-}

@@ -121,18 +121,9 @@
   background: color-mix(in srgb, var(--fg) 8%, transparent);
 }
 
-/* The site menu's rows, in the same glass as the bar. */
+/* The site menu, glass and all; only its offset differs here. */
 .dropdown.dropdown {
-  border: 1px solid color-mix(in srgb, var(--fg) 13%, transparent);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bg) 60%, transparent);
-  box-shadow: 0 16px 44px rgb(0 0 0 / 0.32);
-  -webkit-backdrop-filter: blur(28px) saturate(185%);
-  backdrop-filter: blur(28px) saturate(185%);
-}
-
-.dropdown > * {
-  border-radius: 10px;
+  border-radius: 20px;
 }
 
 @media (hover: hover) {
