@@ -27,6 +27,18 @@
      pay the difference back themselves; browser scroll anchoring would correct
      the same change a second time. */
   overflow-anchor: none;
+  transition: opacity 0.6s ease, visibility 0s linear 0s;
+}
+
+.pageHidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+}
+
+.pageHidden,
+.pageHidden * {
+  pointer-events: none !important;
 }
 
 /* No scrollbar on the index: the list never ends, so the thumb could only
@@ -79,6 +91,73 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.motionIndicatorHidden {
+  opacity: 0;
+}
+
+/* Simple close button pinned top-left while inside the background simulation. */
+.simClose {
+  position: fixed;
+  top: max(var(--gutter), env(safe-area-inset-top));
+  left: max(var(--gutter), env(safe-area-inset-left));
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 999px;
+  background: rgb(10 14 22 / 0.26);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.2);
+  color: rgb(255 255 255 / 0.88);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.94);
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
+    visibility 0s linear 0.45s,
+    background-color var(--rollover-fade),
+    border-color var(--rollover-fade),
+    color var(--rollover-fade);
+}
+
+.simCloseVisible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    opacity 0.5s ease 0.25s,
+    transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) 0.25s,
+    visibility 0s linear 0s,
+    background-color var(--rollover-fade),
+    border-color var(--rollover-fade),
+    color var(--rollover-fade);
+}
+
+@media (hover: hover) {
+  .simClose:hover {
+    background: rgb(255 255 255 / 0.16);
+    border-color: rgb(255 255 255 / 0.45);
+    color: #ffffff;
+  }
+}
+
+.simClose:focus-visible {
+  background: rgb(255 255 255 / 0.16);
+  border-color: rgb(255 255 255 / 0.65);
+  outline: 2px solid rgb(255 255 255 / 0.85);
+  outline-offset: 3px;
 }
 
 .motionIndicatorWithAvailability {
@@ -640,6 +719,39 @@
   gap: var(--gap);
   margin-top: 120px;
   padding: 12px 0 0;
+}
+
+.colophonLead {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.colophonSep {
+  font-family: var(--font-label);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--rule);
+}
+
+.labelButton {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+  transition:
+    color var(--rollover-fade),
+    text-decoration-color var(--rollover-fade);
+}
+
+@media (hover: hover) {
+  .labelButton:hover {
+    text-decoration-color: currentColor;
+  }
 }
 
 /* Availability */

@@ -10,11 +10,14 @@ export function AskAboutWork({
   open,
   onOpenChange,
   onDismiss,
+  hidden = false,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   /** The close button was pressed, as opposed to a click elsewhere closing it. */
   onDismiss?: () => void
+  /** Smoothly hide without closing the Radix dialog or stealing focus on return. */
+  hidden?: boolean
 }) {
   const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "manual">("idle")
   const promptRef = useRef<HTMLTextAreaElement>(null)
@@ -63,7 +66,9 @@ export function AskAboutWork({
       <Dialog.Portal>
         <Dialog.Content
           ref={contentRef}
-          className={styles.content}
+          className={`${styles.content} ${hidden ? styles.contentHidden : ""}`}
+          aria-hidden={hidden || undefined}
+          inert={hidden || undefined}
           data-manual={copyState === "manual" ? "true" : undefined}
           onOpenAutoFocus={(event) => {
             event.preventDefault()

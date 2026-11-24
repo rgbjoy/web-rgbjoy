@@ -24,7 +24,7 @@ import { AskAboutWork } from "./utilities/AskAboutWork/AskAboutWork"
 import { useDismissed } from "./utilities/useDismissed"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
 import { HoloBackground } from "./utilities/HoloBackground"
-import { openPalette } from "./utilities/SearchPalette/paletteState"
+import { closePalette, openPalette } from "./utilities/SearchPalette/paletteState"
 import { SettingsMenu } from "./utilities/settings/SettingsMenu"
 import { RgbLogo } from "./utilities/RgbLogo/RgbLogo"
 import { isSmoothScrolling, shiftScroll, virtualScrollY } from "./utilities/scrollShift"
@@ -329,6 +329,9 @@ export default function Home() {
   // against the finished page; a first visit plays it.
   const [resumeVisit] = useState(shouldSkipIntro)
   const [contactOpen, setContactOpen] = useState(false)
+  const [simulation, setSimulation] = useState(false)
+  const simCloseRef = useRef<HTMLButtonElement>(null)
+  const simTriggerRef = useRef<HTMLButtonElement | null>(null)
   // Each pill stays closed for a day once its close button is pressed.
   const [availabilityDismissed, dismissAvailability] = useDismissed("rgbjoy:availability-dismissed")
   const [promptDismissed, dismissPrompt] = useDismissed("rgbjoy:prompt-dismissed")
@@ -586,14 +589,94 @@ export default function Home() {
     }
   }, [])
 
+  const exitSimulation = () => {
+    setSimulation(false)
+    const trigger = simTriggerRef.current
+    simTriggerRef.current = null
+    window.requestAnimationFrame(() => {
+      if (trigger?.isConnected) {
+        trigger.focus({ preventScroll: true })
+      }
+    })
+  }
+
+  // While inside the simulation, keep the page frozen in place (without setting
+  // overflow: hidden on body, which would break the sticky lockup on return)
+  // and let Escape step back out.
+  useEffect(() => {
+    if (!simulation) return
+
+    const preventScroll = (event: Event) => {
+      event.preventDefault()
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        exitSimulation()
+        return
+      }
+      if (
+        event.key === " " ||
+        event.key === "PageUp" ||
+        event.key === "PageDown" ||
+        event.key === "Home" ||
+        event.key === "End" ||
+        event.key === "ArrowUp" ||
+        event.key === "ArrowDown"
+      ) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener("wheel", preventScroll, { passive: false })
+    window.addEventListener("touchmove", preventScroll, { passive: false })
+    window.addEventListener("keydown", onKeyDown)
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      simCloseRef.current?.focus({ preventScroll: true })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      window.removeEventListener("wheel", preventScroll)
+      window.removeEventListener("touchmove", preventScroll)
+      window.removeEventListener("keydown", onKeyDown)
+    }
+  }, [simulation])
+
+  const enterSimulation = (trigger: HTMLButtonElement) => {
+    simTriggerRef.current = trigger
+    setContactOpen(false)
+    closePalette()
+    setSimulation(true)
+  }
+
   return (
     <>
       {/* Index only. Experiments own their own scrolling. */}
-      <SmoothScroll paused={contactOpen} />
-      {/* Drifts idle and travels with scroll; under reduced motion, one still frame. */}
-      <HoloBackground scroll={virtualScrollY} still={reducedMotion} />
+      <SmoothScroll paused={contactOpen || simulation} />
+      {/* Drifts idle and travels with scroll; turns into the endless tunnel in simulation mode. */}
+      <HoloBackground
+        scroll={virtualScrollY}
+        still={reducedMotion}
+        simulation={simulation}
+      />
+      <button
+        ref={simCloseRef}
+        type="button"
+        className={`${styles.simClose} ${simulation ? styles.simCloseVisible : ""}`}
+        onClick={exitSimulation}
+        aria-label="Exit simulation"
+        title="Exit simulation"
+        aria-hidden={!simulation || undefined}
+        inert={!simulation || undefined}
+      >
+        <X size={16} strokeWidth={1.75} aria-hidden />
+      </button>
       <div
-        className={`${styles.page} ${introPending ? styles.introPending : ""}`}
+        className={`${styles.page} ${introPending ? styles.introPending : ""} ${simulation ? styles.pageHidden : ""}`}
+        aria-hidden={simulation || undefined}
+        inert={simulation || undefined}
       >
         <div className={styles.container}>
           <Masthead
@@ -615,6 +698,7 @@ export default function Home() {
                 projects={orderedProjects}
                 experiments={experiments}
                 links={LINKS}
+                onEnterSimulation={enterSimulation}
               />
             ))}
           </main>
@@ -640,11 +724,21 @@ export default function Home() {
       </div>
 
       {reducedMotion && (
-        <p className={`${styles.motionIndicator} ${availableForWork ? styles.motionIndicatorWithAvailability : ""}`}>reduced motion on</p>
+        <p
+          className={`${styles.motionIndicator} ${availableForWork ? styles.motionIndicatorWithAvailability : ""} ${simulation ? styles.motionIndicatorHidden : ""}`}
+          aria-hidden={simulation || undefined}
+        >
+          reduced motion on
+        </p>
       )}
 
       <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
-      <AskAboutWork open={promptOpen} onOpenChange={setPromptOpen} onDismiss={dismissPrompt} />
+      <AskAboutWork
+        open={promptOpen}
+        onOpenChange={setPromptOpen}
+        onDismiss={dismissPrompt}
+        hidden={simulation}
+      />
     </>
   )
 }
@@ -660,11 +754,13 @@ function IndexCycle({
   projects,
   experiments,
   links,
+  onEnterSimulation,
 }: {
   index: number
   projects: PortfolioProject[]
   experiments: Experiment[]
   links: SiteLink[]
+  onEnterSimulation: (trigger: HTMLButtonElement) => void
 }) {
   const clone = index > 0
   const Footer = clone ? "div" : "footer"
@@ -730,7 +826,19 @@ function IndexCycle({
       {/* The seam between one pass and the next. */}
       <Footer className={styles.colophon} data-intro-block>
         <span className={styles.rule} data-intro="rule" aria-hidden="true" />
-        <span className={styles.label} data-intro="label">{SITE.name}</span>
+        <div className={styles.colophonLead}>
+          <span className={styles.label} data-intro="label">{SITE.name}</span>
+          <span className={styles.colophonSep} data-intro="label" aria-hidden="true">/</span>
+          <button
+            type="button"
+            className={`${styles.label} ${styles.labelLink} ${styles.labelButton}`}
+            data-intro="label"
+            tabIndex={clone ? -1 : undefined}
+            onClick={(event) => onEnterSimulation(event.currentTarget)}
+          >
+            Enter the simulation
+          </button>
+        </div>
         <Link
           href="/directory"
           className={`${styles.label} ${styles.labelLink}`}
