@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 
+import brandStyles from "../utilities/Brand.module.css"
 import { SmileIcon } from "../utilities/SmileIcon"
 import { StudioMenu } from "./StudioMenu"
 import styles from "./StudioNav.module.css"
@@ -27,11 +28,11 @@ export function StudioNav() {
   return (
     <header className={styles.bar}>
       <nav className={styles.nav} aria-label="Studio">
-        <Link href="/" className={styles.brand}>
-          <span className={styles.smile}>
-            <SmileIcon size={22} />
+        <Link href="/" className={`${brandStyles.brand} ${styles.brand}`}>
+          <span className={brandStyles.mark}>
+            <SmileIcon size={34} />
           </span>
-          rgbjoy
+          <span className={brandStyles.wordmark}>rgbjoy</span>
         </Link>
         <div className={styles.links}>
           {LINKS.map((link) => (

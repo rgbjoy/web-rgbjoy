@@ -26,7 +26,8 @@ import { ContactDialog } from "./utilities/contact/ContactDialog"
 import { HoloBackground } from "./utilities/HoloBackground"
 import { closePalette, openPalette } from "./utilities/SearchPalette/paletteState"
 import { SettingsMenu } from "./utilities/settings/SettingsMenu"
-import { RgbLogo } from "./utilities/RgbLogo/RgbLogo"
+import { SmileIcon } from "./utilities/SmileIcon"
+import brandStyles from "./utilities/Brand.module.css"
 import { isSmoothScrolling, shiftScroll, virtualScrollY } from "./utilities/scrollShift"
 import { SmoothScroll } from "./utilities/SmoothScroll"
 import { useReducedMotion } from "./utilities/settings/useSettings"
@@ -270,9 +271,9 @@ function Masthead({
       >
         {/* Wrapped so the lockup's space-between still has two children to
             push apart, with the mark travelling alongside the title. */}
-        <div className={styles.brand}>
-          <RgbLogo />
-          <h1 className={styles.title}>
+        <div className={brandStyles.brand}>
+          <span className={brandStyles.mark}><SmileIcon size={34} /></span>
+          <h1 className={brandStyles.wordmark}>
             <TypedText
               text={TITLE_TEXT.slice(0, titleCount)}
               seeds={titleSeeds}

@@ -53,18 +53,6 @@
   text-decoration: none;
 }
 
-/* A slow turn; the global reduced-motion reset stops it. */
-.smile {
-  display: inline-flex;
-  animation: smile-spin 8s linear infinite;
-}
-
-@keyframes smile-spin {
-  to {
-    rotate: 360deg;
-  }
-}
-
 .links {
   flex: 1;
   display: flex;
