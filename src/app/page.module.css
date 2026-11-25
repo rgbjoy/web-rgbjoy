@@ -402,7 +402,7 @@
 }
 
 .intro {
-  position: relative;
+  display: grid;
   max-width: 34em;
   font-size: 20px;
   line-height: 1.5;
@@ -439,14 +439,17 @@
   }
 }
 
-/* Invisible full copy holds layout so typing does not shift the page. */
-.introMeasure {
-  visibility: hidden;
+/* Both copies share a grid cell and contribute to its height. The full copy
+   reserves space during typing; the live copy can grow if it wraps differently
+   (for example after rotating a phone into landscape). */
+.introMeasure,
+.introLive {
+  grid-area: 1 / 1;
+  min-width: 0;
 }
 
-.introLive {
-  position: absolute;
-  inset: 0;
+.introMeasure {
+  visibility: hidden;
 }
 
 /* Also worn by a <button>: the live invite opens the contact dialog, while the
