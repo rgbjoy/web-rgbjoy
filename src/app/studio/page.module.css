@@ -11,6 +11,10 @@
   width: min(100%, 1120px);
   margin: 0 auto;
   --section-gap: 72px;
+  --lockup-h: 76px;
+  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-label: var(--font-geist-mono), monospace;
+  --gap: 20px;
   /* Room for the floating menu above anything that sticks or scrolls to the top. */
   --menu-clearance: 96px;
   padding: 40px var(--gutter) 96px;
@@ -895,4 +899,8 @@
   .choiceAside {
     grid-area: aside;
   }
+}
+
+@media (max-width: 640px) {
+  .page { --lockup-h: 64px; padding-top: 64px; }
 }

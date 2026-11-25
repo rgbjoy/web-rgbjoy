@@ -2,6 +2,7 @@
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useRef } from "react"
 
 import { setMotion, useMotion } from "./useSettings"
@@ -17,6 +18,7 @@ export function SettingsMenu({
   onAiPrompt: () => void
 }) {
   const motion = useMotion()
+  const inStudio = usePathname() === "/studio"
   const openingPromptRef = useRef(false)
 
   return (
@@ -45,9 +47,9 @@ export function SettingsMenu({
         >
           {/* The studio page's only way in: it isn't listed anywhere else. */}
           <DropdownMenu.Item className={styles.item} asChild>
-            <Link href="/studio">
+            <Link href={inStudio ? "/" : "/studio"}>
               <span className={styles.mark} aria-hidden="true" />
-              studio
+              {inStudio ? "home" : "studio"}
             </Link>
           </DropdownMenu.Item>
 

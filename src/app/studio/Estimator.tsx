@@ -457,7 +457,7 @@ export function Estimator() {
   return (
     <div ref={pageRef} className={styles.page}>
       <Prism className={styles.prism} still={reducedMotion} />
-      <StudioNav />
+      <StudioNav onContact={() => setContactOpen(true)} />
 
       <header className={styles.hero}>
         <h1 className={styles.title}>A studio for the new AI era ahead.</h1>

@@ -12,6 +12,7 @@ import { serializeJsonLd, SITE_STRUCTURED_DATA } from "./data/structured-data"
 import { RolloverChroma } from "./utilities/RolloverChroma"
 import { SETTINGS_BOOT_SCRIPT } from "./utilities/settings/constants"
 import SearchPalette from "./utilities/SearchPalette/SearchPalette"
+import { PageTransitions } from "./utilities/PageTransitions"
 import "./globals.css"
 
 const geistMono = Geist_Mono({
@@ -148,6 +149,7 @@ export default async function RootLayout({
         className={`${geistMono.variable} ${geistMono.className} ${geistSans.variable} ${plexSans.variable} ${plexMono.variable} ${instrumentSerif.variable}`}
       >
         <PortfolioProvider entries={entries} info={info}>
+        <PageTransitions />
         <SearchPalette />
         <RolloverChroma />
         {children}
