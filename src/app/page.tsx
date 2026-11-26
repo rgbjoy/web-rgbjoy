@@ -23,12 +23,9 @@ import { SITE } from "./data/site"
 import { AskAboutWork } from "./utilities/AskAboutWork/AskAboutWork"
 import { useDismissed } from "./utilities/useDismissed"
 import { ContactDialog } from "./utilities/contact/ContactDialog"
-import { HoloBackground } from "./utilities/HoloBackground"
-import { closePalette, openPalette } from "./utilities/SearchPalette/paletteState"
-import { SettingsMenu } from "./utilities/settings/SettingsMenu"
-import { SmileIcon } from "./utilities/SmileIcon"
-import brandStyles from "./utilities/Brand.module.css"
-import { isSmoothScrolling, shiftScroll, virtualScrollY } from "./utilities/scrollShift"
+import { SimulationBackground, useSiteShell } from "./utilities/SiteShell"
+import { closePalette } from "./utilities/SearchPalette/paletteState"
+import { isSmoothScrolling, shiftScroll } from "./utilities/scrollShift"
 import { SmoothScroll } from "./utilities/SmoothScroll"
 import { useReducedMotion } from "./utilities/settings/useSettings"
 import styles from "./page.module.css"
@@ -233,22 +230,12 @@ function BlockHead({ label, count }: { label: string; count?: number }) {
 }
 
 function Masthead({
-  titleCount,
   introCount,
   onContact,
-  onSearch,
-  onAiPrompt,
-  lockupRef,
-  lockupStuck,
   mastheadRef,
 }: {
-  titleCount: number
   introCount: number
   onContact: () => void
-  onSearch: () => void
-  onAiPrompt: () => void
-  lockupRef: React.RefObject<HTMLDivElement | null>
-  lockupStuck: boolean
   mastheadRef: React.RefObject<HTMLElement | null>
 }) {
   const info = useInfo()
@@ -257,61 +244,28 @@ function Masthead({
   // Held in state so a re-render never reshuffles a character mid-fade. The
   // server renders no characters (counts start at 0), so the randomness here
   // cannot desync hydration.
-  const [titleSeeds] = useState(() => makeSeeds(TITLE_TEXT.length))
   const [introSeeds] = useState(() => makeSeeds(INTRO_TOTAL))
 
   return (
-    <>
-      {/* A sibling of the list, not a child of the header — a sticky element
-          only stays pinned while its own parent is in view, and the header
-          scrolls away with the intro. */}
-      <div
-        ref={lockupRef}
-        className={`${styles.lockup} ${lockupStuck ? styles.lockupStuck : ""}`}
-      >
-        {/* Wrapped so the lockup's space-between still has two children to
-            push apart, with the mark travelling alongside the title. */}
-        <div className={brandStyles.brand}>
-          <span className={brandStyles.mark}><SmileIcon size={34} /></span>
-          <h1 className={brandStyles.wordmark}>
-            <TypedText
-              text={TITLE_TEXT.slice(0, titleCount)}
-              seeds={titleSeeds}
-            />
-          </h1>
-        </div>
-        <div className={styles.lockupActions}>
-          {/* The same palette as the menu and ⌘F, named where it can be seen. */}
-          <button type="button" className={styles.lockupSearch} onClick={onSearch}>
-            Search
-            <span className={styles.lockupHint} aria-hidden="true">⌘F</span>
-          </button>
-          {/* Deliberately outside the intro timeline: someone who needs reduced
-              motion should not have to sit through an animation to reach it. */}
-          <SettingsMenu onContact={onContact} onSearch={onSearch} onAiPrompt={onAiPrompt} />
+    <header ref={mastheadRef} className={styles.masthead}>
+      <div className={styles.split}>
+        <div className={styles.splitMain}>
+          <div className={styles.intro}>
+            <div className={styles.introMeasure} aria-hidden="true" inert>
+              <InfoBody node={document.root} linkClass={styles.introLink} />
+            </div>
+            <div className={styles.introLive}>
+              <InfoBody node={document.root} count={introCount} onContact={onContact} linkClass={styles.introLink}
+                renderText={(text, offset) => <TypedText text={text} seeds={introSeeds} offset={offset} />} />
+            </div>
+          </div>
+          {/* Fades in right after the intro has typed out; the load choreography finds it by data-intro. */}
+          <Link href="/studio" className={styles.pill} data-intro="studio">
+            Learn about the studio
+          </Link>
         </div>
       </div>
-
-      <header ref={mastheadRef} className={styles.masthead}>
-        <div className={styles.split}>
-          <div className={styles.splitMain}>
-            <div className={styles.intro}>
-              <div className={styles.introMeasure} aria-hidden="true" inert>
-                <InfoBody node={document.root} linkClass={styles.introLink} />
-              </div>
-              <div className={styles.introLive}>
-                <InfoBody node={document.root} count={introCount} onContact={onContact} linkClass={styles.introLink}
-                  renderText={(text, offset) => <TypedText text={text} seeds={introSeeds} offset={offset} />} />
-              </div>
-            </div>
-            {/* Fades in right after the intro has typed out; the load choreography finds it by data-intro. */}
-            <Link href="/studio" className={styles.pill} data-intro="studio">
-              Learn about the studio
-            </Link>
-          </div>
-        </div>
-      </header>
-    </>
+    </header>
   )
 }
 
@@ -320,11 +274,10 @@ export default function Home() {
   const { INTRO_TOTAL } = introText(info)
   const availableForWork = Boolean(info.available_for_work)
   const { projects, experiments } = usePortfolio()
+  const { registerHandlers, setTitleCount } = useSiteShell()
   const availabilityRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
   const mastheadRef = useRef<HTMLElement>(null)
-  const lockupRef = useRef<HTMLDivElement>(null)
-  const [lockupStuck, setLockupStuck] = useState(false)
   const introPlayedRef = useRef(false)
   // Fixed for this mount: a return trip skips the intro so scroll can restore
   // against the finished page; a first visit plays it.
@@ -337,13 +290,11 @@ export default function Home() {
   const [availabilityDismissed, dismissAvailability] = useDismissed("rgbjoy:availability-dismissed")
   const [promptDismissed, dismissPrompt] = useDismissed("rgbjoy:prompt-dismissed")
   const desktopPrompt = useSyncExternalStore(subscribeDesktopPrompt, desktopPromptSnapshot, serverPromptSnapshot)
-  const [promptOverride, setPromptOpen] = useState<boolean | null>(null)
-  // The menu can still open it after it's been closed.
-  const promptOpen = promptOverride ?? (desktopPrompt && !promptDismissed)
+  // The corner pill is only the greeting: once closed, or once the menu opens
+  // the prompt as a popup instead, it stays away for this visit.
+  const [promptClosed, setPromptClosed] = useState(false)
+  const promptOpen = desktopPrompt && !promptDismissed && !promptClosed
   const reducedMotion = useReducedMotion()
-  const [titleCount, setTitleCount] = useState(
-    resumeVisit ? TITLE_TEXT.length : 0,
-  )
   const [introCount, setIntroCount] = useState(resumeVisit ? INTRO_TOTAL : 0)
   const [introPending, setIntroPending] = useState(!resumeVisit)
   // One on the server, so the HTML is a single complete index; the rest of
@@ -352,6 +303,15 @@ export default function Home() {
   const [fitCopies, setFitCopies] = useState(MIN_COPIES)
   const copyCount = hydrated ? fitCopies : 1
   const restoredRef = useRef(false)
+
+  useEffect(
+    () =>
+      registerHandlers({
+        onContact: () => setContactOpen(true),
+        onAiPrompt: () => setPromptClosed(true),
+      }),
+    [registerHandlers],
+  )
 
   // Newest first. Stable, so projects from the same year keep the order the
   // dashboard gives them.
@@ -375,7 +335,7 @@ export default function Home() {
     if (reducedMotion || introPlayedRef.current || resumeVisit || shouldSkipIntro()) {
       introPlayedRef.current = true
       markIntroPlayed()
-      setTitleCount(TITLE_TEXT.length)
+      setTitleCount(null)
       setIntroCount(INTRO_TOTAL)
       setIntroPending(false)
       return
@@ -457,7 +417,7 @@ export default function Home() {
       timeline.restart(true)
     }
     const fontTimer = window.setTimeout(start, TITLE_FONT_WAIT_MS)
-    const heading = lockupRef.current?.querySelector("h1")
+    const heading = document.querySelector<HTMLElement>("[data-site-header] h1")
     if (heading && document.fonts) {
       const { fontSize, fontFamily } = getComputedStyle(heading)
       document.fonts.load(`${fontSize} ${fontFamily}`, TITLE_TEXT).then(start, start)
@@ -470,7 +430,7 @@ export default function Home() {
       gsap.set([...faded, ...rows], { clearProps: "opacity,visibility,transform" })
       gsap.set(rules, { clearProps: "transform,transformOrigin" })
     }
-  }, [reducedMotion, resumeVisit, INTRO_TOTAL, availableForWork])
+  }, [reducedMotion, resumeVisit, INTRO_TOTAL, availableForWork, setTitleCount])
 
   // Keep a restore point while the index is up, then put it back once the
   // loop's copies exist, so the page is tall enough to land there.
@@ -562,34 +522,6 @@ export default function Home() {
     }
   }, [])
 
-  // The bar is pinned exactly when its own top reaches zero, so read that
-  // rather than watching a sentinel: IntersectionObserver never fires here in
-  // Chrome, most likely because of the overflow-x: clip on html and body.
-  useEffect(() => {
-    let frame = 0
-
-    const measure = () => {
-      frame = 0
-      const lockup = lockupRef.current
-      if (lockup) setLockupStuck(lockup.getBoundingClientRect().top <= 0)
-    }
-
-    const schedule = () => {
-      if (frame) return
-      frame = window.requestAnimationFrame(measure)
-    }
-
-    measure()
-    window.addEventListener("scroll", schedule, { passive: true })
-    window.addEventListener("resize", schedule)
-
-    return () => {
-      if (frame) window.cancelAnimationFrame(frame)
-      window.removeEventListener("scroll", schedule)
-      window.removeEventListener("resize", schedule)
-    }
-  }, [])
-
   const exitSimulation = () => {
     setSimulation(false)
     const trigger = simTriggerRef.current
@@ -657,11 +589,7 @@ export default function Home() {
       {/* Index only. Experiments own their own scrolling. */}
       <SmoothScroll paused={contactOpen || simulation} />
       {/* Drifts idle and travels with scroll; turns into the endless tunnel in simulation mode. */}
-      <HoloBackground
-        scroll={virtualScrollY}
-        still={reducedMotion}
-        simulation={simulation}
-      />
+      <SimulationBackground active={simulation} />
       <button
         ref={simCloseRef}
         type="button"
@@ -681,13 +609,8 @@ export default function Home() {
       >
         <div className={styles.container}>
           <Masthead
-            titleCount={titleCount}
             introCount={introCount}
             onContact={() => setContactOpen(true)}
-            onSearch={openPalette}
-            onAiPrompt={() => setPromptOpen(true)}
-            lockupRef={lockupRef}
-            lockupStuck={lockupStuck}
             mastheadRef={mastheadRef}
           />
 
@@ -736,7 +659,9 @@ export default function Home() {
       <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
       <AskAboutWork
         open={promptOpen}
-        onOpenChange={setPromptOpen}
+        onOpenChange={(open) => {
+          if (!open) setPromptClosed(true)
+        }}
         onDismiss={dismissPrompt}
         hidden={simulation}
       />

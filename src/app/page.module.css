@@ -69,8 +69,7 @@
 .page textarea,
 .page select,
 .page label,
-.page .main,
-.page .lockupStuck {
+.page .main {
   pointer-events: auto;
 }
 
@@ -184,12 +183,8 @@
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  /* Height of the pinned title row. */
-  --lockup-h: 76px;
   width: 100%;
-  /* Breathing room above the lockup that scrolls away, leaving it flush to the
-     top edge once pinned. */
-  padding: 40px var(--gutter) 0;
+  padding: 0 var(--gutter) 0;
 }
 
 /* Labels: the mono caps that head every block. */
@@ -262,7 +257,7 @@
   justify-content: space-between;
   gap: var(--gap);
   height: var(--lockup-h);
-  margin: 0 calc(var(--gutter) * -1);
+  margin: 0;
   padding: 0 var(--gutter);
   isolation: isolate;
   /* Where the glass sits inside the bar: a floating capsule, clear of the
@@ -834,11 +829,6 @@
 }
 
 @media (max-width: 640px) {
-  .container {
-    --lockup-h: 64px;
-    padding-top: 64px;
-  }
-
   .lockup {
     /* A narrower capsule than edge to edge, with the mark and menu brought in
        alongside so they keep their room inside its rounded ends. */

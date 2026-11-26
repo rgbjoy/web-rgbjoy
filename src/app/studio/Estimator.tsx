@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import { SITE } from "../data/site"
 import { ContactDialog } from "../utilities/contact/ContactDialog"
 import { useReducedMotion } from "../utilities/settings/useSettings"
+import { useSiteShell } from "../utilities/SiteShell"
 import {
   CARE_PLANS,
   confirmedOnly,
@@ -29,8 +30,6 @@ import {
 } from "./pricing"
 import styles from "./page.module.css"
 import { DETAILS, PROCESS } from "./content"
-import { Prism } from "./Prism"
-import { StudioNav } from "./StudioNav"
 import { useSectionReveal } from "./useSectionReveal"
 
 /** Tom, cut out on a transparent ground, beside the part where he says who he is. Width and height are the file's own. */
@@ -185,6 +184,12 @@ export function Estimator() {
   const [confirmed, setConfirmed] = useState<ReadonlySet<Step>>(() => new Set())
   const [editing, setEditing] = useState<Step | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
+  const { registerHandlers } = useSiteShell()
+
+  useEffect(
+    () => registerHandlers({ onContact: () => setContactOpen(true) }),
+    [registerHandlers],
+  )
   /** Whether the summary is on screen or scrolled past, so the pinned total pointing down at it can step aside. */
   const [summaryReached, setSummaryReached] = useState(false)
   /** Narrow screens only: the pinned total enlarged in place, so the breakdown can be read without leaving the question in hand. */
@@ -456,9 +461,6 @@ export function Estimator() {
 
   return (
     <div ref={pageRef} className={styles.page}>
-      <Prism className={styles.prism} still={reducedMotion} />
-      <StudioNav onContact={() => setContactOpen(true)} />
-
       <header className={styles.hero}>
         <h1 className={styles.title}>A studio for the new AI era ahead.</h1>
         <p className={styles.lead}>
@@ -468,7 +470,7 @@ export function Estimator() {
         </p>
       </header>
 
-      <section className={`${styles.section} ${styles.band}`} aria-labelledby="without-the-slop">
+      <section className={styles.section} aria-labelledby="without-the-slop">
         <SectionHeading id="without-the-slop" index={1}>
           ai, without the slop
         </SectionHeading>
@@ -520,7 +522,7 @@ export function Estimator() {
         </ul>
       </section>
 
-      <section className={`${styles.section} ${styles.band}`} aria-labelledby="every-step">
+      <section className={styles.section} aria-labelledby="every-step">
         <SectionHeading id="every-step" index={3}>
           every step of the way
         </SectionHeading>

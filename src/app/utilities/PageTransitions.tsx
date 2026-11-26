@@ -15,8 +15,9 @@ export function PageTransitions() {
   useEffect(() => {
     pending.current = false
     animation.current?.cancel()
-    if (!reduced) {
-      animation.current = document.body.animate([{ opacity: 0 }, { opacity: 1 }], {
+    const content = document.querySelector<HTMLElement>("[data-site-content]")
+    if (!reduced && content && ["/", "/studio"].includes(pathname)) {
+      animation.current = content.animate([{ opacity: 0 }, { opacity: 1 }], {
         duration: 240, easing: "ease-out",
       })
     }
@@ -32,12 +33,14 @@ export function PageTransitions() {
       if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return
       const url = new URL(link.href, location.href)
       if (url.origin !== location.origin || url.pathname === pathname || !["/", "/studio"].includes(pathname) || !["/", "/studio"].includes(url.pathname)) return
+      const content = document.querySelector<HTMLElement>("[data-site-content]")
+      if (!content) return
       event.preventDefault()
       event.stopPropagation()
       if (pending.current) return
       pending.current = true
       animation.current?.cancel()
-      const fade = document.body.animate([{ opacity: 1 }, { opacity: 0 }], {
+      const fade = content.animate([{ opacity: 1 }, { opacity: 0 }], {
         duration: 180, easing: "ease-in", fill: "forwards",
       })
       animation.current = fade

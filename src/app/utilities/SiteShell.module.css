@@ -1,0 +1,75 @@
+/* Shared outer shell for home and studio: owns the top breathing room,
+   header typography tokens, and sticky lockup so route transitions fade
+   only the page content below it. */
+.shell {
+  --font-label: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --lockup-h: 76px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: 40px;
+  pointer-events: none;
+}
+
+/* Every other route: the same element, so the route tree under it is kept
+   across the switch, but no box of its own. */
+.passthrough {
+  display: contents;
+}
+
+.header {
+  transition: opacity 0.6s ease, visibility 0s linear 0s;
+}
+
+/* Fades out with the page when the simulation starts; visibility waits out
+   the fade so the bar doesn't vanish in a single frame. */
+.header.headerHidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+}
+
+/* The shell stays click-through for the simulation behind it; only interactive
+   controls in the header (and the glass capsule once pinned) take pointer events. */
+.header a,
+.header button,
+.headerStuck {
+  pointer-events: auto;
+}
+
+.headerHidden,
+.headerHidden * {
+  pointer-events: none !important;
+}
+
+.brandLink {
+  text-decoration: none;
+}
+
+.brandLink:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 4px;
+}
+
+/* The full name for assistive tech and crawlers while the visible one types. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    --lockup-h: 64px;
+    padding-top: 64px;
+  }
+}

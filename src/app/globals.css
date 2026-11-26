@@ -169,3 +169,10 @@ a,
 button {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Home and studio are content views over one persistent wash. */
+html:has([data-shared-site]) { background: #ece4e6; }
+html:has([data-shared-site]) body { background: transparent; }
+[data-site-content] { position: relative; z-index: 1; }
+
+[data-shared-site] { pointer-events: none; }

@@ -21,9 +21,7 @@ export function AskAboutWork({
 }) {
   const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "manual">("idle")
   const promptRef = useRef<HTMLTextAreaElement>(null)
-  const copyRef = useRef<HTMLButtonElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const firstOpenRef = useRef(true)
   const interactedOutsideRef = useRef(false)
   const returnFocusRef = useRef<HTMLElement | null>(null)
 
@@ -75,9 +73,7 @@ export function AskAboutWork({
             interactedOutsideRef.current = false
             returnFocusRef.current = null
             // The automatic greeting must not steal focus or expose the preview.
-            // Reopening from the menu does move keyboard focus into the popup.
-            if (!firstOpenRef.current) copyRef.current?.focus({ preventScroll: true })
-            firstOpenRef.current = false
+            // (The menu opens AiPromptDialog instead, which does take focus.)
             setCopyState("idle")
           }}
           onCloseAutoFocus={(event) => {
@@ -95,7 +91,6 @@ export function AskAboutWork({
           </Dialog.Description>
           <div className={styles.bar}>
             <button
-              ref={copyRef}
               className={styles.copy}
               type="button"
               onClick={copyPrompt}

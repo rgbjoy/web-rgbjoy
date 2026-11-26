@@ -12,6 +12,7 @@ import { serializeJsonLd, SITE_STRUCTURED_DATA } from "./data/structured-data"
 import { RolloverChroma } from "./utilities/RolloverChroma"
 import { SETTINGS_BOOT_SCRIPT } from "./utilities/settings/constants"
 import SearchPalette from "./utilities/SearchPalette/SearchPalette"
+import { SiteShell } from "./utilities/SiteShell"
 import { PageTransitions } from "./utilities/PageTransitions"
 import "./globals.css"
 
@@ -152,7 +153,7 @@ export default async function RootLayout({
         <PageTransitions />
         <SearchPalette />
         <RolloverChroma />
-        {children}
+        <SiteShell>{children}</SiteShell>
         </PortfolioProvider>
       </body>
     </html>
